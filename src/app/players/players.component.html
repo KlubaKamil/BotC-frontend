@@ -1,0 +1,29 @@
+<div class="container">  
+    <div *ngIf="players" class="card">
+        <div class="card-body">
+            <h3 class="card-title">Lista graczy:</h3>
+            <div class="table-responsive" style="min-height: 85vh; max-height: 85vh; overflow-y: auto;">
+                <table class="table table-bordered table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Id</th>
+                            <th>Nazwa</th>
+                            <th>Liczba rozgrywek</th>
+                            <th>% bycia dobrym</th>
+                            <th>% wygranych</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let player of players">
+                            <td>{{ player.id }}</td>
+                            <td>{{ player.name }}</td>
+                            <td>{{ player.gamesNumber }}</td>
+                            <td>{{ player.goodPercentage }}</td>
+                            <td>{{ player.winRatio }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div> 
+        </div>
+    </div>
+</div>
