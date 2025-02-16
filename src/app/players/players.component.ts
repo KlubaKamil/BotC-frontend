@@ -3,6 +3,7 @@ import { Player } from '../shared/interfaces'
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { environment } from '../../environments/environment';
+import { SharedService } from '../shared/service/shared.service';
 
 @Component({
   selector: 'app-players',
@@ -15,7 +16,7 @@ export class PlayersComponent {
   error: string = '';
   apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private sharedService: SharedService) {
     this.fetchAllPlayers();
   }
 
@@ -30,5 +31,9 @@ export class PlayersComponent {
         this.players = null;
       }
     })
+  }
+
+  selectPlayer(player: Player){
+    this.sharedService.setSelectedPlayer(player);
   }
 }

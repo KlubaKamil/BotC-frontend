@@ -5,8 +5,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { DialogComponent } from '../dialog/dialog.component';
-import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-character',
@@ -23,7 +21,7 @@ export class CharacterComponent {
   error: string = '';
   apiUrl = environment.apiUrl;
 
-  constructor(private sharedService: SharedService, private http: HttpClient, private dialog: MatDialog) {}
+  constructor(private sharedService: SharedService, private http: HttpClient) {}
 
   ngOnInit() {
     this.sharedService.selectedCharacter$.subscribe((character) => {
@@ -33,6 +31,7 @@ export class CharacterComponent {
   }
 
   createNewCharacter() {
+    this.selectedCharacter = null;
     this.isEditing = false;
     this.isCreating = true;
     this.tempCharacter = {} as Character;
@@ -44,7 +43,7 @@ export class CharacterComponent {
       this.http.post<HttpResponse<any>>(`${this.apiUrl}/character`, this.tempCharacter)
         .subscribe({
           next: (response) => {
-            this.showDialog(DialogType.INFORMATION, "Sukces!")
+            this.sharedService.showDialog(DialogType.INFORMATION, "Sukces!")
             if (this.selectedCharacter && this.tempCharacter) {
               this.selectedCharacter.name = this.tempCharacter.name;
               this.selectedCharacter.alignment = this.tempCharacter.alignment;
@@ -54,7 +53,7 @@ export class CharacterComponent {
             }
           },
           error: (error: HttpErrorResponse) => {
-            this.showDialog(DialogType.INFORMATION, "Coś poszło nie tak!")
+            this.sharedService.showDialog(DialogType.INFORMATION, "Coś poszło nie tak!")
           }
         });
     } else if(this.isCreating && this.tempCharacter) {
@@ -62,10 +61,10 @@ export class CharacterComponent {
       this.http.put<HttpResponse<any>>(`${this.apiUrl}/character`, this.tempCharacter)
         .subscribe({
           next: (response) => {
-            this.showDialog(DialogType.INFORMATION, "Sukces, odśwież stronę!")
+            this.sharedService.showDialog(DialogType.INFORMATION, "Sukces, odśwież stronę!")
           },
           error: (error: HttpErrorResponse) => {
-            this.showDialog(DialogType.INFORMATION, "Coś poszło nie tak!")
+            this.sharedService.showDialog(DialogType.INFORMATION, "Coś poszło nie tak!")
           }
         });
     }
@@ -73,7 +72,7 @@ export class CharacterComponent {
     this.isCreating = false;
   }
 
-  cancelEdit() {
+  cancel() {
     this.tempCharacter = null;
     this.selectedCharacter = null;
     this.isEditing = false;
@@ -81,29 +80,20 @@ export class CharacterComponent {
   }
 
   deleteCharacter() {
-      const dialogRef = this.showDialog(DialogType.CONFIRMATION, "Na pewno chcesz usunąć tę postać?")
+      const dialogRef = this.sharedService.showDialog(DialogType.CONFIRMATION, "Na pewno chcesz usunąć tę postać?")
 
       dialogRef.afterClosed().subscribe((result) => {
         if(result) {
           this.http.delete<any>(this.apiUrl + '/character/' + this.selectedCharacter?.id)
           .subscribe({
             next: (response) => {
-              this.showDialog(DialogType.INFORMATION, 'Sukces!');
+              this.sharedService.showDialog(DialogType.INFORMATION, 'Sukces!');
             },
             error: (error) => {
-              this.showDialog(DialogType.INFORMATION, 'Coś poszło nie tak!');
+              this.sharedService.showDialog(DialogType.INFORMATION, 'Coś poszło nie tak!');
             }
           })
         } 
       });
-  }
-
-  private showDialog(type: DialogType, message: string){
-    return this.dialog.open(DialogComponent, {
-      data: {
-        type: type,
-        message: message
-      }
-    })
   }
 }

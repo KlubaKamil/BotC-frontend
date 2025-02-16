@@ -2,7 +2,7 @@
     <div class="d-flex w-100">
         <button class="btn btn-secondary flex-fill m-2" (click)="createNewCharacter()">Nowy</button>
         <button *ngIf="selectedCharacter || isCreating" class="btn btn-secondary flex-fill m-2" (click)="toggleEdit()">{{ isEditing || isCreating ? 'Zapisz' : 'Edytuj' }}</button>
-        <button *ngIf="selectedCharacter || isCreating" class="btn btn-secondary flex-fill m-2" (click)="cancelEdit()">Anuluj</button>
+        <button *ngIf="selectedCharacter || isCreating" class="btn btn-secondary flex-fill m-2" (click)="cancel()">Anuluj</button>
         <button *ngIf="selectedCharacter" class="btn btn-secondary flex-fill m-2" (click)="deleteCharacter()">Usuń postać</button>
     </div>
     <div *ngIf="selectedCharacter || tempCharacter" class="card">
