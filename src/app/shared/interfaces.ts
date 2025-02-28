@@ -4,48 +4,90 @@ export enum Alignment {
   MINION = 'Minion',
   DEMON = 'Demon',
   TRAVELLER = 'Traveller',
-  FABLE = 'Fable'
+  FABLED = 'Fabled'
 }
 
-export interface Character {
-  id: number;
+export interface CharacterDto {
+  id?: number;
   name: string;
   alignment: Alignment;
-  good: boolean;
   description: String;
-  linkToWiki: String;
+  linkToWiki?: String;
 }
 
-export interface Assignment {
-  player: Player;
-  character: Character;
-}
-
-export interface Game {
-  id: number;
-  script: Script;
-  storyteller: Player;
-  assignments: Assignment[];
+export interface GameDto {
+  id?: number;
+  script: ScriptDto;
+  storyteller: PlayerDto;
+  fabled?: CharacterDto;
+  assignments: AssignmentDto[];
   goodWon: boolean;
-  date: string;
+  date?: string;
+  notes?: string;
 }
 
-export interface Script{
-  id: number;
+export interface AssignmentDto {
+  player: PlayerDto;
+  character: CharacterDto;
+  good: boolean;
+}
+
+export interface ScriptDto{
+  id?: number;
   name: String;
-  characters: Character[];
-  timesPlayed: number;
+  characters: CharacterDto[];
 }
 
-export interface Player{
-  id: number; 
+export interface PlayerDto{
+  id?: number;
   name: string;
-  gamesNumber: number;
-  goodPercentage: number;
-  winRatio: number;
+}
+
+export class Character {
+  id?: number;
+  name?: string;
+  alignment?: Alignment;
+  description?: String;
+  linkToWiki?: String;
+}
+
+export class Game {
+  id?: number;
+  script?: Script;
+  storyteller?: Player;
+  fabled?: Character | null;
+  assignments?: Assignment[];
+  goodWon?: boolean;
+  date?: string;
+  notes?: string;
+}
+
+export class Script {
+  id?: number;
+  name?: String;
+  characters?: Character[];
+  timesPlayed?: number;
+}
+
+export class Player{
+  id?: number; 
+  name?: string;
+  gamesNumber?: number;
+  goodPercentage?: number;
+  winRatio?: number;
+}
+
+export class Assignment {
+  player?: Player;
+  character?: Character;
+  good?: boolean;
 }
 
 export enum DialogType {
   CONFIRMATION,
   INFORMATION
+}
+
+export interface ResponseId {
+  id: number;
 }

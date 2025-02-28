@@ -1,41 +1,41 @@
 <div class="container">
     <div class="d-flex w-100">
-        <button class="btn btn-secondary flex-fill m-2" (click)="createNewPlayer()">Nowy</button>
-        <button *ngIf="selectedPlayer || isCreating" class="btn btn-secondary flex-fill m-2" (click)="toggleEdit()">{{ isEditing || isCreating ? 'Zapisz' : 'Edytuj' }}</button>
-        <button *ngIf="selectedPlayer || isCreating" class="btn btn-secondary flex-fill m-2" (click)="cancel()">Anuluj</button>
-        <button *ngIf="selectedPlayer" class="btn btn-secondary flex-fill m-2" (click)="deletePlayer()">Usuń postać</button>
+        <button mat-raised-button class="flex-fill m-2" (click)="createNewPlayer()">Nowy</button>
+        <button *ngIf="selectedPlayer || tempPlayer" mat-raised-button class="flex-fill m-2" (click)="toggleEdit()">{{ isEditing || isCreating ? 'Zapisz' : 'Edytuj' }}</button>
+        <button *ngIf="selectedPlayer" mat-raised-button class="flex-fill m-2" (click)="deletePlayer()">Usuń</button>
+        <button *ngIf="selectedPlayer || tempPlayer" mat-raised-button class="flex-fill m-2" (click)="cancel()">Anuluj</button>
     </div>
-    <div *ngIf="selectedPlayer || tempPlayer" class="card">
+    <div *ngIf="selectedPlayer || tempPlayer" class="card" style="min-height: 90vh; max-height: 90vh; overflow-y: auto;">
         <div class="card-body">
-            <h3 class="card-title">Szczegóły postaci</h3>
+            <label class="mat-headline-5">Szczegóły gracza:</label>
             <div class="row pt-1 pb-1 myborder bg-stripped">
                 <label class="col-sm-3 fw-bold">Id:</label>
-                <div *ngIf="!isCreating && selectedPlayer" class="col-sm-9">
+                <div *ngIf="selectedPlayer" class="col-sm-9">
                     <label>{{ selectedPlayer.id }}</label>
                 </div>
             </div>
             <div class="row pt-1 pb-1 myborder d-flex align-items-center">
                 <label class="col-sm-3 fw-bold">Imię:</label>
                 <div class="col-sm-9">
-                    <label *ngIf="!isEditing && !isCreating && selectedPlayer">{{ selectedPlayer.name }}</label>
-                    <input *ngIf="(isEditing || isCreating) && tempPlayer" type="text" class="form-control" [(ngModel)]="tempPlayer.name">
+                    <label *ngIf="!tempPlayer && selectedPlayer">{{ selectedPlayer.name }}</label>
+                    <input *ngIf="tempPlayer" type="text" class="form-control" [(ngModel)]="tempPlayer.name">
                 </div>
             </div>
-            <div *ngIf="selectedPlayer" class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
+            <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
                 <label class="col-sm-3 fw-bold">Liczba rozgrywek:</label>
-                <div class="col-sm-9">
+                <div *ngIf="selectedPlayer" class="col-sm-9">
                     <label>{{ selectedPlayer.gamesNumber }}</label>
                 </div>
             </div>
-            <div  *ngIf="selectedPlayer" class="row pt-1 pb-1 myborder d-flex align-items-center">
+            <div class="row pt-1 pb-1 myborder d-flex align-items-center">
                 <label class="col-sm-3 fw-bold">% bycia dobrym:</label>
-                <div class="col-sm-9">
+                <div *ngIf="selectedPlayer" class="col-sm-9">
                     <label>{{ selectedPlayer.goodPercentage }}</label>
                 </div>
             </div>
-            <div  *ngIf="selectedPlayer" class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
+            <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
                 <label class="col-sm-3 fw-bold">% wygranych:</label>
-                <div class="col-sm-9">
+                <div *ngIf="selectedPlayer" class="col-sm-9">
                     <label>{{ selectedPlayer.winRatio }}</label>
                 </div>
             </div>

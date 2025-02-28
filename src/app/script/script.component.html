@@ -1,1 +1,57 @@
-<p>script works!</p>
+<div class="container" style="flex-direction: column;">
+    <div class="d-flex w-100">
+        <button mat-raised-button class="flex-fill m-2" (click)="createNewScript()">Nowy</button>
+        <button *ngIf="selectedScript || tempScript" mat-raised-button class="flex-fill m-2" (click)="toggleEdit()">{{ isEditing || isCreating ? 'Zapisz' : 'Edytuj' }}</button>
+        <button *ngIf="selectedScript" mat-raised-button class="flex-fill m-2" (click)="deleteScript()">Usuń</button>
+        <button *ngIf="selectedScript || tempScript" mat-raised-button class="flex-fill m-2" (click)="cancel()">Anuluj</button>
+    </div>
+    <div *ngIf="selectedScript || tempScript" class="card" style="min-height: 90vh; max-height: 90vh; overflow-y: auto;">
+        <div class="card-body">
+            <label class="mat-headline-5">Szczegóły skryptu:</label>
+            <div class="row pt-1 pb-1 myborder bg-stripped">
+                <label class="col-sm-3 fw-bold">Id:</label>
+                <div *ngIf="selectedScript" class="col-sm-9">
+                    <label>{{ selectedScript!.id }}</label>
+                </div>
+            </div>
+            <div class="row pt-1 pb-1 myborder d-flex align-items-center">
+                <label class="col-sm-3 fw-bold">Nazwa:</label>
+                <div class="col-sm-9">
+                    <label *ngIf="!tempScript && selectedScript">{{ selectedScript!.name }}</label>
+                    <input *ngIf="tempScript" type="text" class="form-control" [(ngModel)]="tempScript.name">
+                </div>
+            </div>
+            <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
+                <label class="col-sm-3 fw-bold">Liczba rozgrywek:</label>
+                <div class="col-sm-9">
+                    <label *ngIf="selectedScript">{{ selectedScript!.timesPlayed }}</label>
+                </div>
+            </div>
+            <label class="mat-headline-6 mt-5">Lista postaci:</label>
+            <div class="card-body">
+                <div *ngIf="!tempScript && selectedScript" class="character-list" cdkDropList>
+                    <div class="character-item d-flex justify-content-between align-items-center p-2 border"
+                        *ngFor="let character of selectedScript?.characters" cdkDrag>
+                      <span>{{ character.name }} ({{ character.alignment }})</span>
+                    </div>
+                </div>
+                <div *ngIf="tempScript" class="character-list" cdkDropList>
+                    <div class="character-item d-flex justify-content-between align-items-center p-2 border"
+                        *ngFor="let character of tempScript?.characters" cdkDrag>
+                      <span>{{ character.name }} ({{ character.alignment }})</span>
+                      <button  mat-mini-fab color="warn" (click)="removeCharacter(character)">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                </div>
+                  
+                <div class="mt-3">
+                    <button *ngIf="isCreating || isEditing" mat-raised-button color="basic" [matMenuTriggerFor]="menu">Dodaj postac</button>
+                    <mat-menu #menu="matMenu">
+                        <button mat-menu-item color="primary" *ngFor="let character of availableCharacters" (click)="addCharacter(character)">{{ character.name }}</button>
+                    </mat-menu>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -8,12 +8,14 @@
             <app-scripts *ngIf="activeComponent === 'scripts'"></app-scripts>
             <app-characters *ngIf="activeComponent === 'characters'"></app-characters>
             <app-players *ngIf="activeComponent === 'players'"></app-players>
+            <app-welcome *ngIf="activeComponent === 'welcome'"></app-welcome>
         </div>
-        <div class="col-md-6 align-items-center justify-content-center text-white">
+        <div class="col-md-6 align-items-center justify-content-center">
             <app-game *ngIf="activeComponent === 'games'"></app-game>
             <app-script *ngIf="activeComponent === 'scripts'"></app-script>
             <app-character *ngIf="activeComponent === 'characters'"></app-character>
             <app-player *ngIf="activeComponent === 'players'"></app-player>
+            <app-welcome2 *ngIf="activeComponent === 'welcome'"></app-welcome2>
         </div>
     </div>
 </div>

@@ -1,31 +1,31 @@
 <div class="container">
     <div class="d-flex w-100">
-        <button class="btn btn-secondary flex-fill m-2" (click)="createNewCharacter()">Nowy</button>
-        <button *ngIf="selectedCharacter || isCreating" class="btn btn-secondary flex-fill m-2" (click)="toggleEdit()">{{ isEditing || isCreating ? 'Zapisz' : 'Edytuj' }}</button>
-        <button *ngIf="selectedCharacter || isCreating" class="btn btn-secondary flex-fill m-2" (click)="cancel()">Anuluj</button>
-        <button *ngIf="selectedCharacter" class="btn btn-secondary flex-fill m-2" (click)="deleteCharacter()">Usuń postać</button>
+        <button mat-raised-button class="flex-fill m-2" (click)="createNewCharacter()">Nowy</button>
+        <button *ngIf="selectedCharacter || tempCharacter" mat-raised-button class="flex-fill m-2" (click)="toggleEdit()">{{ isEditing || isCreating ? 'Zapisz' : 'Edytuj' }}</button>
+        <button *ngIf="selectedCharacter" mat-raised-button class="flex-fill m-2" (click)="deleteCharacter()">Usuń</button>
+        <button *ngIf="selectedCharacter || tempCharacter" mat-raised-button class="flex-fill m-2" (click)="cancel()">Anuluj</button>
     </div>
-    <div *ngIf="selectedCharacter || tempCharacter" class="card">
+    <div *ngIf="selectedCharacter || tempCharacter" class="card" style="min-height: 90vh; max-height: 90vh; overflow-y: auto;">
         <div class="card-body">
-            <h3 class="card-title">Szczegóły postaci</h3>
+            <label class="mat-headline-5">Szczegóły postaci:</label>
             <div class="row pt-1 pb-1 myborder bg-stripped">
                 <label class="col-sm-3 fw-bold">Id:</label>
-                <div *ngIf="!isCreating && selectedCharacter" class="col-sm-9">
+                <div *ngIf="selectedCharacter" class="col-sm-9">
                     <label>{{ selectedCharacter.id }}</label>
                 </div>
             </div>
             <div class="row pt-1 pb-1 myborder d-flex align-items-center">
                 <label class="col-sm-3 fw-bold">Nazwa:</label>
                 <div class="col-sm-9">
-                    <label *ngIf="!isEditing && !isCreating && selectedCharacter">{{ selectedCharacter.name }}</label>
-                    <input *ngIf="(isEditing || isCreating) && tempCharacter" type="text" class="form-control" [(ngModel)]="tempCharacter.name">
+                    <label *ngIf="!tempCharacter && selectedCharacter">{{ selectedCharacter.name }}</label>
+                    <input *ngIf="tempCharacter" type="text" class="form-control" [(ngModel)]="tempCharacter.name">
                 </div>
             </div>
             <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
                 <label class="col-sm-3 fw-bold">Przynależność:</label>
                 <div class="col-sm-9">
-                    <label *ngIf="!isEditing && !isCreating && selectedCharacter">{{ selectedCharacter.alignment }}</label>
-                    <select *ngIf="(isEditing || isCreating) && tempCharacter" class="form-control" [(ngModel)]="tempCharacter.alignment">
+                    <label *ngIf="!tempCharacter && selectedCharacter">{{ selectedCharacter.alignment }}</label>
+                    <select *ngIf="tempCharacter" class="form-control" [(ngModel)]="tempCharacter.alignment">
                         <option *ngFor="let align of alignments" [value]="align">{{ align }}</option>
                     </select>
                 </div>
@@ -33,15 +33,15 @@
             <div class="row pt-1 pb-1 myborder d-flex align-items-center">
                 <label class="col-sm-3 fw-bold">Opis:</label>
                 <div class="col-sm-9">
-                    <label *ngIf="!isEditing && !isCreating && selectedCharacter">{{ selectedCharacter.description }}</label>
-                    <textarea *ngIf="(isEditing || isCreating) && tempCharacter" class="form-control" [(ngModel)]="tempCharacter.description"></textarea>
+                    <label *ngIf="!tempCharacter && selectedCharacter">{{ selectedCharacter.description }}</label>
+                    <textarea *ngIf="tempCharacter" class="form-control" [(ngModel)]="tempCharacter.description"></textarea>
                 </div>
             </div>
             <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
                 <label class="col-sm-3 fw-bold">Wiki:</label>
                 <div class="col-sm-9">
-                    <label *ngIf="!isEditing && !isCreating && selectedCharacter">{{ selectedCharacter.linkToWiki }}</label>
-                    <input *ngIf="(isEditing || isCreating) && tempCharacter" type="text" class="form-control" [(ngModel)]="tempCharacter.linkToWiki">
+                    <label *ngIf="!tempCharacter && selectedCharacter">{{ selectedCharacter.linkToWiki }}</label>
+                    <input *ngIf="tempCharacter" type="text" class="form-control" [(ngModel)]="tempCharacter.linkToWiki">
                 </div>
             </div>
         </div>

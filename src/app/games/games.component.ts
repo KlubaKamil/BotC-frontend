@@ -1,40 +1,34 @@
 import { Component } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Game } from '../shared/interfaces'
-import { environment } from '../../environments/environment';
+import { SharedService } from '../shared/service/shared.service';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-games',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatButtonModule],
   templateUrl: './games.component.html',
   styleUrls: ['./games.component.css']
 })
 export class GamesComponent {
   games: Game[] | null = null;
-  error: string = '';  
-  apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {  
-    this.fetchAllGames();
+  constructor(private sharedService: SharedService) {}
+
+  ngOnInit() {
+    this.sharedService.games$.subscribe((games) => {
+      this.games = games;
+    })
+    this.sharedService.fetchAll();
   }
 
-  fetchAllGames() {
-    this.http.get<Game[]>(this.apiUrl + '/game/all').subscribe({
-      next: (data) => {
-        this.games = data;
-        this.error = '';
-      },
-      error: () => {
-        this.error = 'Failed to fetch games data.';
-        this.games = null;
-      }
-    });
+  selectGame(game: Game){
+    this.sharedService.setSelectedGame(game);
   }
 
-  showPlayers(game: Game){
-    console.log(game);
+  addGame(game: Game){
+    this.games?.push(game)
   }
 } 

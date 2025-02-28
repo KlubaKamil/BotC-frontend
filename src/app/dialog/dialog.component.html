@@ -1,10 +1,10 @@
-<h2 mat-dialog-title>{{ data.message }}</h2>
-<mat-dialog-actions>
+<label mat-dialog-title class="mat-headline-5">{{ data.message }}</label>
+<mat-dialog-actions style="min-width: 300px; justify-content: flex-end;">
   <div *ngIf="data.type === types.INFORMATION">
-    <button class="btn btn-primary" (click)="close()">Ok</button>
+    <button mat-raised-button class="m-2" (click)="close()">Ok</button>
   </div>
   <div *ngIf="data.type === types.CONFIRMATION">
-    <button class="btn btn-primary m-2" (click)="confirm()">Tak</button>
-    <button class="btn btn-primary m-2" (click)="close()">Anuluj</button>
+    <button mat-raised-button class="m-2" (click)="confirm()">Tak</button>
+    <button mat-raised-button class="m-2" (click)="close()">Anuluj</button>
   </div>
 </mat-dialog-actions>

@@ -1,9 +1,9 @@
 <div class="container">  
-    <div *ngIf="players" class="card">
+    <div class="card">
         <div class="card-body">
-            <h3 class="card-title">Lista graczy:</h3>
-            <div class="table-responsive" style="min-height: 85vh; max-height: 85vh; overflow-y: auto;">
-                <table class="table table-bordered table-striped">
+            <label class="mat-headline-5">Lista graczy:</label>
+            <div *ngIf="players" class="table-responsive" style="min-height: 88vh; max-height: 88vh; overflow-y: auto;">
+                <table class="table table-bordered table-striped table-hover">
                     <thead class="thead-dark">
                         <tr>
                             <th>Id</th>

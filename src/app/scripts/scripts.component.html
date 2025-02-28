@@ -1,9 +1,9 @@
  <div class="container">
-    <div *ngIf="scripts" class="card">
+    <div class="card">
         <div class="card-body">
-            <h3 class="card-title">Lista skryptów:</h3>
-            <div class="table-responsive" style="min-height: 85vh; max-height: 85vh; overflow-y: auto;">
-                <table class="table table-bordered table-striped">
+            <label class="mat-headline-5">Lista skryptów:</label>
+            <div *ngIf="scripts" class="table-responsive" style="min-height: 88vh; max-height: 88vh; overflow-y: auto;">
+                <table class="table table-bordered table-striped table-hover">
                     <thead class="thead-dark">
                         <tr>
                             <th>Id</th>
@@ -12,7 +12,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let script of scripts">
+                        <tr *ngFor="let script of scripts" (click)="selectScript(script)">
                             <td>{{ script.id }}</td>
                             <td>{{ script.name }}</td>
                             <td>{{ script.timesPlayed }}</td>

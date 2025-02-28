@@ -2,13 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { DialogType } from '../shared/interfaces';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-dialog',
   standalone: true,
-  imports: [MatDialogModule, CommonModule],
+  imports: [MatDialogModule, CommonModule, MatButtonModule],
   templateUrl: './dialog.component.html',
-  styleUrl: './dialog.component.css'
+  styleUrls: ['./dialog.component.css']
 })
 export class DialogComponent {
   types = DialogType;
