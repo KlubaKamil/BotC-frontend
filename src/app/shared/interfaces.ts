@@ -23,6 +23,7 @@ export interface GameDto {
   assignments: AssignmentDto[];
   goodWon: boolean;
   date?: string;
+  place?: string;
   notes?: string;
 }
 
@@ -55,10 +56,11 @@ export class Game {
   id?: number;
   script?: Script;
   storyteller?: Player;
-  fabled?: Character | null;
+  fabled?: Character | undefined | null;
   assignments?: Assignment[];
   goodWon?: boolean;
   date?: string;
+  place?: string;
   notes?: string;
 }
 

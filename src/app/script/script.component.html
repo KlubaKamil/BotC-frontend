@@ -27,15 +27,9 @@
                     <label *ngIf="selectedScript">{{ selectedScript!.timesPlayed }}</label>
                 </div>
             </div>
-            <label class="mat-headline-6 mt-5">Lista postaci:</label>
-            <div class="card-body">
-                <div *ngIf="!tempScript && selectedScript" class="character-list" cdkDropList>
-                    <div class="character-item d-flex justify-content-between align-items-center p-2 border"
-                        *ngFor="let character of selectedScript?.characters" cdkDrag>
-                      <span>{{ character.name }} ({{ character.alignment }})</span>
-                    </div>
-                </div>
-                <div *ngIf="tempScript" class="character-list" cdkDropList>
+            <label *ngIf="tempScript" class="mat-headline-6 mt-5">Lista postaci:</label>
+            <div *ngIf="tempScript" class="card-body">
+                <div class="character-list" cdkDropList>
                     <div class="character-item d-flex justify-content-between align-items-center p-2 border"
                         *ngFor="let character of tempScript?.characters" cdkDrag>
                       <span>{{ character.name }} ({{ character.alignment }})</span>
@@ -45,12 +39,35 @@
                     </div>
                 </div>
                   
-                <div class="mt-3">
-                    <button *ngIf="isCreating || isEditing" mat-raised-button color="basic" [matMenuTriggerFor]="menu">Dodaj postac</button>
+                <div *ngIf="isCreating || isEditing" class="mt-3">
+                    <button mat-raised-button color="basic" [matMenuTriggerFor]="menu">Dodaj postac</button>
                     <mat-menu #menu="matMenu">
                         <button mat-menu-item color="primary" *ngFor="let character of availableCharacters" (click)="addCharacter(character)">{{ character.name }}</button>
                     </mat-menu>
                 </div>
+            </div>
+            <div *ngIf="selectedScript && !tempScript" class="mt-5">
+                <label class="mat-headline-5">Statystyki postaci:</label>
+                <table class="table table-bordered table-striped table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Nazwa:</th>
+                            <th>Liczba rozgrywek</th>
+                            <th>% wystąpień</th>
+                            <th>Liczba wygranych</th>
+                            <th>% wygranych</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let stats of charactersStats">
+                            <td>{{ stats.name }}</td>
+                            <td>{{ stats.characterTimesPlayed }}</td>
+                            <td>{{ stats.characterPlayedRatio }}</td>
+                            <td>{{ stats.characterTimesWon }}</td>
+                            <td>{{ stats.characterWonRatio }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

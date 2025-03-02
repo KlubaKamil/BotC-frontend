@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { Alignment, Character, DialogType, ResponseId, Script } from '../shared/interfaces';
+import { Alignment, Character, DialogType, Game, ResponseId, Script } from '../shared/interfaces';
 import { SharedService } from '../shared/service/shared.service';
 import { HttpClient, HttpErrorResponse, HttpResponse, HttpStatusCode } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
@@ -22,11 +22,14 @@ import { DtoMapperService } from '../shared/service/dtoMapper.service';
 export class ScriptComponent {
   apiUrl = environment.apiUrl;
   scripts: Script[] = [];
+  games: Game[] = [];
   selectedScript: Script | null = null;
   tempScript: Script | null = null;
   allCharacters: Character[] = [];
   availableCharacters: Character[] = [];
   selectedCharacter: Character | null = null;
+  charactersStats: {name: string, characterTimesPlayed: number, characterPlayedRatio: number, 
+                    characterTimesWon: number, characterWonRatio: number}[] = [];
   isEditing: boolean = false;
   isCreating: boolean = false;
   
@@ -36,6 +39,10 @@ export class ScriptComponent {
     this.sharedService.selectedScript$.subscribe((script) => {
       this.cancel();
       this.selectedScript = script;
+      this.getCharactersStats();
+    })
+    this.sharedService.games$.subscribe((games) => {
+      this.games = games!;
     })
     this.sharedService.scripts$.subscribe((scripts) => {
       this.scripts = scripts!;
@@ -101,6 +108,33 @@ export class ScriptComponent {
 
   removeCharacter(character: Character){
     this.tempScript!.characters = this.tempScript!.characters?.filter(char => character.id !== char.id)
+  }
+  
+  private getCharactersStats(){
+    this.charactersStats = [];
+    let scriptTimesPlayed = this.selectedScript?.timesPlayed || 0;
+    this.selectedScript?.characters?.forEach(c => {
+      let charPlayed = this.games?.filter(g => 
+        g.script?.id === this.selectedScript!.id && 
+        g.assignments?.find(a => a.character?.id === c.id));
+      let charWon = this.games?.filter(g => 
+        g.script?.id === this.selectedScript!.id && 
+        g.assignments?.find(a => a.character?.id === c.id && 
+        g.goodWon === a.good));
+
+      let characterTimesPlayed = charPlayed.length;
+      let characterPlayedRatio = scriptTimesPlayed === 0 ? 0 : 100 * characterTimesPlayed / scriptTimesPlayed;
+      let characterTimesWon = charWon.length;
+      let characterWonRatio = characterTimesPlayed === 0 ? 0 : 100 * characterTimesWon / characterTimesPlayed;
+
+      this.charactersStats.push({
+        name: c.name!, 
+        characterTimesPlayed: characterTimesPlayed, 
+        characterPlayedRatio: characterPlayedRatio, 
+        characterTimesWon: characterTimesWon, 
+        characterWonRatio: characterWonRatio
+      });
+    })
   }
 
   private validate(script: Script){

@@ -37,7 +37,7 @@ export class GameComponent {
   isCreating: boolean = false;
   availableTravellers: Character[] = [];
   availableFables: Character[] = [];
-  selected: boolean = true;
+  places: string[] = ['W Cesarskiej', 'U Pitera', 'W Czeladzi', 'Online', 'W Mediatece'];
   alignmentOrder: { [key in Alignment]: number } = {
     [Alignment.TOWNSFOLK]: 1000,
     [Alignment.OUTSIDER]: 2000,
@@ -81,6 +81,8 @@ export class GameComponent {
   }
 
   toggleEdit() {
+    console.log(this.isEditing);
+    console.log(this.isCreating)
     if (!this.isEditing && !this.isCreating){
       this.tempGame = JSON.parse(JSON.stringify(this.selectedGame));
       this.tempGame!.script = this.scripts.find(s => s.id === this.selectedGame!.script!.id);
@@ -89,7 +91,7 @@ export class GameComponent {
       this.tempGame!.assignments!.forEach(assignment => {
         assignment.character = this.tempGame!.script!.characters!.find(c => c.id === assignment.character!.id) || assignment.character;
         assignment.player = this.players.find(p => p.id === assignment.player!.id) || assignment.player;
-    });
+      });
       this.isEditing = true;
     } else if (this.isEditing) {
       this.tempGame?.assignments!.filter(a => this.tempGame?.script!.characters!.find(c => c === a.character))
@@ -98,7 +100,9 @@ export class GameComponent {
         this.handleResponse(this.http.post<ResponseId>(`${this.apiUrl}/game`, dto, { observe: 'response' }));
       }
     } else if(this.isCreating && this.tempGame) {
+      console.log("halo1")
       if(this.validate(this.tempGame!)){
+        console.log('halo2')
         let dto = this.mapper.mapGameToDto(this.tempGame!);
         this.handleResponse(this.http.put<ResponseId>(`${this.apiUrl}/game`, dto, { observe: 'response' }));
       }

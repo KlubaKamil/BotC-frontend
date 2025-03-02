@@ -99,6 +99,9 @@ export class PlayerComponent {
           this.tempPlayer!.id = response.body!.id;
           this.players.push(this.tempPlayer!);
           this.sharedService.showDialog(DialogType.INFORMATION, "Dodano nowego gracza!")
+          this.tempPlayer!.gamesNumber = 0;
+          this.tempPlayer!.goodPercentage = 0;
+          this.tempPlayer!.winRatio = 0;
           this.cancel();
         } else {
           this.sharedService.showDialog(DialogType.INFORMATION, 'Sukces!');
