@@ -19,11 +19,12 @@ export class PlayersComponent {
   constructor(private sharedService: SharedService) {}
 
   ngOnInit(){
-    this.sharedService.players$.subscribe((players) => this.players = players);
     this.sharedService.games$.subscribe((games) => this.games = games);
     this.sharedService.characters$.subscribe((characters) => this.characters = characters);
-
-    this.getDetails();
+    this.sharedService.players$.subscribe((players) => {
+      this.players = players; 
+      this.getDetails();
+    })
   }
 
   selectPlayer(player: Player){

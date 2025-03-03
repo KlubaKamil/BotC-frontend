@@ -28,19 +28,14 @@ export class ScriptComponent {
   allCharacters: Character[] = [];
   availableCharacters: Character[] = [];
   selectedCharacter: Character | null = null;
-  charactersStats: {name: string, characterTimesPlayed: number, characterPlayedRatio: number, 
-                    characterTimesWon: number, characterWonRatio: number}[] = [];
+  scriptStats: {name: string, characterTimesPlayed: number, characterPlayedRatio: number, 
+                characterTimesWon: number, characterWonRatio: number}[] = [];
   isEditing: boolean = false;
   isCreating: boolean = false;
   
   constructor(private sharedService: SharedService, private http: HttpClient, private mapper: DtoMapperService) {}
 
   ngOnInit() {
-    this.sharedService.selectedScript$.subscribe((script) => {
-      this.cancel();
-      this.selectedScript = script;
-      this.getCharactersStats();
-    })
     this.sharedService.games$.subscribe((games) => {
       this.games = games!;
     })
@@ -51,6 +46,11 @@ export class ScriptComponent {
       this.allCharacters = characters!;
       this.availableCharacters = this.allCharacters?.filter(c => 
         [Alignment.TOWNSFOLK, Alignment.OUTSIDER, Alignment.MINION, Alignment.DEMON].includes(c.alignment!));
+    })
+    this.sharedService.selectedScript$.subscribe((script) => {
+      this.cancel();
+      this.selectedScript = script;
+      this.getScriptStats();
     })
   }
 
@@ -110,8 +110,8 @@ export class ScriptComponent {
     this.tempScript!.characters = this.tempScript!.characters?.filter(char => character.id !== char.id)
   }
   
-  private getCharactersStats(){
-    this.charactersStats = [];
+  private getScriptStats(){
+    this.scriptStats = [];
     let scriptTimesPlayed = this.selectedScript?.timesPlayed || 0;
     this.selectedScript?.characters?.forEach(c => {
       let charPlayed = this.games?.filter(g => 
@@ -127,7 +127,7 @@ export class ScriptComponent {
       let characterTimesWon = charWon.length;
       let characterWonRatio = characterTimesPlayed === 0 ? 0 : 100 * characterTimesWon / characterTimesPlayed;
 
-      this.charactersStats.push({
+      this.scriptStats.push({
         name: c.name!, 
         characterTimesPlayed: characterTimesPlayed, 
         characterPlayedRatio: characterPlayedRatio, 
@@ -156,6 +156,7 @@ export class ScriptComponent {
           this.sharedService.showDialog(DialogType.INFORMATION, 'Edycja zakończona pomyślnie!');
           this.selectedScript!.name = this.tempScript!.name;
           this.selectedScript!.characters = this.tempScript!.characters;
+          this.getScriptStats();
           this.cancel();
         } else if(status === HttpStatusCode.Created){
           this.tempScript!.id = response.body!.id;
@@ -163,14 +164,20 @@ export class ScriptComponent {
           this.scripts.push(this.tempScript!);
           this.sharedService.showDialog(DialogType.INFORMATION, 'Dodano nowy skrypt!');
           this.cancel();
+        } else if(status === HttpStatusCode.NoContent){
+          this.sharedService.showDialog(DialogType.INFORMATION, "Usunięcie zakończone pomyślnie!")
+          this.cancel();
         } else {
           this.sharedService.showDialog(DialogType.INFORMATION, 'Sukces!');
         }
+        this.sharedService.fetchAllScripts();
       },
       error: (error: HttpErrorResponse) => {
         const status = error.status;
         if(status === HttpStatusCode.PreconditionRequired){ 
           this.sharedService.showDialog(DialogType.INFORMATION, 'Istnieje co najmniej jedna gra, w której ten skrypt jest wykorzystywany!');
+        } else if(status === HttpStatusCode.Conflict){
+          this.sharedService.showDialog(DialogType.INFORMATION, 'Skrypt z podaną nazwą już istnieje.');
         } else {
           this.sharedService.showDialog(DialogType.INFORMATION, 'Coś poszło nie tak!');
         }

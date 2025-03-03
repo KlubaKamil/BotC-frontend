@@ -103,9 +103,13 @@ export class PlayerComponent {
           this.tempPlayer!.goodPercentage = 0;
           this.tempPlayer!.winRatio = 0;
           this.cancel();
+        } else if(status === HttpStatusCode.NoContent){
+          this.sharedService.showDialog(DialogType.INFORMATION, "Usunięcie zakończone pomyślnie!")
+          this.cancel();
         } else {
           this.sharedService.showDialog(DialogType.INFORMATION, 'Sukces!');
         }
+        this.sharedService.fetchAllPlayers();
       },
       error: (error: HttpErrorResponse) => {
         const status = error.status;

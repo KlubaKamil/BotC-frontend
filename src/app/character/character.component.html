@@ -44,6 +44,46 @@
                     <input *ngIf="tempCharacter" type="text" class="form-control" [(ngModel)]="tempCharacter.linkToWiki">
                 </div>
             </div>
+            <label *ngIf="selectedCharacter && !tempCharacter" class="mat-headline-5 mt-5">Statystyki postaci:</label>
+            <div *ngIf="selectedCharacter && !tempCharacter && characterStats">
+                <div class="row pt-1 pb-1 myborder d-flex align-items-center">
+                    <label class="col-sm-3 fw-bold">Liczba rozgrywek:</label>
+                    <div class="col-sm-9">
+                        <label>{{ characterStats.characterTotalTimesPlayed }}</label>
+                    </div>
+                </div>
+                <div class="row pt-1 pb-1 myborder d-flex align-items-center">
+                    <label class="col-sm-3 fw-bold">Liczba wygranych:</label>
+                    <div class="col-sm-9">
+                        <label>{{ characterStats.characterTotalWonGames }}</label>
+                    </div>
+                </div>
+                <div class="row pt-1 pb-1 myborder d-flex align-items-center">
+                    <label class="col-sm-3 fw-bold">% wygranych:</label>
+                    <div class="col-sm-9">
+                        <label>{{ characterStats.characterTotalWinRatio }}</label>
+                    </div>
+                </div>
+                <label class="mt-5 mat-headline-5">Statystyki w skryptach:</label>
+                <table class="table table-bordered table-striped table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Nazwa skryptu</th>
+                            <th>Liczba rozgrywek</th>
+                            <th>Liczba wygranych</th>
+                            <th>% wygranych</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let scritpDetails of characterStats.characterPerScriptDetails">
+                            <td>{{ scritpDetails.scriptName }}</td>
+                            <td>{{ scritpDetails.characterTimesPlayed }}</td>
+                            <td>{{ scritpDetails.characterWonGames }}</td>
+                            <td>{{ scritpDetails.characterWinRatio }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

@@ -82,7 +82,7 @@
                     <textarea *ngIf="tempGame" class="form-control" [(ngModel)]="tempGame.notes"></textarea>
                 </div>
             </div>
-            <div class="row pt-1 pb-1 myborder d-flex align-items-center">
+            <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
                 <label class="col-sm-3 fw-bold">Miejsce rozgrywki:</label>
                 <div class="col-sm-9">
                     <label *ngIf="!tempGame && selectedGame">{{ selectedGame.place }}</label>

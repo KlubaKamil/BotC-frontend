@@ -18,8 +18,8 @@
                             <td>{{ player.id }}</td>
                             <td>{{ player.name }}</td>
                             <td>{{ player.gamesNumber }}</td>
-                            <td>{{ player.goodPercentage }}</td>
-                            <td>{{ player.winRatio }}</td>
+                            <td>{{ player.goodPercentage!.toFixed(2) }}</td>
+                            <td>{{ player.winRatio!.toFixed(2) }}</td>
                         </tr>
                     </tbody>
                 </table>

@@ -20,14 +20,9 @@ export class CharactersComponent {
     this.sharedService.characters$.subscribe((characters) => {
       this.characters = characters;
     });
-    this.sharedService.fetchAllCharacters();
   }
 
   selectCharacter(character: Character){
     this.sharedService.setSelectedCharacter(character);
-  }
-
-  addCharacter(character: Character){
-    this.characters?.push(character)
   }
 }

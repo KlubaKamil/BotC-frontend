@@ -17,6 +17,7 @@ export class ButtonsComponent {
   constructor(private sharedService: SharedService){}
 
   changeComponent(componentName: string){
+    this.sharedService.fetchAll();
     this.activeComponent.emit(componentName);
   }
 }

@@ -100,9 +100,7 @@ export class GameComponent {
         this.handleResponse(this.http.post<ResponseId>(`${this.apiUrl}/game`, dto, { observe: 'response' }));
       }
     } else if(this.isCreating && this.tempGame) {
-      console.log("halo1")
       if(this.validate(this.tempGame!)){
-        console.log('halo2')
         let dto = this.mapper.mapGameToDto(this.tempGame!);
         this.handleResponse(this.http.put<ResponseId>(`${this.apiUrl}/game`, dto, { observe: 'response' }));
       }
@@ -189,34 +187,36 @@ export class GameComponent {
   }
 
 
-  private handleResponse(httpResponse: Observable<HttpResponse<ResponseId>>): boolean{
+  private handleResponse(httpResponse: Observable<HttpResponse<ResponseId>>){
     httpResponse.subscribe({
       next: (response: HttpResponse<ResponseId>) => {
         const status = response.status;
         if(status === HttpStatusCode.Ok){
+          this.selectedGame!.script = this.tempGame?.script;
+          this.selectedGame!.storyteller = this.tempGame?.storyteller;
+          this.selectedGame!.assignments = this.tempGame?.assignments;
+          this.selectedGame!.fabled = this.tempGame?.fabled;
+          this.selectedGame!.goodWon = this.tempGame?.goodWon;
+          this.selectedGame!.notes = this.tempGame?.notes;
+          this.selectedGame!.place = this.tempGame?.place;
           this.sharedService.showDialog(DialogType.INFORMATION, "Edycja zakończona pomyślnie!")
-          this.selectedGame!.script = this.tempGame!.script;
-          this.selectedGame!.fabled = this.tempGame!.fabled;
-          this.selectedGame!.storyteller = this.tempGame!.storyteller;
-          this.selectedGame!.assignments = this.tempGame!.assignments;
-          this.selectedGame!.goodWon = this.tempGame!.goodWon;
-          this.selectedGame!.date = this.tempGame!.date;
           this.cancel();
         } else if(status === HttpStatusCode.Created){
-          this.sharedService.showDialog(DialogType.INFORMATION, "Dodano nową rozgrywkę!")
           this.tempGame!.id = response.body!.id;
           this.games.push(this.tempGame!);
+          this.sharedService.showDialog(DialogType.INFORMATION, "Dodano nową rozgrywkę!")
+          this.cancel();
+        } else if(status === HttpStatusCode.NoContent){
+          this.sharedService.showDialog(DialogType.INFORMATION, "Usunięcie zakończone pomyślnie!")
           this.cancel();
         } else {
           this.sharedService.showDialog(DialogType.INFORMATION, 'Sukces!');
         }
-        return true;
+        this.sharedService.fetchAllGames();
       },
       error: (error: HttpErrorResponse) => {
         this.sharedService.showDialog(DialogType.INFORMATION, 'Coś poszło nie tak!');
-        return false;
       }
     })
-    return false;
   }
 }

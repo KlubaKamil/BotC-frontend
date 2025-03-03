@@ -24,11 +24,11 @@ export class ScriptsComponent {
   ngOnInit() {
     this.sharedService.scripts$.subscribe((scripts) => {
       this.scripts = scripts;
+      this.getDetails();
     })
     this.sharedService.games$.subscribe((games) => this.games = games);
     this.sharedService.characters$.subscribe((characters) => this.characters = characters);
     
-    this.getDetails();
   }
 
   selectScript(script: Script){

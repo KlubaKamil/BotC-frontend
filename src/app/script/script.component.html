@@ -59,12 +59,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let stats of charactersStats">
+                        <tr *ngFor="let stats of scriptStats">
                             <td>{{ stats.name }}</td>
                             <td>{{ stats.characterTimesPlayed }}</td>
-                            <td>{{ stats.characterPlayedRatio }}</td>
+                            <td>{{ stats.characterPlayedRatio.toFixed(2) }}</td>
                             <td>{{ stats.characterTimesWon }}</td>
-                            <td>{{ stats.characterWonRatio }}</td>
+                            <td>{{ stats.characterWonRatio.toFixed(2) }}</td>
                         </tr>
                     </tbody>
                 </table>

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Alignment, Character, DialogType, ResponseId } from '../shared/interfaces';
+import { Alignment, Character, DialogType, Game, ResponseId, Script } from '../shared/interfaces';
 import { SharedService } from '../shared/service/shared.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -18,21 +18,35 @@ import { DtoMapperService } from '../shared/service/dtoMapper.service';
 export class CharacterComponent {
   apiUrl = environment.apiUrl;
   characters: Character[] = [];
+  scripts: Script[] = [];
+  games: Game[] = [];
   selectedCharacter: Character | null = null;
   tempCharacter: Character | null = null;
   isEditing: boolean = false;
   isCreating: boolean = false;
   alignments = Object.values(Alignment);
+  characterStats: {name: string, characterScripts: number, characterTotalTimesPlayed: number, characterTotalWonGames: number,
+                  characterTotalWinRatio: number, characterPerScriptDetails: {scriptName: String, characterTimesPlayed: number, 
+                  characterWonGames: number, characterWinRatio: number}[]} | undefined;
 
   constructor(private sharedService: SharedService, private http: HttpClient, private mapper: DtoMapperService) {}
 
   ngOnInit() {
+    this.sharedService.characters$.subscribe((characters) => {
+      this.characters = characters!;
+    })
+    this.sharedService.scripts$.subscribe((scripts) => {
+      this.scripts = scripts!;
+    })
+    this.sharedService.games$.subscribe((games) => {
+      this.games = games!;
+    })
     this.sharedService.selectedCharacter$.subscribe((character) => {
       this.cancel();
       this.selectedCharacter = character;
-    })
-    this.sharedService.characters$.subscribe((characters) => {
-      this.characters = characters!;
+      if(this.selectedCharacter){
+        this.getCharacterStats();
+      }
     })
   }
 
@@ -80,6 +94,32 @@ export class CharacterComponent {
     });
   }
 
+  private getCharacterStats(){
+    let charId = this.selectedCharacter!.id;
+    let characterScripts = this.scripts.filter(s => s.characters?.map(c => c.id)?.includes(charId));
+    let characterTotalGames = this.games.filter(g => g.assignments!.map(a => a.character!.id).includes(charId));
+    let characterTotalWonGames = characterTotalGames.filter(g => g.goodWon === g.assignments?.find(a => a.character!.id === charId)?.good);
+    this.characterStats = {
+      name: this.selectedCharacter?.name!,
+      characterScripts: characterScripts.length,
+      characterTotalTimesPlayed: characterTotalGames.length,
+      characterTotalWonGames: characterTotalWonGames.length,
+      characterTotalWinRatio: characterTotalGames.length === 0 ? 0 : 100 * characterTotalWonGames.length / characterTotalGames.length,
+      characterPerScriptDetails: []
+    }
+    for(let script of characterScripts){
+      let scriptId = script.id;
+      let characterGames = characterTotalGames.filter(g => g.script!.id === scriptId);
+      let characterWonGames = characterGames.filter(g => g.goodWon === g.assignments?.find(a => a.character!.id === charId)?.good);
+      this.characterStats.characterPerScriptDetails.push({
+        scriptName: script!.name!,
+        characterTimesPlayed: characterGames.length,
+        characterWonGames: characterWonGames.length,
+        characterWinRatio: characterGames.length === 0 ? 0 : 100 * characterWonGames.length / characterGames.length
+      })
+    }
+  }
+
   private validate(character: Character){
     if(!character.name){
       this.sharedService.showDialog(DialogType.INFORMATION, "Nazwa jest wymagana!");
@@ -99,20 +139,24 @@ export class CharacterComponent {
       next: (response: HttpResponse<ResponseId>) => {
         const status = response.status;
         if(status === HttpStatusCode.Ok){
-          this.sharedService.showDialog(DialogType.INFORMATION, "Sukces!")
           this.selectedCharacter!.name = this.tempCharacter!.name;
           this.selectedCharacter!.alignment = this.tempCharacter!.alignment;
           this.selectedCharacter!.description = this.tempCharacter!.description;
           this.selectedCharacter!.linkToWiki = this.tempCharacter!.linkToWiki;
+          this.sharedService.showDialog(DialogType.INFORMATION, "Edycja zakończone pomyślnie!")
           this.cancel();
         } else if(status === HttpStatusCode.Created){
           this.tempCharacter!.id = response.body!.id;
           this.characters.push(this.tempCharacter!);
-          this.sharedService.showDialog(DialogType.INFORMATION, "Sukces!")
+          this.sharedService.showDialog(DialogType.INFORMATION, "Dodano nową postać!")
+          this.cancel();
+        } else if(status === HttpStatusCode.NoContent){
+          this.sharedService.showDialog(DialogType.INFORMATION, "Usunięcie zakończone pomyślnie!")
           this.cancel();
         } else {
           this.sharedService.showDialog(DialogType.INFORMATION, 'Sukces!');
         }
+        this.sharedService.fetchAllCharacters();
       },
       error: (error: HttpErrorResponse) => {
         const status = error.status;
