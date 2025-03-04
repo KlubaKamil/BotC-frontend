@@ -1,5 +1,5 @@
 {
-  "name": "bot-c-frontend",
+  "name": "botc-frontend",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
@@ -7,7 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:BotC-frontend": "node dist/bot-c-frontend/server/server.mjs"
+    "serve:ssr:BotC-frontend": "node dist/botc-frontend/server/server.mjs"
   },
   "private": true,
   "dependencies": {
@@ -25,6 +25,7 @@
     "@angular/ssr": "^19.1.6",
     "bootstrap": "^5.3.3",
     "express": "^4.18.2",
+    "mat-icon-button-sizes": "^1.0.6",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
