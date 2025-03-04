@@ -13,11 +13,23 @@ import { SharedService } from '../shared/service/shared.service';
 })
 export class ButtonsComponent {
   @Output() activeComponent = new EventEmitter<string>();
+  firstClick: boolean = true;
 
   constructor(private sharedService: SharedService){}
 
   changeComponent(componentName: string){
-    this.sharedService.fetchAll();
+    if(this.firstClick){
+      this.sharedService.fetchAll();
+      this.firstClick = false;
+    } else if(componentName === 'games'){
+      this.sharedService.fetchAllGames();
+    } else if(componentName === 'scripts'){
+      this.sharedService.fetchAllScripts();
+    } else if(componentName === 'characters'){
+      this.sharedService.fetchAllCharacters();
+    } else if(componentName === 'players'){
+      this.sharedService.fetchAllPlayers();
+    }
     this.activeComponent.emit(componentName);
   }
 }

@@ -1,37 +1,35 @@
-<div class="container">  
-    <div class="card">
-        <div class="card-body">
-            <label class="mat-headline-5">Lista postaci:</label>
-            <div *ngIf="characters" class="table-responsive" style="min-height: 88vh; max-height: 88vh; overflow-y: auto;">
-                <table class="table table-bordered table-striped table-hover">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th>Id</th>
-                            <th>Nazwa</th>
-                            <th>Przynależność</th>
-                            <th>Opis</th>
-                            <th>Wiki</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let character of characters" (click)="selectCharacter(character)">
-                            <td>{{ character.id }}</td>
-                            <td>{{ character.name }}</td>
-                            <td [ngClass]="{
-                                'bluebg !important': ['Townsfolk', 'Outsider'].includes(character.alignment!),
-                                'redbg': ['Minion', 'Demon'].includes(character.alignment!),
-                                'travbg': character.alignment === 'Traveller',
-                                'fabledbg': character.alignment === 'Fabled'
-                                }">                                
-                                {{ character.alignment }}</td>
-                            <td>{{ character.description }}</td>
-                            <td>
-                                <a href="{{ character.linkToWiki }}" target="_blank" rel="noopener noreferrer">Wiki</a>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+<div class="card">
+    <div class="card-body">
+        <label class="mat-headline-5">Lista postaci:</label>
+        <div *ngIf="characters" class="table-responsive" style="min-height: 88vh; max-height: 88vh; overflow-y: auto;">
+            <table class="table table-bordered table-striped table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Id</th>
+                        <th>Nazwa</th>
+                        <th>Przynależność</th>
+                        <th>Opis</th>
+                        <th>Wiki</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let character of characters" (click)="selectCharacter(character)">
+                        <td>{{ character.id }}</td>
+                        <td>{{ character.name }}</td>
+                        <td [ngClass]="{
+                            'bluebg !important': ['Townsfolk', 'Outsider'].includes(character.alignment!),
+                            'redbg': ['Minion', 'Demon'].includes(character.alignment!),
+                            'travbg': character.alignment === 'Traveller',
+                            'fabledbg': character.alignment === 'Fabled'
+                            }">                                
+                            {{ character.alignment }}</td>
+                        <td>{{ character.description }}</td>
+                        <td>
+                            <a href="{{ character.linkToWiki }}" target="_blank" rel="noopener noreferrer">Wiki</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

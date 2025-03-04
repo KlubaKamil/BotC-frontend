@@ -1,0 +1,27 @@
+.mat-headline-1,
+.mat-headline-2, 
+.mat-headline-3, 
+.mat-headline-4, 
+.mat-headline-5{
+    margin-bottom: 15px !important;
+} 
+
+@media (max-width: 768px) { /* Phones */
+    .mat-headline-1 {
+        font-size: 4.5rem;
+    }
+}
+
+@media (max-width: 480px) { /* Small phones */
+    .mat-headline-1 {
+        font-size: 4.5rem;
+    }
+}
+
+@media (max-width: 320px) { /* Small phones */
+    .mat-headline-1 {
+        font-size: 3.5rem;
+    }
+}
+
+

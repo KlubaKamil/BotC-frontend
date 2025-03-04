@@ -1,25 +1,23 @@
- <div class="container">
-    <div class="card">
-        <div class="card-body">
-            <label class="mat-headline-5">Lista skryptów:</label>
-            <div *ngIf="scripts" class="table-responsive" style="min-height: 88vh; max-height: 88vh; overflow-y: auto;">
-                <table class="table table-bordered table-striped table-hover">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th>Id</th>
-                            <th>Nazwa</th>
-                            <th>Liczba rozgrywek</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let script of scripts" (click)="selectScript(script)">
-                            <td>{{ script.id }}</td>
-                            <td>{{ script.name }}</td>
-                            <td>{{ script.timesPlayed }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+<div class="card">
+    <div class="card-body">
+        <label class="mat-headline-5">Lista skryptów:</label>
+        <div *ngIf="scripts" class="table-responsive" style="min-height: 88vh; max-height: 88vh; overflow-y: auto;">
+            <table class="table table-bordered table-striped table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Id</th>
+                        <th>Nazwa</th>
+                        <th>Liczba rozgrywek</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let script of scripts" (click)="selectScript(script)">
+                        <td>{{ script.id }}</td>
+                        <td>{{ script.name }}</td>
+                        <td>{{ script.timesPlayed }}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
- </div>
+</div>

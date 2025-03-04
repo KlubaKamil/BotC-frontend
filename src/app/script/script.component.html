@@ -1,74 +1,72 @@
-<div class="container" style="flex-direction: column;">
-    <div class="d-flex w-100">
-        <button mat-raised-button class="flex-fill m-2" (click)="createNewScript()">Nowy</button>
-        <button *ngIf="selectedScript || tempScript" mat-raised-button class="flex-fill m-2" (click)="toggleEdit()">{{ isEditing || isCreating ? 'Zapisz' : 'Edytuj' }}</button>
-        <button *ngIf="selectedScript" mat-raised-button class="flex-fill m-2" (click)="deleteScript()">Usuń</button>
-        <button *ngIf="selectedScript || tempScript" mat-raised-button class="flex-fill m-2" (click)="cancel()">Anuluj</button>
-    </div>
-    <div *ngIf="selectedScript || tempScript" class="card" style="min-height: 90vh; max-height: 90vh; overflow-y: auto;">
-        <div class="card-body">
-            <label class="mat-headline-5">Szczegóły skryptu:</label>
-            <div class="row pt-1 pb-1 myborder bg-stripped">
-                <label class="col-sm-3 fw-bold">Id:</label>
-                <div *ngIf="selectedScript" class="col-sm-9">
-                    <label>{{ selectedScript!.id }}</label>
+<div class="d-flex w-100">
+    <button mat-raised-button class="flex-fill m-2" (click)="createNewScript()">Nowy</button>
+    <button *ngIf="selectedScript || tempScript" mat-raised-button class="flex-fill m-2" (click)="toggleEdit()">{{ isEditing || isCreating ? 'Zapisz' : 'Edytuj' }}</button>
+    <button *ngIf="selectedScript" mat-raised-button class="flex-fill m-2" (click)="deleteScript()">Usuń</button>
+    <button *ngIf="selectedScript || tempScript" mat-raised-button class="flex-fill m-2" (click)="cancel()">Anuluj</button>
+</div>
+<div *ngIf="selectedScript || tempScript" class="card" style="min-height: 90vh; max-height: 90vh; overflow-y: auto;">
+    <div class="card-body">
+        <label class="mat-headline-5">Szczegóły skryptu:</label>
+        <div class="row pt-1 pb-1 myborder bg-stripped">
+            <label class="col-6 col-sm-3 fw-bold">Id:</label>
+            <div *ngIf="selectedScript" class="col-6 col-sm-9">
+                <label>{{ selectedScript!.id }}</label>
+            </div>
+        </div>
+        <div class="row pt-1 pb-1 myborder d-flex align-items-center">
+            <label class="col-6 col-sm-3 fw-bold">Nazwa:</label>
+            <div class="col-6 col-sm-9">
+                <label *ngIf="!tempScript && selectedScript">{{ selectedScript!.name }}</label>
+                <input *ngIf="tempScript" type="text" class="form-control" [(ngModel)]="tempScript.name">
+            </div>
+        </div>
+        <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
+            <label class="col-6 col-sm-3 fw-bold">Liczba rozgrywek:</label>
+            <div class="col-6 col-sm-9">
+                <label *ngIf="selectedScript">{{ selectedScript!.timesPlayed }}</label>
+            </div>
+        </div>
+        <label *ngIf="tempScript" class="mat-headline-6 mt-5">Lista postaci:</label>
+        <div *ngIf="tempScript" class="card-body">
+            <div class="character-list" cdkDropList>
+                <div class="character-item d-flex justify-content-between align-items-center p-2 border"
+                    *ngFor="let character of tempScript?.characters" cdkDrag>
+                    <span>{{ character.name }} ({{ character.alignment }})</span>
+                    <button  mat-mini-fab color="warn" (click)="removeCharacter(character)">
+                    <mat-icon>delete</mat-icon>
+                    </button>
                 </div>
             </div>
-            <div class="row pt-1 pb-1 myborder d-flex align-items-center">
-                <label class="col-sm-3 fw-bold">Nazwa:</label>
-                <div class="col-sm-9">
-                    <label *ngIf="!tempScript && selectedScript">{{ selectedScript!.name }}</label>
-                    <input *ngIf="tempScript" type="text" class="form-control" [(ngModel)]="tempScript.name">
-                </div>
+                
+            <div *ngIf="isCreating || isEditing" class="mt-3">
+                <button mat-raised-button color="basic" [matMenuTriggerFor]="menu">Dodaj postac</button>
+                <mat-menu #menu="matMenu">
+                    <button mat-menu-item color="primary" *ngFor="let character of availableCharacters" (click)="addCharacter(character)">{{ character.name }}</button>
+                </mat-menu>
             </div>
-            <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
-                <label class="col-sm-3 fw-bold">Liczba rozgrywek:</label>
-                <div class="col-sm-9">
-                    <label *ngIf="selectedScript">{{ selectedScript!.timesPlayed }}</label>
-                </div>
-            </div>
-            <label *ngIf="tempScript" class="mat-headline-6 mt-5">Lista postaci:</label>
-            <div *ngIf="tempScript" class="card-body">
-                <div class="character-list" cdkDropList>
-                    <div class="character-item d-flex justify-content-between align-items-center p-2 border"
-                        *ngFor="let character of tempScript?.characters" cdkDrag>
-                      <span>{{ character.name }} ({{ character.alignment }})</span>
-                      <button  mat-mini-fab color="warn" (click)="removeCharacter(character)">
-                        <mat-icon>delete</mat-icon>
-                      </button>
-                    </div>
-                </div>
-                  
-                <div *ngIf="isCreating || isEditing" class="mt-3">
-                    <button mat-raised-button color="basic" [matMenuTriggerFor]="menu">Dodaj postac</button>
-                    <mat-menu #menu="matMenu">
-                        <button mat-menu-item color="primary" *ngFor="let character of availableCharacters" (click)="addCharacter(character)">{{ character.name }}</button>
-                    </mat-menu>
-                </div>
-            </div>
-            <div *ngIf="selectedScript && !tempScript" class="mt-5">
-                <label class="mat-headline-5">Statystyki postaci:</label>
-                <table class="table table-bordered table-striped table-hover">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th>Nazwa:</th>
-                            <th>Liczba rozgrywek</th>
-                            <th>% wystąpień</th>
-                            <th>Liczba wygranych</th>
-                            <th>% wygranych</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let stats of scriptStats">
-                            <td>{{ stats.name }}</td>
-                            <td>{{ stats.characterTimesPlayed }}</td>
-                            <td>{{ stats.characterPlayedRatio.toFixed(2) }}</td>
-                            <td>{{ stats.characterTimesWon }}</td>
-                            <td>{{ stats.characterWonRatio.toFixed(2) }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        </div>
+        <div *ngIf="selectedScript && !tempScript" class="mt-5">
+            <label class="mat-headline-5">Statystyki postaci:</label>
+            <table class="table table-bordered table-striped table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Nazwa:</th>
+                        <th>Liczba rozgrywek</th>
+                        <th>% wystąpień</th>
+                        <th>Liczba wygranych</th>
+                        <th>% wygranych</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let stats of scriptStats">
+                        <td>{{ stats.name }}</td>
+                        <td>{{ stats.characterTimesPlayed }}</td>
+                        <td>{{ stats.characterPlayedRatio.toFixed(2) }}</td>
+                        <td>{{ stats.characterTimesWon }}</td>
+                        <td>{{ stats.characterWonRatio.toFixed(2) }}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

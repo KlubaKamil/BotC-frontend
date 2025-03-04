@@ -1,29 +1,28 @@
-<div class="container">  
-    <div class="card">
-        <div class="card-body">
-            <label class="mat-headline-5">Lista graczy:</label>
-            <div *ngIf="players" class="table-responsive" style="min-height: 88vh; max-height: 88vh; overflow-y: auto;">
-                <table class="table table-bordered table-striped table-hover">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th>Id</th>
-                            <th>Nazwa</th>
-                            <th>Liczba rozgrywek</th>
-                            <th>% bycia dobrym</th>
-                            <th>% wygranych</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let player of players" (click)="selectPlayer(player)">
-                            <td>{{ player.id }}</td>
-                            <td>{{ player.name }}</td>
-                            <td>{{ player.gamesNumber }}</td>
-                            <td>{{ player.goodPercentage!.toFixed(2) }}</td>
-                            <td>{{ player.winRatio!.toFixed(2) }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div> 
-        </div>
+
+<div class="card">
+    <div class="card-body">
+        <label class="mat-headline-5">Lista graczy:</label>
+        <div *ngIf="players" class="table-responsive" style="min-height: 88vh; max-height: 88vh; overflow-y: auto;">
+            <table class="table table-bordered table-striped table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Id</th>
+                        <th>Nazwa</th>
+                        <th>Liczba rozgrywek</th>
+                        <th>% bycia dobrym</th>
+                        <th>% wygranych</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let player of players" (click)="selectPlayer(player)">
+                        <td>{{ player.id }}</td>
+                        <td>{{ player.name }}</td>
+                        <td>{{ player.gamesNumber }}</td>
+                        <td>{{ player.goodPercentage!.toFixed(2) }}</td>
+                        <td>{{ player.winRatio!.toFixed(2) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div> 
     </div>
 </div>
