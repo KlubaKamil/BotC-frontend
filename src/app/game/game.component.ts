@@ -178,8 +178,6 @@ export class GameComponent {
       assignment!.transformations = [];
     }
     assignment!.transformations?.push({});
-    console.log(assignment)
-    console.log(assignment?.transformations)
   }
 
   removeTransformation(assignment: Assignment | undefined, transformation: Transformation){
@@ -202,13 +200,27 @@ export class GameComponent {
     } else if(game.goodWon === undefined){
       this.sharedService.showDialog(DialogType.INFORMATION, "Zwycięzcy są wymagani!");
       return false;
-    }else if(game.assignments!.length < 5){
+    } else if(game.assignments!.length < 5){
       this.sharedService.showDialog(DialogType.INFORMATION, "Do gry potrzeba przynajmniej 5 graczy!");
+      return false;
+    } else if(this.anyTransformationIncomplete(game.assignments!)){
+      this.sharedService.showDialog(DialogType.INFORMATION, "Co najmniej z transformacji postaci jest niekompletna!");
       return false;
     }
     return true;
   }
 
+  private anyTransformationIncomplete(assignments: Assignment[]) : boolean{
+    let anyFailed = false;
+    assignments.forEach(a =>
+      a.transformations?.forEach(t => {
+        if(!t.character){
+          anyFailed = true;
+        }
+      })
+    )
+    return anyFailed;
+  }
 
   private handleResponse(httpResponse: Observable<HttpResponse<ResponseId>>){
     httpResponse.subscribe({

@@ -112,7 +112,6 @@ export class ScriptComponent {
   }
 
   addCharacter(event: any){
-    console.log(event);
     let character = event.value;
     if(character){
       let characters: Character[] = this.tempScript!.characters!;
