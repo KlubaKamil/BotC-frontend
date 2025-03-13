@@ -4,18 +4,21 @@ import { Alignment, Character, DialogType, Game, ResponseId, Script } from '../s
 import { SharedService } from '../shared/service/shared.service';
 import { HttpClient, HttpErrorResponse, HttpResponse, HttpStatusCode } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormsModule } from '@angular/forms';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { Observable } from 'rxjs';
+import { map, Observable, startWith } from 'rxjs';
 import { DtoMapperService } from '../shared/service/dtoMapper.service';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { SelectModule } from 'primeng/select';
 
 
 @Component({
   selector: 'app-script',
-  imports: [CommonModule, FormsModule, DragDropModule, MatMenuModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, FormsModule, DragDropModule, MatMenuModule, MatButtonModule, MatIconModule, 
+    MatFormFieldModule, SelectModule],
   templateUrl: './script.component.html',
   styleUrl: './script.component.css',
 })
@@ -32,8 +35,13 @@ export class ScriptComponent {
                 characterTimesWon: number, characterWonRatio: number}[] = [];
   isEditing: boolean = false;
   isCreating: boolean = false;
+  myControl = new FormControl('');
+  options: string[] = ['One', 'Two', 'Three'];
+  filteredOptions: Observable<Character[]>;
   
-  constructor(private sharedService: SharedService, private http: HttpClient, private mapper: DtoMapperService) {}
+  constructor(private sharedService: SharedService, private http: HttpClient, private mapper: DtoMapperService) {
+    this.filteredOptions = new Observable;
+  }
 
   ngOnInit() {
     this.sharedService.games$.subscribe((games) => {
@@ -52,6 +60,10 @@ export class ScriptComponent {
       this.selectedScript = script;
       this.getScriptStats();
     })
+    this.filteredOptions = this.myControl.valueChanges.pipe(
+      startWith(''),
+      map(value => this.availableCharacters.filter(option => option.name!.toLowerCase().includes(value || ''))
+    ))
   }
 
   createNewScript() {
@@ -99,10 +111,14 @@ export class ScriptComponent {
     })
   }
 
-  addCharacter(character: Character){
-    var characters: Character[] = this.tempScript!.characters!;
-    if(!characters.includes(character)){
-      this.tempScript?.characters?.push(character);
+  addCharacter(event: any){
+    console.log(event);
+    let character = event.value;
+    if(character){
+      let characters: Character[] = this.tempScript!.characters!;
+      if(!characters.includes(character)){
+        this.tempScript?.characters?.push(character);
+      }
     }
   }
 

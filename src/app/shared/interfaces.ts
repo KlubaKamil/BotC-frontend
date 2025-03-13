@@ -10,6 +10,7 @@ export enum Alignment {
 export interface CharacterDto {
   id?: number;
   name: string;
+  maxStartNumber: number;
   alignment: Alignment;
   description: String;
   linkToWiki?: String;
@@ -22,15 +23,17 @@ export interface GameDto {
   fabled?: CharacterDto;
   assignments: AssignmentDto[];
   goodWon: boolean;
-  date?: string;
-  place?: string;
+  date?: Date;
   notes?: string;
+  place?: PlaceDto;
 }
 
 export interface AssignmentDto {
   player: PlayerDto;
   character: CharacterDto;
+  index: number;
   good: boolean;
+  transformations: TransformationDto[]
 }
 
 export interface ScriptDto{
@@ -44,9 +47,20 @@ export interface PlayerDto{
   name: string;
 }
 
+export interface PlaceDto{
+  id?: number;
+  name: string;
+}
+
+export interface TransformationDto{
+  character: CharacterDto;
+  good: boolean;
+}
+
 export class Character {
   id?: number;
   name?: string;
+  maxStartNumber?: number;
   alignment?: Alignment;
   description?: String;
   linkToWiki?: String;
@@ -59,9 +73,9 @@ export class Game {
   fabled?: Character | undefined | null;
   assignments?: Assignment[];
   goodWon?: boolean;
-  date?: string;
-  place?: string;
+  date?: Date;
   notes?: string;
+  place?: Place;
 }
 
 export class Script {
@@ -79,8 +93,20 @@ export class Player{
   winRatio?: number;
 }
 
+export class Place{
+  id?: number; 
+  name?: string;
+}
+
 export class Assignment {
   player?: Player;
+  character?: Character;
+  index?: number;
+  good?: boolean;
+  transformations?: Transformation[];
+}
+
+export class Transformation {
   character?: Character;
   good?: boolean;
 }

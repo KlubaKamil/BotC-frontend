@@ -8,10 +8,12 @@ import { environment } from '../../environments/environment';
 import { MatButtonModule } from '@angular/material/button';
 import { Observable } from 'rxjs';
 import { DtoMapperService } from '../shared/service/dtoMapper.service';
+import { SelectModule } from 'primeng/select';
+import { InputNumberModule } from 'primeng/inputnumber';
 
 @Component({
   selector: 'app-character',
-  imports: [CommonModule, FormsModule, MatButtonModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, SelectModule, InputNumberModule],
   templateUrl: './character.component.html',
   styleUrl: './character.component.css'
 })
@@ -53,6 +55,7 @@ export class CharacterComponent {
   createNewCharacter() {
     this.selectedCharacter = null;
     this.tempCharacter = {} as Character;
+    this.tempCharacter.maxStartNumber = 1;
     this.isEditing = false;
     this.isCreating = true;
   }
@@ -129,6 +132,9 @@ export class CharacterComponent {
       return false;
     } else if(!character.description) {
       this.sharedService.showDialog(DialogType.INFORMATION, "Opis jest wymagany!");
+      return false;
+    }else if(!character.maxStartNumber) {
+      this.sharedService.showDialog(DialogType.INFORMATION, "Maksymalna liczba wystąpień na start rozgrywki jest wymagana!");
       return false;
     }
     return true;

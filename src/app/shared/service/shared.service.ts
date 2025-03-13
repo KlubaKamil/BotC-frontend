@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { Character, CharacterDto, DialogType, Game, GameDto, Player, PlayerDto, Script, ScriptDto } from '../interfaces'
+import { Character, CharacterDto, DialogType, Game, GameDto, Player, PlayerDto, Script, ScriptDto, Place, PlaceDto } from '../interfaces'
 import { MatDialog } from '@angular/material/dialog';
 import { DialogComponent } from '../../dialog/dialog.component';
 import { HttpClient } from '@angular/common/http';
@@ -15,6 +15,7 @@ export class SharedService {
   private scripts = new BehaviorSubject<Script[] | null>(null);
   private characters = new BehaviorSubject<Character[] | null>(null);
   private players = new BehaviorSubject<Player[] | null>(null);
+  private places = new BehaviorSubject<Place[] | null>(null);
   private selectedGame = new BehaviorSubject<Game | null>(null);
   private selectedScript = new BehaviorSubject<Script | null>(null);
   private selectedCharacter = new BehaviorSubject<Character | null>(null);
@@ -24,6 +25,7 @@ export class SharedService {
   scripts$ = this.scripts.asObservable();
   characters$ = this.characters.asObservable();
   players$ = this.players.asObservable();
+  places$ = this.places.asObservable();
   selectedGame$ =  this.selectedGame.asObservable();
   selectedScript$ =  this.selectedScript.asObservable();
   selectedCharacter$ =  this.selectedCharacter.asObservable();
@@ -40,6 +42,7 @@ export class SharedService {
     this.fetchAllPlayers();
     this.fetchAllGames();
     this.fetchAllScripts();
+    this.fetchAllPlaces();
   }
 
   setCharacters(characters: Character[]){
@@ -66,6 +69,15 @@ export class SharedService {
   removePlayer(id: number){
     const updatedPlayers = this.players.getValue()?.filter(player => player.id !== id);
     this.players.next(updatedPlayers!);
+  }
+
+  setPlaces(places: Place[]){
+    this.places.next(places);
+  }
+
+  removePlace(id: number){
+    const updatedPlaces = this.places.getValue()?.filter(place => place.id !== id);
+    this.places.next(updatedPlaces!);
   }
 
   setScripts(scripts: Script[]){
@@ -112,6 +124,17 @@ export class SharedService {
       },
       error: (error) => {
         this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania graczy.');
+      }
+    })
+  }
+
+  fetchAllPlaces() {
+    this.http.get<PlaceDto[]>(this.apiUrl + '/place/all').subscribe({
+      next: (placeDtos: PlaceDto[]) => {
+        this.setPlaces(this.mapper.mapDtosToPlaces(placeDtos));
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania miejscówek.');
       }
     })
   }

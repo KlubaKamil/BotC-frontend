@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Alignment, Assignment, Character, DialogType, Game, Player, ResponseId, Script } from '../shared/interfaces'
+import { Alignment, Assignment, Character, DialogType, Game, Place, Player, ResponseId, Script, Transformation } from '../shared/interfaces'
 import { CommonModule } from '@angular/common';
 import { environment } from '../../environments/environment';
 import { SharedService } from '../shared/service/shared.service';
@@ -8,19 +8,20 @@ import { MatButtonModule } from '@angular/material/button';
 import { Observable } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { DateAdapter, MatNativeDateModule } from '@angular/material/core';
 import { DtoMapperService } from '../shared/service/dtoMapper.service';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { ToggleButtonModule } from 'primeng/togglebutton';
+import { SelectModule } from 'primeng/select'
+import { DatePickerModule } from 'primeng/datepicker';
+import { ButtonModule } from 'primeng/button';
 
 @Component({
   selector: 'app-game',
-  imports: [FormsModule, CommonModule, MatButtonModule, MatIconModule, MatDatepickerModule, MatFormFieldModule,
-    MatInputModule, MatNativeDateModule
-  ],
-  providers: [
-    MatDatepickerModule
+  imports: [FormsModule, CommonModule, MatButtonModule, MatIconModule, MatFormFieldModule, ButtonModule,
+    MatInputModule, MatNativeDateModule, ToggleSwitchModule, ToggleButtonModule, SelectModule, DatePickerModule
   ],
   templateUrl: './game.component.html',
   styleUrl: './game.component.css'
@@ -31,13 +32,13 @@ export class GameComponent {
   scripts: Script[] = [];
   characters: Character[] = [];
   players: Player[] = [];
+  places: Place[] = [];
   selectedGame: Game | null = null;
   tempGame: Game | null = null;
   isEditing: boolean = false;
   isCreating: boolean = false;
   availableTravellers: Character[] = [];
   availableFables: Character[] = [];
-  places: string[] = ['W Cesarskiej', 'U Pitera', 'W Czeladzi', 'Online', 'W Mediatece'];
   alignmentOrder: { [key in Alignment]: number } = {
     [Alignment.TOWNSFOLK]: 1000,
     [Alignment.OUTSIDER]: 2000,
@@ -47,13 +48,15 @@ export class GameComponent {
     [Alignment.FABLED]: 6000
   };
 
-  constructor(private sharedService: SharedService, private http: HttpClient, private dateAdapter: DateAdapter<Date>, private mapper: DtoMapperService) {
-    this.dateAdapter.setLocale('en-GB');
+  constructor(private sharedService: SharedService, private http: HttpClient, private mapper: DtoMapperService) {
   }
 
   ngOnInit() {
     this.sharedService.players$.subscribe((players) => {
       this.players = players!;
+    })
+    this.sharedService.places$.subscribe((places) => {
+      this.places = places!;
     })
     this.sharedService.characters$.subscribe((characters) => {
       this.characters = characters!;
@@ -75,19 +78,19 @@ export class GameComponent {
   createNewGame() {
     this.selectedGame = null;
     this.tempGame = {} as Game;
+    this.tempGame.goodWon = true;
     this.tempGame.assignments = [];
     this.isEditing = false;
     this.isCreating = true;
   }
 
   toggleEdit() {
-    console.log(this.isEditing);
-    console.log(this.isCreating)
     if (!this.isEditing && !this.isCreating){
       this.tempGame = JSON.parse(JSON.stringify(this.selectedGame));
       this.tempGame!.script = this.scripts.find(s => s.id === this.selectedGame!.script!.id);
       this.tempGame!.fabled = this.characters.find(c => c.id === this.selectedGame!.fabled?.id);
       this.tempGame!.storyteller = this.players.find(p => p.id === this.selectedGame!.storyteller!.id);
+      this.tempGame!.date = this.selectedGame?.date;
       this.tempGame!.assignments!.forEach(assignment => {
         assignment.character = this.tempGame!.script!.characters!.find(c => c.id === assignment.character!.id) || assignment.character;
         assignment.player = this.players.find(p => p.id === assignment.player!.id) || assignment.player;
@@ -127,26 +130,30 @@ export class GameComponent {
     });
   }
 
-  getAssignment(character: Character): Assignment | undefined {
-    return this.tempGame!.assignments!.find(a => a.character!.id === character.id);
+  getAssignment(character: Character, index: number): Assignment | undefined {
+    return this.tempGame!.assignments!.find(a => a.character!.id === character.id && a.index === index);
   }
   
-  updateAssignment(character: Character, player: Player | null) {
+  updateAssignment(character: Character, player: Player | null, index: number) {
+    //usunięcie assigmnemtu, jesli player zostal wyczyszczony
     if (!player) {
-      this.tempGame!.assignments = this.tempGame!.assignments!.filter(a => a.character!.id !== character.id);
+      this.tempGame!.assignments = this.tempGame!.assignments!.filter(a => 
+        !(a.character!.id === character.id && a.index === index));
       return;
     }
-    this.tempGame!.assignments = this.tempGame!.assignments!.filter(assignment => 
-      assignment.player!.id != player.id
+    //usuniecie poprzedniego assignmentu wlasnie przypisanego gracza
+    this.tempGame!.assignments = this.tempGame!.assignments!.filter(a => 
+      a.player!.id !== player.id
     );
+    //usuniecie storytellera jesli gracz zostal przypisany gdzie indziej
     if(this.tempGame?.storyteller?.id == player.id){
-      this.tempGame!.storyteller = {} as Player;
+      this.tempGame!.storyteller = undefined;
     }
-    let existingAssignment = this.getAssignment(character);
+    let existingAssignment = this.getAssignment(character, index);
     if (existingAssignment) {
       existingAssignment.player = player;
     } else {
-      this.tempGame!.assignments.push({character: character, player: player, 
+      this.tempGame!.assignments.push({character: character, player: player, index: index,
         good: [Alignment.TOWNSFOLK, Alignment.OUTSIDER].includes(character.alignment!)});
       this.tempGame!.assignments.sort((a, b) => 
         this.alignmentOrder[a.character!.alignment!] + a.character!.id! - 
@@ -155,8 +162,8 @@ export class GameComponent {
     }
   }
 
-  updateAssignmentGood(character: Character, good: boolean){
-    let existingAssignment = this.getAssignment(character);
+  updateAssignmentGood(character: Character, good: boolean, index: number){
+    let existingAssignment = this.getAssignment(character, index);
     existingAssignment!.good = good;
   }
 
@@ -165,9 +172,25 @@ export class GameComponent {
     this.tempGame!.storyteller = player;
   }
 
+  newTransformation(character: Character, index: number){
+    let assignment = this.getAssignment(character, index);
+    if(!assignment!.transformations){
+      assignment!.transformations = [];
+    }
+    assignment!.transformations?.push({});
+    console.log(assignment)
+    console.log(assignment?.transformations)
+  }
+
+  removeTransformation(assignment: Assignment | undefined, transformation: Transformation){
+    assignment!.transformations = assignment!.transformations?.filter(t => t !== transformation);
+  }
+
   clearAssignments(){
     this.tempGame!.assignments = [];
   }
+
+  datebe: Date = new Date();
 
   private validate(game: Game){
     if(!game.script){

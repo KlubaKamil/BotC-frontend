@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { Assignment, AssignmentDto, Character, CharacterDto, Game, GameDto, Player, PlayerDto, Script, ScriptDto } from "../interfaces";
+import { Assignment, AssignmentDto, Character, CharacterDto, Game, GameDto, Place, PlaceDto, Player, PlayerDto, Script, ScriptDto, Transformation, TransformationDto } from "../interfaces";
 
 @Injectable({
   providedIn: 'root'
@@ -9,6 +9,7 @@ export class DtoMapperService {
         return {
             id: model.id,
             name: model.name!,
+            maxStartNumber: model.maxStartNumber!,
             alignment: model.alignment!,
             description: model.description!,
             linkToWiki: model.linkToWiki
@@ -23,6 +24,7 @@ export class DtoMapperService {
         return {
             id: dto.id,
             name: dto.name,
+            maxStartNumber: dto.maxStartNumber,
             alignment: dto.alignment,
             description: dto.description,
             linkToWiki: dto.linkToWiki
@@ -82,13 +84,39 @@ export class DtoMapperService {
     mapDtosToPlayers(dtos: PlayerDto[]): Player[] {
         return dtos.map(dto => this.mapDtoToPlayer(dto));
     }
+
+    mapPlaceToDto(model: Place): PlaceDto {
+        return {
+            id: model.id,
+            name: model.name!
+        };
+    }
+    
+    mapPlacesToDtos(models: Place[]): PlaceDto[] {
+        return models.map(model => this.mapPlaceToDto(model));
+    }
+    
+
+    mapDtoToPlace(dto: PlaceDto): Place {
+        return {
+            id: dto.id,
+            name: dto.name
+        };
+    }
+    
+    mapDtosToPlaces(dtos: PlaceDto[]): Place[] {
+        return dtos.map(dto => this.mapDtoToPlace(dto));
+    }
+    
     
 
     mapAssignmentToDto(model: Assignment): AssignmentDto {
         return {
             player: this.mapPlayerToDto(model.player!),
             character: this.mapCharacterToDto(model.character!),
-            good: model.good!
+            index: model.index!,
+            good: model.good!,
+            transformations: model.transformations ? this.mapTransformationsToDtos(model.transformations!) : []
         };
     }
     
@@ -100,7 +128,9 @@ export class DtoMapperService {
         return {
             player: this.mapDtoToPlayer(dto.player),
             character: this.mapDtoToCharacter(dto.character),
-            good: dto.good
+            index: dto.index,
+            good: dto.good,
+            transformations: dto.transformations ? this.mapDtosToTransformations(dto.transformations) : undefined
         };
     }
     
@@ -118,7 +148,8 @@ export class DtoMapperService {
             assignments: this.mapAssignmentsToDtos(model.assignments!),
             goodWon: model.goodWon!,
             date: model.date,
-            notes: model.notes
+            notes: model.notes,
+            place: model.place ? this.mapPlaceToDto(model.place) : undefined
         };
     }
     
@@ -135,11 +166,37 @@ export class DtoMapperService {
             assignments: this.mapDtoToAssignments(dto.assignments),
             goodWon: dto.goodWon,
             date: dto.date,
-            notes: dto.notes
+            notes: dto.notes,
+            place: dto.place ? this.mapDtoToPlace(dto.place) : undefined
         };
     }
     
     mapDtosToGames(dtos: GameDto[]): Game[] {
         return dtos.map(dto => this.mapDtoToGame(dto));
+    }
+
+    
+
+    
+    mapTransformationToDto(model: Transformation): TransformationDto {
+        return {
+            character: this.mapCharacterToDto(model.character!),
+            good: model.good!
+        };
+    }
+    
+    mapTransformationsToDtos(models: Transformation[]): TransformationDto[] {
+        return models.map(model => this.mapTransformationToDto(model));
+    }
+    
+    mapDtoToTransformation(dto: TransformationDto): Transformation {
+        return {
+            character: this.mapDtoToCharacter(dto.character),
+            good: dto.good
+        };
+    }
+    
+    mapDtosToTransformations(dtos: TransformationDto[]): Transformation[] {
+        return dtos.map(dto => this.mapDtoToTransformation(dto));
     }
 }
