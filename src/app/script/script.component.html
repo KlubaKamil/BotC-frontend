@@ -1,3 +1,4 @@
+<button (click)="ebe()">EBEW</button>
 <div class="d-flex w-100">
     <button mat-raised-button class="flex-fill m-2" (click)="createNewScript()">Nowy</button>
     <button *ngIf="selectedScript || tempScript" mat-raised-button class="flex-fill m-2" (click)="toggleEdit()">{{ isEditing || isCreating ? 'Zapisz' : 'Edytuj' }}</button>
@@ -24,7 +25,7 @@
         </div>
         <label *ngIf="tempScript" class="mat-headline-6 mt-5">Lista postaci:</label>
         <div *ngIf="tempScript" class="card-body">
-            <div class="character-list" cdkDropList>
+            <div class="character-list" cdkDropList (cdkDropListDropped)="drop($event)">
                 <div class="character-item d-flex justify-content-between align-items-center p-2 border"
                     *ngFor="let character of tempScript?.characters" cdkDrag>
                     <span>{{ character.name }} ({{ character.alignment }})</span>

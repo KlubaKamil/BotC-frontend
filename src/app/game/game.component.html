@@ -46,7 +46,7 @@
             <label class="col-5 col-sm-4 fw-bold">Zwyciezcy:</label>
             <div class="col-7 col-sm-8">
                 <label *ngIf="!tempGame && selectedGame">{{ selectedGame.goodWon ? 'Dobro' : 'Zło' }}</label>
-                <p-togglebutton *ngIf="tempGame" [ngModel]="tempGame.goodWon" onLabel="Dobro" offLabel="Zło"/>            
+                <p-togglebutton *ngIf="tempGame" [(ngModel)]="tempGame.goodWon" onLabel="Dobro" offLabel="Zło"/>            
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center">
@@ -112,6 +112,7 @@
                     </div>
                     <div class="col-7 col-sm-9">
                         <div *ngFor="let e of [].constructor(character.maxStartNumber); let i = index" class="row">
+                            <p-divider *ngIf="i > 0"></p-divider>
                             <div class="col-12 col-sm-6 col-xxl-7">
                                 <p-select [options]="players" [ngModel]="getAssignment(character, i)?.player" (ngModelChange)="updateAssignment(character, $event, i)"
                                 [filter]="true" filterBy="name" [showClear]="true">
@@ -153,11 +154,12 @@
         <label *ngIf="tempGame?.script" class="mat-headline-6" >Podróżnicy: </label>
         <div *ngIf="tempGame?.script" class="card-body">
             <div *ngFor="let character of availableTravellers" class="character-item d-flex align-items-center p-2 border" cdkDrag>
-                <div class="col-5 col-sm-4 d-flex align-items-center">
+                <div class="col-5 col-sm-3 d-flex align-items-center">
                     <label>{{ character.name }}</label>
                 </div>
-                <div class="col-7 col-sm-8">
+                <div class="col-7 col-sm-9">
                     <div *ngFor="let e of [].constructor(character.maxStartNumber); let i = index" class="row">
+                        <p-divider *ngIf="i > 0"></p-divider>
                         <div class="col-12 col-sm-6 col-xxl-7">
                             <p-select [options]="players" [ngModel]="getAssignment(character, i)?.player" (ngModelChange)="updateAssignment(character, $event, i)"
                             [filter]="true" filterBy="name" [showClear]="true">
@@ -170,7 +172,26 @@
                             onLabel="Dobro" offLabel="Zło"/>
                         </div>
                         <div class="col-4 col-sm-2 col-xxl-1" *ngIf="getAssignment(character, i)" style="display: flex; justify-content: flex-end">
-                            <p-button icon="pi pi-plus" rounded="true" severity="secondary"/>
+                            <p-button icon="pi pi-plus" rounded="true" severity="secondary" (onClick)="newTransformation(character, i)"/>
+                        </div>
+                        <div *ngFor="let transformation of getAssignment(character, i)?.transformations" class="col-12">
+                            <div class="row">
+                                <label class="col-8 col-sm-2 d-flex align-items-center">Zamiana w:</label>
+                                <div class="col-12 col-sm-5 col-xxl-6">
+                                    <p-select [options]="characters" [(ngModel)]="transformation.character"
+                                    [filter]="true" filterBy="name" [showClear]="true">
+                                        <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
+                                        <ng-template let-character #item>{{ character.name }}</ng-template>
+                                    </p-select>
+                                </div>
+                                <div class="col-8 col-sm-3">
+                                    <p-togglebutton [(ngModel)]="transformation.good" onLabel="Dobro" offLabel="Zło"/>
+                                </div>
+                                <div class="col-4 col-sm-2 col-xxl-1" *ngIf="getAssignment(character, i)" style="display: flex; justify-content: flex-end">
+                                    <p-button icon="pi pi-minus" rounded="true" severity="secondary" 
+                                    (onClick)="removeTransformation(getAssignment(character, i), transformation)"/>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

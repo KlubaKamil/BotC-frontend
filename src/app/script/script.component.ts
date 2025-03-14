@@ -13,12 +13,14 @@ import { map, Observable, startWith } from 'rxjs';
 import { DtoMapperService } from '../shared/service/dtoMapper.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { SelectModule } from 'primeng/select';
+import { PickListModule } from 'primeng/picklist';
+import { CdkDragDrop, CdkDropList, CdkDrag, moveItemInArray } from '@angular/cdk/drag-drop';
 
 
 @Component({
   selector: 'app-script',
   imports: [CommonModule, FormsModule, DragDropModule, MatMenuModule, MatButtonModule, MatIconModule, 
-    MatFormFieldModule, SelectModule],
+    MatFormFieldModule, SelectModule, PickListModule, CdkDropList, CdkDrag],
   templateUrl: './script.component.html',
   styleUrl: './script.component.css',
 })
@@ -123,6 +125,14 @@ export class ScriptComponent {
 
   removeCharacter(character: Character){
     this.tempScript!.characters = this.tempScript!.characters?.filter(char => character.id !== char.id)
+  }
+
+  drop(event: CdkDragDrop<string[]>) {
+    moveItemInArray(this.tempScript?.characters!, event.previousIndex, event.currentIndex);
+  }
+
+  ebe(){
+    console.log(this.tempScript?.characters!.map(c => c.name));
   }
   
   private getScriptStats(){

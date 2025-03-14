@@ -17,10 +17,11 @@ import { ToggleButtonModule } from 'primeng/togglebutton';
 import { SelectModule } from 'primeng/select'
 import { DatePickerModule } from 'primeng/datepicker';
 import { ButtonModule } from 'primeng/button';
+import { DividerModule } from 'primeng/divider';
 
 @Component({
   selector: 'app-game',
-  imports: [FormsModule, CommonModule, MatButtonModule, MatIconModule, MatFormFieldModule, ButtonModule,
+  imports: [FormsModule, CommonModule, MatButtonModule, MatIconModule, MatFormFieldModule, ButtonModule, DividerModule,
     MatInputModule, MatNativeDateModule, ToggleSwitchModule, ToggleButtonModule, SelectModule, DatePickerModule
   ],
   templateUrl: './game.component.html',
@@ -39,15 +40,7 @@ export class GameComponent {
   isCreating: boolean = false;
   availableTravellers: Character[] = [];
   availableFables: Character[] = [];
-  alignmentOrder: { [key in Alignment]: number } = {
-    [Alignment.TOWNSFOLK]: 1000,
-    [Alignment.OUTSIDER]: 2000,
-    [Alignment.MINION]: 3000,
-    [Alignment.DEMON]: 4000,
-    [Alignment.TRAVELLER]: 5000,
-    [Alignment.FABLED]: 6000
-  };
-
+  
   constructor(private sharedService: SharedService, private http: HttpClient, private mapper: DtoMapperService) {
   }
 
@@ -155,10 +148,6 @@ export class GameComponent {
     } else {
       this.tempGame!.assignments.push({character: character, player: player, index: index,
         good: [Alignment.TOWNSFOLK, Alignment.OUTSIDER].includes(character.alignment!)});
-      this.tempGame!.assignments.sort((a, b) => 
-        this.alignmentOrder[a.character!.alignment!] + a.character!.id! - 
-        this.alignmentOrder[b.character!.alignment!] - b.character!.id!
-      );
     }
   }
 
