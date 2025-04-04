@@ -27,7 +27,8 @@ export class DtoMapperService {
             maxStartNumber: dto.maxStartNumber,
             alignment: dto.alignment,
             description: dto.description,
-            linkToWiki: dto.linkToWiki
+            linkToWiki: dto.linkToWiki,
+            characterDetails: dto.characterDetails
         };
     }
       
@@ -53,7 +54,7 @@ export class DtoMapperService {
             id: dto.id,
             name: dto.name,
             characters: this.mapDtosToCharacters(dto.characters),
-            timesPlayed: 0 // Default value, update as needed
+            scriptDetails: dto.scriptDetails
         };
     }
     
@@ -77,7 +78,8 @@ export class DtoMapperService {
     mapDtoToPlayer(dto: PlayerDto): Player {
         return {
             id: dto.id,
-            name: dto.name
+            name: dto.name,
+            playerDetails: dto.playerDetails
         };
     }
     
@@ -177,7 +179,6 @@ export class DtoMapperService {
 
     
 
-    
     mapTransformationToDto(model: Transformation): TransformationDto {
         return {
             character: this.mapCharacterToDto(model.character!),

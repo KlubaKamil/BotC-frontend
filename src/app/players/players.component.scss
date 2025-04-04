@@ -1,0 +1,10 @@
+@import 'players.component.css';
+
+:host {
+    --p-togglebutton-checked-background: white !important;
+    --p-togglebutton-background: white !important;
+    --p-togglebutton-hover-background: #f5f5f5 !important;
+    --p-togglebutton-hover-color: black !important;
+    --p-togglebutton-color: black !important;
+    --p-togglebutton-checked-color: black !important;
+}

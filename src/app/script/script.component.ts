@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { Alignment, Character, DialogType, Game, ResponseId, Script } from '../shared/interfaces';
+import { Alignment, Character, CharacterHeader, DialogType, ResponseId, Script, ScriptCharacterDetails, ScriptHeader } from '../shared/interfaces';
 import { SharedService } from '../shared/service/shared.service';
 import { HttpClient, HttpErrorResponse, HttpResponse, HttpStatusCode } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
@@ -15,26 +15,23 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { SelectModule } from 'primeng/select';
 import { PickListModule } from 'primeng/picklist';
 import { CdkDragDrop, CdkDropList, CdkDrag, moveItemInArray } from '@angular/cdk/drag-drop';
+import { TableModule } from 'primeng/table';
 
 
 @Component({
   selector: 'app-script',
   imports: [CommonModule, FormsModule, DragDropModule, MatMenuModule, MatButtonModule, MatIconModule, 
-    MatFormFieldModule, SelectModule, PickListModule, CdkDropList, CdkDrag],
+    MatFormFieldModule, SelectModule, PickListModule, CdkDropList, CdkDrag, TableModule],
   templateUrl: './script.component.html',
   styleUrl: './script.component.css',
 })
 export class ScriptComponent {
   apiUrl = environment.apiUrl;
-  scripts: Script[] = [];
-  games: Game[] = [];
+  selectedScriptHeader: ScriptHeader | null = null;
   selectedScript: Script | null = null;
   tempScript: Script | null = null;
-  allCharacters: Character[] = [];
-  availableCharacters: Character[] = [];
-  selectedCharacter: Character | null = null;
-  scriptStats: {name: string, characterTimesPlayed: number, characterPlayedRatio: number, 
-                characterTimesWon: number, characterWonRatio: number}[] = [];
+  allCharacters: CharacterHeader[] = [];
+  availableCharacters: CharacterHeader[] = [];
   isEditing: boolean = false;
   isCreating: boolean = false;
   myControl = new FormControl('');
@@ -46,21 +43,17 @@ export class ScriptComponent {
   }
 
   ngOnInit() {
-    this.sharedService.games$.subscribe((games) => {
-      this.games = games!;
-    })
-    this.sharedService.scripts$.subscribe((scripts) => {
-      this.scripts = scripts!;
-    })
-    this.sharedService.characters$.subscribe((characters) => {
-      this.allCharacters = characters!;
+    this.sharedService.characterHeaders$.subscribe((characterHeaders) => {
+      this.allCharacters = characterHeaders!;
       this.availableCharacters = this.allCharacters?.filter(c => 
         [Alignment.TOWNSFOLK, Alignment.OUTSIDER, Alignment.MINION, Alignment.DEMON].includes(c.alignment!));
     })
-    this.sharedService.selectedScript$.subscribe((script) => {
+    this.sharedService.selectedScript$.subscribe((selectedScript) => {
       this.cancel();
-      this.selectedScript = script;
-      this.getScriptStats();
+      this.selectedScript = selectedScript;
+    })
+    this.sharedService.selectedScriptHeader$.subscribe((selectedScriptHeader) => {
+      this.selectedScriptHeader = selectedScriptHeader;
     })
     this.filteredOptions = this.myControl.valueChanges.pipe(
       startWith(''),
@@ -131,37 +124,26 @@ export class ScriptComponent {
     moveItemInArray(this.tempScript?.characters!, event.previousIndex, event.currentIndex);
   }
 
-  ebe(){
-    console.log(this.tempScript?.characters!.map(c => c.name));
+  getCompleteCharacterList(): ScriptCharacterDetails[]{
+    let defaultCharacters = this.selectedScript?.characters;
+    let playedCharacters = this.selectedScript?.scriptDetails?.scriptCharactersDetails!;
+    let completeList: ScriptCharacterDetails[] = [];
+    //jako że playedCharacters jest listą tylko granych postaci, poniższy kod wrzuca postacie dostępne ale nie grane w odpowiednie miesjca
+    defaultCharacters!.forEach(defaultC => {
+      let foundChar = playedCharacters.find(playedC => playedC.name === defaultC.name);
+      if(foundChar){
+        completeList.push(foundChar);
+        playedCharacters = playedCharacters.filter(c => c != foundChar)
+      } else {
+        completeList.push({characterId: defaultC.id, name: defaultC.name, gamesNumber: 0, occurrencePercentage: 0, wonGamesNumber: 0, winRatio: 0} as ScriptCharacterDetails);
+      }
+    })
+    //a to dodaje potencjalnych travellerów
+    completeList = [ ...completeList, ...playedCharacters];
+
+    return completeList;
   }
   
-  private getScriptStats(){
-    this.scriptStats = [];
-    let scriptTimesPlayed = this.selectedScript?.timesPlayed || 0;
-    this.selectedScript?.characters?.forEach(c => {
-      let charPlayed = this.games?.filter(g => 
-        g.script?.id === this.selectedScript!.id && 
-        g.assignments?.find(a => a.character?.id === c.id));
-      let charWon = this.games?.filter(g => 
-        g.script?.id === this.selectedScript!.id && 
-        g.assignments?.find(a => a.character?.id === c.id && 
-        g.goodWon === a.good));
-
-      let characterTimesPlayed = charPlayed.length;
-      let characterPlayedRatio = scriptTimesPlayed === 0 ? 0 : 100 * characterTimesPlayed / scriptTimesPlayed;
-      let characterTimesWon = charWon.length;
-      let characterWonRatio = characterTimesPlayed === 0 ? 0 : 100 * characterTimesWon / characterTimesPlayed;
-
-      this.scriptStats.push({
-        name: c.name!, 
-        characterTimesPlayed: characterTimesPlayed, 
-        characterPlayedRatio: characterPlayedRatio, 
-        characterTimesWon: characterTimesWon, 
-        characterWonRatio: characterWonRatio
-      });
-    })
-  }
-
   private validate(script: Script){
     if(!script.name){
       this.sharedService.showDialog(DialogType.INFORMATION, "Nazwa jest wymagana!");
@@ -179,14 +161,8 @@ export class ScriptComponent {
         const status = response.status;
         if(status === HttpStatusCode.Ok){
           this.sharedService.showDialog(DialogType.INFORMATION, 'Edycja zakończona pomyślnie!');
-          this.selectedScript!.name = this.tempScript!.name;
-          this.selectedScript!.characters = this.tempScript!.characters;
-          this.getScriptStats();
-          this.cancel();
+          this.sharedService.fetchScriptAndSelect(this.selectedScript!.id!);
         } else if(status === HttpStatusCode.Created){
-          this.tempScript!.id = response.body!.id;
-          this.tempScript!.timesPlayed = 0;
-          this.scripts.push(this.tempScript!);
           this.sharedService.showDialog(DialogType.INFORMATION, 'Dodano nowy skrypt!');
           this.cancel();
         } else if(status === HttpStatusCode.NoContent){
@@ -195,7 +171,7 @@ export class ScriptComponent {
         } else {
           this.sharedService.showDialog(DialogType.INFORMATION, 'Sukces!');
         }
-        this.sharedService.fetchAllScripts();
+        this.sharedService.fetchScriptHeaders();
       },
       error: (error: HttpErrorResponse) => {
         const status = error.status;

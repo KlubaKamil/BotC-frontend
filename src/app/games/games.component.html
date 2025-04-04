@@ -1,32 +1,66 @@
 <div class="card">
     <div class="card-body">
         <label class="mat-headline-5">Lista rozgrywek:</label>
-        <div *ngIf="games" class="table-responsive" style="min-height: 88vh; max-height: 88vh; overflow-y: auto;">
-            <table class="table table-bordered table-striped table-hover">
-                <thead class="thead-dark">
+        <div *ngIf="gameHeaders" style="min-height: 88vh; max-height: 88vh; overflow-y: auto;">
+            <p-table [value]="gameHeaders" stripedRows sortField="date" [sortOrder]="-1" [customSort]="true" (sortFunction)="customSort($event)"
+            selectionMode="single" (onRowSelect)="selectGame($event)">
+                <ng-template #header>
                     <tr>
-                        <th>Id</th>
-                        <th>Skrypt</th>
-                        <th>Narrator</th>
-                        <th>Liczba graczy</th>
-                        <th>Zwycięzcy</th>
-                        <th>Data</th>
+                        <th pSortableColumn="id">
+                            <div class="table-header-id">
+                                <div class="mb-2">Id</div>
+                                <p-sortIcon field="id"/>
+                            </div></th>
+                        <th pSortableColumn="scriptName">
+                            <div class="table-header">
+                                <div>Skrypt</div>
+                                <p-sortIcon field="scriptName"/>
+                                <p-columnFilter type="text" field="scriptName" display="menu"></p-columnFilter>
+                            </div>
+                        </th>
+                        <th pSortableColumn="storytellerName">
+                            <div class="table-header">
+                                <div>Narrator</div>
+                                <p-sortIcon field="storytellerName"/>
+                                <p-columnFilter type="text" field="storytellerName" display="menu"></p-columnFilter>
+                            </div>
+                        </th>
+                        <th pSortableColumn="playersNumber"> 
+                            <div class="table-header">
+                                <div>Liczba graczy</div>
+                                <p-sortIcon field="playersNumber"/>
+                                <p-columnFilter type="text" field="playersNumber" display="menu"></p-columnFilter>
+                            </div>
+                        </th>
+                        <th pSortableColumn="goodWon"> 
+                            <div class="table-header">
+                                <div>Zwycięzcy</div>
+                                <p-sortIcon field="goodWon"/>
+                                <p-columnFilter type="text" field="goodWon" display="menu"></p-columnFilter>
+                            </div>
+                        </th>
+                        <th pSortableColumn="date"> 
+                            <div class="table-header">
+                                <div>Data</div>
+                                <p-sortIcon field="date" class="pi"/>
+                                <p-columnFilter type="text" field="date" display="menu"></p-columnFilter>
+                            </div>
+                        </th>
                     </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let game of games" (click)="selectGame(game)">
-                        <td>{{ game.id }}</td>
-                        <td>{{ game.script?.name }}</td>
-                        <td>{{ game.storyteller?.name }}</td>
-                        <td>{{ game.assignments?.length }}</td>
-                        <td [ngStyle]="{
-                            'background-color': game.goodWon ? '#004EA1' : '#AF1218',
-                            'color': 'white'}">
-                            {{ game.goodWon ? 'DOBRO' : 'ZŁO'}}</td>
-                        <td>{{ game.date }}</td>
+                </ng-template>
+                <ng-template #body let-gameHeader>
+                    <tr [pSelectableRow]="gameHeader">
+                        <td>{{ gameHeader.id }}</td>
+                        <td>{{ gameHeader.scriptName }}</td>
+                        <td>{{ gameHeader.storytellerName }}</td>
+                        <td>{{ gameHeader.playersNumber }}</td>
+                        <td>
+                            <i class="pi pi-circle-fill" [ngStyle]="{'color': gameHeader.goodWon ? 'var(--blue)' : 'var(--red)'}" style="margin-right: 10px;"></i>
+                            <span> {{ gameHeader.goodWon ? 'DOBRO' : 'ZŁO' }}</span>
+                        <td>{{ gameHeader.date }}</td>
                     </tr>
-                </tbody>
-            </table>
+                </ng-template>
+            </p-table>
         </div>
     </div>
 </div>

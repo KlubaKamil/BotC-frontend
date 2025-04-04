@@ -7,13 +7,36 @@ export enum Alignment {
   FABLED = 'Fabled'
 }
 
-export interface CharacterDto {
-  id?: number;
+export interface GameHeader{
+  id: number,
+  scriptName: string,
+  storytellerName: string,
+  playersNumber: number,
+  goodWon: boolean,
+  date: Date
+}
+
+export interface ScriptHeader{
+  id: number,
+  scriptName: string,
+  gamesNumber: number
+}
+
+export interface CharacterHeader{
+  id: number;
   name: string;
   maxStartNumber: number;
   alignment: Alignment;
   description: String;
-  linkToWiki?: String;
+  linkToWiki: String;
+}
+
+export interface PlayerHeader{
+  id: number,
+  name: string,
+  gamesNumber: number,
+  goodPercentage: number,
+  winRatio: number
 }
 
 export interface GameDto {
@@ -40,11 +63,71 @@ export interface ScriptDto{
   id?: number;
   name: String;
   characters: CharacterDto[];
+  scriptDetails?: ScriptDetails;
+}
+
+export interface ScriptDetails{
+  gamesNumber: number,
+  choicePercentage: number,
+  scriptCharactersDetails: ScriptCharacterDetails[];
+}
+
+export interface ScriptCharacterDetails{
+  characterId: number,
+  name: String,
+  gamesNumber: number,
+  occurrencePercentage: number,
+  wonGamesNumber: number,
+  winRatio: number
+}
+
+export interface CharacterDto {
+  id?: number;
+  name: string;
+  maxStartNumber: number;
+  alignment: Alignment;
+  description: String;
+  linkToWiki?: String;
+  characterDetails?: CharacterDetails;
+}
+
+export interface CharacterDetails {
+  gamesNumber: number;
+  wonGamesNumber: number;
+  winRatio: number;
+  characterInScriptsDetails: CharacterInScriptDetails[];
+}
+
+export interface CharacterInScriptDetails {
+  scriptName: string;
+  gamesNumber: number;
+  wonGamesNumber: number;
+  winRatio: number;
 }
 
 export interface PlayerDto{
   id?: number;
   name: string;
+  playerDetails?: PlayerDetails
+}
+
+export interface PlayerDetails {
+  playerCharactersDetails: PlayerCharacterDetails[];
+  playerScriptsDetails: PlayerScriptDetails[];
+}
+
+export interface PlayerCharacterDetails{
+  characterName: string,
+  gamesNumber: number,
+  wonGamesNumber: number,
+  winRatio: number
+}
+
+export interface PlayerScriptDetails{
+  scriptName: string,
+  gamesNumber: number,
+  wonGamesNumber: number,
+  winRatio: number
 }
 
 export interface PlaceDto{
@@ -55,15 +138,6 @@ export interface PlaceDto{
 export interface TransformationDto{
   character: CharacterDto;
   good: boolean;
-}
-
-export class Character {
-  id?: number;
-  name?: string;
-  maxStartNumber?: number;
-  alignment?: Alignment;
-  description?: String;
-  linkToWiki?: String;
 }
 
 export class Game {
@@ -82,7 +156,17 @@ export class Script {
   id?: number;
   name?: String;
   characters?: Character[];
-  timesPlayed?: number;
+  scriptDetails?: ScriptDetails
+}
+
+export class Character {
+  id?: number;
+  name?: string;
+  maxStartNumber?: number;
+  alignment?: Alignment;
+  description?: String;
+  linkToWiki?: String;
+  characterDetails?: CharacterDetails;
 }
 
 export class Player{
@@ -91,6 +175,7 @@ export class Player{
   gamesNumber?: number;
   goodPercentage?: number;
   winRatio?: number;
+  playerDetails?: PlayerDetails
 }
 
 export class Place{

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { Character, CharacterDto, DialogType, Game, GameDto, Player, PlayerDto, Script, ScriptDto, Place, PlaceDto } from '../interfaces'
+import { Character, CharacterDto, DialogType, Game, GameDto, Player, PlayerDto, Script, ScriptDto, Place, PlaceDto, GameHeader, ScriptHeader, CharacterHeader, PlayerHeader } from '../interfaces'
 import { MatDialog } from '@angular/material/dialog';
 import { DialogComponent } from '../../dialog/dialog.component';
 import { HttpClient } from '@angular/common/http';
@@ -11,21 +11,43 @@ import { DtoMapperService } from './dtoMapper.service';
   providedIn: 'root'
 })
 export class SharedService {
+  private gameHeaders = new BehaviorSubject<GameHeader[] | null>(null);
+  private scriptHeaders = new BehaviorSubject<ScriptHeader[] | null>(null);
+  private characterHeaders = new BehaviorSubject<CharacterHeader[] | null>(null);
+  private playerHeaders = new BehaviorSubject<PlayerHeader[] | null>(null);
+  
+  private selectedGameHeader = new BehaviorSubject<GameHeader | null>(null);
+  private selectedScriptHeader = new BehaviorSubject<ScriptHeader | null>(null);
+  private selectedCharacterHeader = new BehaviorSubject<CharacterHeader | null>(null);
+  private selectedPlayerHeader = new BehaviorSubject<PlayerHeader | null>(null);
+
   private games = new BehaviorSubject<Game[] | null>(null);
   private scripts = new BehaviorSubject<Script[] | null>(null);
   private characters = new BehaviorSubject<Character[] | null>(null);
   private players = new BehaviorSubject<Player[] | null>(null);
   private places = new BehaviorSubject<Place[] | null>(null);
+  
   private selectedGame = new BehaviorSubject<Game | null>(null);
   private selectedScript = new BehaviorSubject<Script | null>(null);
   private selectedCharacter = new BehaviorSubject<Character | null>(null);
   private selectedPlayer = new BehaviorSubject<Player | null>(null);
+
+  gameHeaders$ = this.gameHeaders.asObservable();
+  scriptHeaders$ = this.scriptHeaders.asObservable();
+  characterHeaders$ = this.characterHeaders.asObservable();
+  playerHeaders$ = this.playerHeaders.asObservable();
+  
+  selectedGameHeader$ =  this.selectedGameHeader.asObservable();
+  selectedScriptHeader$ =  this.selectedScriptHeader.asObservable();
+  selectedCharacterHeader$ =  this.selectedCharacterHeader.asObservable();
+  selectedPlayerHeader$ =  this.selectedPlayerHeader.asObservable();
 
   games$ = this.games.asObservable();
   scripts$ = this.scripts.asObservable();
   characters$ = this.characters.asObservable();
   players$ = this.players.asObservable();
   places$ = this.places.asObservable();
+  
   selectedGame$ =  this.selectedGame.asObservable();
   selectedScript$ =  this.selectedScript.asObservable();
   selectedCharacter$ =  this.selectedCharacter.asObservable();
@@ -38,19 +60,40 @@ export class SharedService {
   }
 
   fetchAll(){
-    this.fetchAllCharacters();
-    this.fetchAllPlayers();
-    this.fetchAllGames();
-    this.fetchAllScripts();
-    this.fetchAllPlaces();
+    this.fetchGameHeaders();
+    this.fetchScriptHeaders();
+    this.fetchCharacterHeaders();
+    this.fetchPlayerHeaders();
+  }
+
+  setGames(games: Game[]){
+    this.games.next(games);
+  }
+
+  setScripts(scripts: Script[]){
+    this.scripts.next(scripts);
   }
 
   setCharacters(characters: Character[]){
     this.characters.next(characters);
   }
 
-  setSelectedCharacter(character: Character){
-    this.selectedCharacter.next(character);
+  setPlayers(players: Player[]){
+    this.players.next(players);
+  }
+
+  setPlaces(places: Place[]){
+    this.places.next(places);
+  }
+
+  removeGame(id: number){
+    const updateGames = this.games.getValue()?.filter(game => game.id !== id);
+    this.games.next(updateGames!);
+  }
+  
+  removeScript(id: number){
+    const updatedScripts = this.scripts.getValue()?.filter(script => script.id !== id);
+    this.scripts.next(updatedScripts!);
   }
 
   removeCharacter(id: number){
@@ -58,21 +101,9 @@ export class SharedService {
     this.characters.next(updatedCharacters!);
   }
 
-  setPlayers(players: Player[]){
-    this.players.next(players);
-  }
-
-  setSelectedPlayer(player: Player){
-    this.selectedPlayer.next(player);
-  }
-
   removePlayer(id: number){
     const updatedPlayers = this.players.getValue()?.filter(player => player.id !== id);
     this.players.next(updatedPlayers!);
-  }
-
-  setPlaces(places: Place[]){
-    this.places.next(places);
   }
 
   removePlace(id: number){
@@ -80,30 +111,52 @@ export class SharedService {
     this.places.next(updatedPlaces!);
   }
 
-  setScripts(scripts: Script[]){
-    this.scripts.next(scripts);
+  setSelectedGame(game: Game){
+    this.selectedGame.next(game);
   }
 
   setSelectedScript(script: Script){
     this.selectedScript.next(script);
   }
 
-  removeScript(id: number){
-    const updatedScripts = this.scripts.getValue()?.filter(script => script.id !== id);
-    this.scripts.next(updatedScripts!);
+  setSelectedCharacter(character: Character){
+    this.selectedCharacter.next(character);
   }
 
-  setGames(games: Game[]){
-    this.games.next(games);
+  setSelectedPlayer(player: Player){
+    this.selectedPlayer.next(player);
   }
 
-  setSelectedGame(game: Game){
-    this.selectedGame.next(game);
+  setGameHeaders(gameHeaders: GameHeader[]){
+    this.gameHeaders.next(gameHeaders)
   }
 
-  removeGame(id: number){
-    const updateGames = this.games.getValue()?.filter(game => game.id !== id);
-    this.games.next(updateGames!);
+  setScriptHeaders(scriptHeaders: ScriptHeader[]){
+    this.scriptHeaders.next(scriptHeaders)
+  }
+
+  setCharacterHeaders(characterHeaders: CharacterHeader[]){
+    this.characterHeaders.next(characterHeaders)
+  }
+
+  setPlayerHeaders(playerHeaders: PlayerHeader[]){
+    this.playerHeaders.next(playerHeaders)
+  }
+
+  setSelectedGameHeader(gameHeader: GameHeader){
+    this.selectedGameHeader.next(gameHeader);
+  }
+
+  setSelectedScriptHeader(scriptHeader: ScriptHeader){
+    this.selectedScriptHeader.next(scriptHeader);
+  }
+
+  setSelectedCharacterHeader(characterHeader: CharacterHeader){
+    this.selectedCharacterHeader.next(characterHeader);
+  }
+
+  setSelectedPlayerHeader(playerHeader: PlayerHeader){
+    this.selectedPlayerHeader.next(playerHeader);
   }
 
   fetchAllCharacters() {
@@ -157,6 +210,94 @@ export class SharedService {
       },
       error: (error) => {
         this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania skryptów.');
+      }
+    });
+  }
+
+  fetchGameHeaders(){
+    this.http.get<GameHeader[]>(this.apiUrl + '/game/headers').subscribe({
+      next: (gameHeaders: GameHeader[]) => {
+        this.setGameHeaders(gameHeaders);
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania nagłówków gier.');
+      }
+    });
+  }
+
+  fetchScriptHeaders(){
+    this.http.get<ScriptHeader[]>(this.apiUrl + '/script/headers').subscribe({
+      next: (scriptHeaders: ScriptHeader[]) => {
+        this.setScriptHeaders(scriptHeaders);
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania nagłówków skryptów.');
+      }
+    });
+  }
+
+  fetchCharacterHeaders(){
+    this.http.get<CharacterHeader[]>(this.apiUrl + '/character/headers').subscribe({
+      next: (characterHeaders: CharacterHeader[]) => {
+        this.setCharacterHeaders(characterHeaders);
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania nagłówków postaci.');
+      }
+    });
+  }
+
+  fetchPlayerHeaders(){
+    this.http.get<PlayerHeader[]>(this.apiUrl + '/player/headers').subscribe({
+      next: (playerHeaders: PlayerHeader[]) => {
+        this.setPlayerHeaders(playerHeaders);
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania nagłówków graczy.');
+      }
+    });
+  }
+
+  fetchGameAndSelect(id: number){
+    this.http.get<GameDto>(this.apiUrl + '/game/' + id).subscribe({
+      next: (gameDto: GameDto) => {
+        this.setSelectedGame(this.mapper.mapDtoToGame(gameDto));
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania gry.');
+      }
+    });
+  }
+
+  fetchScriptAndSelect(id: number){
+    this.http.get<ScriptDto>(this.apiUrl + '/script/' + id).subscribe({
+      next: (scriptDto: ScriptDto) => {
+        this.setSelectedScript(this.mapper.mapDtoToScript(scriptDto));
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania skryptu.');
+      }
+    });
+  }
+
+  fetchCharacterAndSelect(id: number){
+    this.http.get<CharacterDto>(this.apiUrl + '/character/' + id).subscribe({
+      next: (characterDto: CharacterDto) => {
+        this.setSelectedCharacter(this.mapper.mapDtoToCharacter(characterDto));
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania postaci.');
+      }
+    });
+  }
+
+  fetchPlayerAndSelect(id: number){
+    this.http.get<PlayerDto>(this.apiUrl + '/player/' + id).subscribe({
+      next: (playerDto: PlayerDto) => {
+        this.setSelectedPlayer(this.mapper.mapDtoToPlayer(playerDto));
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania gracza.');
       }
     });
   }

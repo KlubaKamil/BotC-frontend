@@ -4,8 +4,13 @@
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
+:root{
+  --red: #AF1218;
+  --blue: #004EA1;
+  --gold: #ffd700;
+}
 .bg-stripped{
-    background-color: #F2F2F2;
+    background-color: #FAFAFA;
 }
 
 .myborder{
@@ -40,30 +45,30 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .w-5 {width: 5%}
 
 .redbg {
-  background: #AF1218 !important;
+  background: var(--red) !important;
   color: white !important;
 }
 
 .bluebg {
-  background-color: #004EA1 !important;
+  background-color: var(--blue) !important;
   color: white !important;
 }
 
 .travbg {
-  background: linear-gradient(to right, #004EA1 50%, #AF1218 50%);
+  background: linear-gradient(to right, var(--blue) 50%, var(--red) 50%);
   color: white !important;
 }
 
 .fabledbg {
-  background: gold !important;
+  background: var(--gold) !important;
 }
 
 .red{
-  color: #AF1218
+  color: var(--red)
 }
 
 .blue{
-  color: #004EA1
+  color: var(--blue)
 }
 
 .unifrakturmaguntia-regular {
@@ -86,11 +91,3 @@ p-datepicker > span,
 p-inputnumber {
   width: 100%;
 }
-
-/* @media (max-width: 570px) {
-  .character-item {
-    text-align: left;
-    display: flex; 
-    justify-content: flex-end
-  }
-} */

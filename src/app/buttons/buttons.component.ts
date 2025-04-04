@@ -23,13 +23,13 @@ export class ButtonsComponent {
       this.sharedService.fetchAll();
       this.firstClick = false;
     } else if(componentName === 'games'){
-      this.sharedService.fetchAllGames();
+      this.sharedService.fetchGameHeaders();
     } else if(componentName === 'scripts'){
-      this.sharedService.fetchAllScripts();
+      this.sharedService.fetchScriptHeaders();
     } else if(componentName === 'characters'){
-      this.sharedService.fetchAllCharacters();
+      this.sharedService.fetchCharacterHeaders();
     } else if(componentName === 'players'){
-      this.sharedService.fetchAllPlayers();
+      this.sharedService.fetchPlayerHeaders();
     }
     this.activeComponent.emit(componentName);
   }

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { DialogType, Player, ResponseId } from '../shared/interfaces';
+import { DialogType, Player, PlayerHeader, ResponseId } from '../shared/interfaces';
 import { SharedService } from '../shared/service/shared.service'
 import { HttpClient, HttpErrorResponse, HttpResponse, HttpStatusCode } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
@@ -8,16 +8,17 @@ import { environment } from '../../environments/environment';
 import { MatButtonModule } from '@angular/material/button';
 import { Observable } from 'rxjs';
 import { DtoMapperService } from '../shared/service/dtoMapper.service';
+import { TableModule } from 'primeng/table';
 
 @Component({
   selector: 'app-player',
-  imports: [CommonModule, FormsModule, MatButtonModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, TableModule],
   templateUrl: './player.component.html',
   styleUrl: './player.component.css'
 })
 export class PlayerComponent {
   apiUrl: string = environment.apiUrl;
-  players: Player[] = [];
+  selectedPlayerHeader: PlayerHeader | null = null;
   selectedPlayer: Player | null = null;
   tempPlayer: Player | null = null;
   isEditing: boolean = false;
@@ -26,12 +27,12 @@ export class PlayerComponent {
   constructor(private sharedService: SharedService, private http: HttpClient, private mapper: DtoMapperService){}
 
   ngOnInit() {
-    this.sharedService.selectedPlayer$.subscribe((player) => {
+    this.sharedService.selectedPlayer$.subscribe((selectedPlayer) => {
       this.cancel();
-      this.selectedPlayer = player;
+      this.selectedPlayer = selectedPlayer;
     })
-    this.sharedService.players$.subscribe((players) => {
-      this.players = players!;
+    this.sharedService.selectedPlayerHeader$.subscribe((selectedPlayerHeader) => {
+      this.selectedPlayerHeader = selectedPlayerHeader;
     })
   }
 
@@ -93,15 +94,9 @@ export class PlayerComponent {
         const status = response.status;
         if(status === HttpStatusCode.Ok){
           this.sharedService.showDialog(DialogType.INFORMATION, "Edycja zakończona pomyślnie!")
-          this.selectedPlayer!.name = this.tempPlayer!.name;
-          this.cancel();
+          this.sharedService.fetchPlayerAndSelect(this.selectedPlayer!.id!)
         } else if(status === HttpStatusCode.Created){
-          this.tempPlayer!.id = response.body!.id;
-          this.players.push(this.tempPlayer!);
           this.sharedService.showDialog(DialogType.INFORMATION, "Dodano nowego gracza!")
-          this.tempPlayer!.gamesNumber = 0;
-          this.tempPlayer!.goodPercentage = 0;
-          this.tempPlayer!.winRatio = 0;
           this.cancel();
         } else if(status === HttpStatusCode.NoContent){
           this.sharedService.showDialog(DialogType.INFORMATION, "Usunięcie zakończone pomyślnie!")
@@ -109,7 +104,7 @@ export class PlayerComponent {
         } else {
           this.sharedService.showDialog(DialogType.INFORMATION, 'Sukces!');
         }
-        this.sharedService.fetchAllPlayers();
+        this.sharedService.fetchPlayerHeaders();
       },
       error: (error: HttpErrorResponse) => {
         const status = error.status;

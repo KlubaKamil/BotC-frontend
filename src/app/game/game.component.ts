@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Alignment, Assignment, Character, DialogType, Game, Place, Player, ResponseId, Script, Transformation } from '../shared/interfaces'
+import { Alignment, Assignment, Character, DialogType, Game, GameHeader, Place, Player, ResponseId, Script, Transformation } from '../shared/interfaces'
 import { CommonModule } from '@angular/common';
 import { environment } from '../../environments/environment';
 import { SharedService } from '../shared/service/shared.service';
@@ -10,7 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { DateAdapter, MatNativeDateModule } from '@angular/material/core';
+import { MatNativeDateModule } from '@angular/material/core';
 import { DtoMapperService } from '../shared/service/dtoMapper.service';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { ToggleButtonModule } from 'primeng/togglebutton';
@@ -34,6 +34,7 @@ export class GameComponent {
   characters: Character[] = [];
   players: Player[] = [];
   places: Place[] = [];
+  selectedGameHeader: GameHeader | null = null;
   selectedGame: Game | null = null;
   tempGame: Game | null = null;
   isEditing: boolean = false;
@@ -56,15 +57,15 @@ export class GameComponent {
       this.availableTravellers = this.characters?.filter(c => c.alignment === Alignment.TRAVELLER);
       this.availableFables = this.characters?.filter(c => c.alignment === Alignment.FABLED )
     })
-    this.sharedService.games$.subscribe((games) => {
-      this.games = games!;
-    })
     this.sharedService.scripts$.subscribe((scripts) => {
       this.scripts = scripts!;
     })
-    this.sharedService.selectedGame$.subscribe((game) => {
+    this.sharedService.selectedGame$.subscribe((selectedGame) => {
       this.cancel();
-      this.selectedGame = game;
+      this.selectedGame = selectedGame;
+    })
+    this.sharedService.selectedGameHeader$.subscribe((selectedGameHeader) => {
+      this.selectedGameHeader = selectedGameHeader!;
     })
   }
 
@@ -75,19 +76,13 @@ export class GameComponent {
     this.tempGame.assignments = [];
     this.isEditing = false;
     this.isCreating = true;
+    this.fetchData();
   }
 
   toggleEdit() {
     if (!this.isEditing && !this.isCreating){
+      this.fetchData();
       this.tempGame = JSON.parse(JSON.stringify(this.selectedGame));
-      this.tempGame!.script = this.scripts.find(s => s.id === this.selectedGame!.script!.id);
-      this.tempGame!.fabled = this.characters.find(c => c.id === this.selectedGame!.fabled?.id);
-      this.tempGame!.storyteller = this.players.find(p => p.id === this.selectedGame!.storyteller!.id);
-      this.tempGame!.date = this.selectedGame?.date;
-      this.tempGame!.assignments!.forEach(assignment => {
-        assignment.character = this.tempGame!.script!.characters!.find(c => c.id === assignment.character!.id) || assignment.character;
-        assignment.player = this.players.find(p => p.id === assignment.player!.id) || assignment.player;
-      });
       this.isEditing = true;
     } else if (this.isEditing) {
       this.tempGame?.assignments!.filter(a => this.tempGame?.script!.characters!.find(c => c === a.character))
@@ -177,7 +172,12 @@ export class GameComponent {
     this.tempGame!.assignments = [];
   }
 
-  datebe: Date = new Date();
+  private fetchData(){
+    this.sharedService.fetchAllScripts();
+    this.sharedService.fetchAllCharacters();
+    this.sharedService.fetchAllPlayers();
+    this.sharedService.fetchAllPlaces();
+  }
 
   private validate(game: Game){
     if(!game.script){
@@ -216,18 +216,9 @@ export class GameComponent {
       next: (response: HttpResponse<ResponseId>) => {
         const status = response.status;
         if(status === HttpStatusCode.Ok){
-          this.selectedGame!.script = this.tempGame?.script;
-          this.selectedGame!.storyteller = this.tempGame?.storyteller;
-          this.selectedGame!.assignments = this.tempGame?.assignments;
-          this.selectedGame!.fabled = this.tempGame?.fabled;
-          this.selectedGame!.goodWon = this.tempGame?.goodWon;
-          this.selectedGame!.notes = this.tempGame?.notes;
-          this.selectedGame!.place = this.tempGame?.place;
           this.sharedService.showDialog(DialogType.INFORMATION, "Edycja zakończona pomyślnie!")
-          this.cancel();
+          this.sharedService.fetchGameAndSelect(this.selectedGame!.id!);
         } else if(status === HttpStatusCode.Created){
-          this.tempGame!.id = response.body!.id;
-          this.games.push(this.tempGame!);
           this.sharedService.showDialog(DialogType.INFORMATION, "Dodano nową rozgrywkę!")
           this.cancel();
         } else if(status === HttpStatusCode.NoContent){
@@ -236,7 +227,7 @@ export class GameComponent {
         } else {
           this.sharedService.showDialog(DialogType.INFORMATION, 'Sukces!');
         }
-        this.sharedService.fetchAllGames();
+        this.sharedService.fetchGameHeaders();
       },
       error: (error: HttpErrorResponse) => {
         this.sharedService.showDialog(DialogType.INFORMATION, 'Coś poszło nie tak!');

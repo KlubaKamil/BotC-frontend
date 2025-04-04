@@ -49,10 +49,10 @@
                 <p-togglebutton *ngIf="tempGame" [(ngModel)]="tempGame.goodWon" onLabel="Dobro" offLabel="Zło"/>            
             </div>
         </div>
-        <div class="row pt-1 pb-1 myborder d-flex align-items-center">
+        <div class="row pt-1 pb-1 myborder d-fWlex align-items-center">
             <label class="col-5 col-sm-4 fw-bold">Liczba graczy:</label>
             <div class="col-7 col-sm-8">
-                <label *ngIf="selectedGame">{{ selectedGame.assignments!.length }}</label>
+                <label *ngIf="selectedGame">{{ selectedGameHeader?.playersNumber }}</label>
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
@@ -85,19 +85,19 @@
                 <div class="character-item d-flex align-items-center p-2 border row"
                     *ngFor="let assignment of selectedGame?.assignments">
                     <div class="col-5">
-                        <label class="d-block">{{ assignment.character!.name }}</label>
+                        <label class="d-block">{{ assignment.player!.name }}</label>
                     </div>
                     <div class="col-5 col-sm-6">
-                        <label class="d-block">{{ assignment.player!.name }}</label>
+                        <label class="d-block">{{ assignment.character!.name }}</label>
                     </div>
                     <div class="col-2 col-sm-1 d-flex align-items-center">
                         <mat-icon [class.blue]="assignment.good" [class.red]="!assignment.good">circle</mat-icon>
                     </div>
                     <div *ngFor="let transformation of assignment.transformations" class="col-12">
                         <div class="row">
-                            <div class="col-1 col-sm-1"></div>
-                            <div class="col-4 col-sm-2">Zamiana w:</div>
-                            <div class="col-5 col-sm-8">{{ transformation.character?.name }}</div>
+                            <div class="col-1 col-sm-2"></div>
+                            <div class="col-4 col-sm-3">Zamiana w:</div>
+                            <div class="col-5 col-sm-6">{{ transformation.character?.name }}</div>
                             <div class="col-2 col-sm-1 d-flex align-items-center">
                                 <mat-icon [class.blue]="transformation.good" [class.red]="!transformation.good">circle</mat-icon>
                             </div>

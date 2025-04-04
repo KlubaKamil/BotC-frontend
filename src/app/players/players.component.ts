@@ -1,17 +1,22 @@
 import { Component } from '@angular/core';
-import { Assignment, Character, Game, Player, Script } from '../shared/interfaces'
+import { Character, Game, Player, Script } from '../shared/interfaces'
 import { CommonModule } from '@angular/common';
 import { SharedService } from '../shared/service/shared.service';
 import { MatButtonModule } from '@angular/material/button';
+import { TableModule, TableRowSelectEvent } from 'primeng/table';
+import { MatIconModule } from '@angular/material/icon';
+import { ToggleButtonChangeEvent, ToggleButtonModule } from 'primeng/togglebutton';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-players',
-  imports: [CommonModule, MatButtonModule],
+  imports: [FormsModule, CommonModule, MatButtonModule, TableModule, MatIconModule, ToggleButtonModule],
   templateUrl: './players.component.html',
-  styleUrl: './players.component.css'
+  styleUrl: './players.component.scss'
 })
 export class PlayersComponent {
-  players: Player[] | null = null;
+  playerHeaders: Player[] | null = null;
+  filteredPlayerHeaders: Player[] | null = null;
   characters: Character[] | null = null;
   scripts: Script[] | null = null;
   games: Game[] | null = null;
@@ -21,40 +26,72 @@ export class PlayersComponent {
   ngOnInit(){
     this.sharedService.games$.subscribe((games) => this.games = games);
     this.sharedService.characters$.subscribe((characters) => this.characters = characters);
-    this.sharedService.players$.subscribe((players) => {
-      this.players = players; 
-      this.getDetails();
+    this.sharedService.playerHeaders$.subscribe((playerHeaders) => {
+      this.playerHeaders = playerHeaders; 
+      this.filterInactive(false);
     })
   }
 
-  selectPlayer(player: Player){
-    this.sharedService.setSelectedPlayer(player);
+  selectPlayer(event: TableRowSelectEvent){
+    let playerHeader = event.data;
+    let id = playerHeader.id;
+    this.sharedService.fetchPlayerAndSelect(id);
+    this.sharedService.setSelectedPlayerHeader(playerHeader);
   }
 
-  addPlayer(player: Player){
-    this.players?.push(player);
-  }
+  getAlignmentGradient(gamesNumber: number, goodPercentage: number): string {
+    if(gamesNumber < 10) return 'gray'
+    let goodThreshhold = 70
+    let r, g, b;
 
-  private getDetails(){
-    this.players?.forEach(p => {
-      let gamesWithPlayer = this.games?.filter(g => g.assignments?.find(a => a.player?.id === p.id)) || [];
-      let gamesNumber = gamesWithPlayer.length;
-      let gamesBeingGood = gamesWithPlayer.filter(g => this.wasGoodInGame(g, p)).length || 0;
-      let wonGames = gamesWithPlayer.filter(g => this.wasGoodInGame(g, p) === g.goodWon).length || 0;
-      p.gamesNumber = gamesNumber;
-      p.goodPercentage = gamesNumber === 0 ? 0 : 100 * gamesBeingGood / gamesNumber;
-      p.winRatio = gamesNumber === 0 ? 0 : 100 * wonGames / gamesNumber;
-    });
-  }
-
-  private wasGoodInGame(game: Game, player: Player): boolean{
-    let assignment = game.assignments!.find(a => a.player?.id === player.id)!;
-    let good = assignment.good!;
-    if(assignment.transformations?.length && assignment.transformations?.length > 0){
-      let length = assignment.transformations.length;
-      let lastTransformation = assignment.transformations[length - 1];
-      good = lastTransformation.good!;
+    if (goodPercentage > goodThreshhold){
+      r = (100 - goodPercentage) * 7;
+      g = 78 + (100 - goodPercentage) * 5.5;
+      b = 161 + (100 - goodPercentage) * 3;
+    } else {
+      r = Math.max(175, 175 + (goodPercentage - 40) * 3);
+      g = Math.max(18, 18 + (goodPercentage - 40) * 7);
+      b = Math.max(24, 24 + (goodPercentage - 40) * 6);
     }
-    return good;
+    r = Math.round(r);
+    g = Math.round(g);
+    b = Math.round(b);
+    if(r > 255) r = 255;
+    if(g > 255) g = 255;
+    if(b > 255) b = 255;
+    return `rgb(${r}, ${g}, ${b}`;
+  }
+
+  getVictoryGradient(gamesNumber: number, winRatio: number): string {
+    if(gamesNumber < 10) return 'gray'
+    let r, g, b;
+
+    if (winRatio <= 25) {
+        r = g = b = 0; // Black
+    } else if (winRatio <= 50) {
+        let t = (winRatio - 25) / 25; // Normalize between 0 and 1
+        r = Math.round(128 * t);
+        g = Math.round(128 * t);
+        b = Math.round(128 * t);
+    } else if (winRatio <= 75) {
+        let t = (winRatio - 50) / 25; // Normalize between 0 and 1
+        r = Math.round(128 + (255 - 128) * t);
+        g = Math.round(128 + (215 - 128) * t);
+        b = Math.round(128 + (0 - 128) * t);
+    } else {
+        r = 255;
+        g = 215;
+        b = 0; // Gold
+    }
+
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+
+  filterInactive(event: boolean){
+    if(event){
+      this.filteredPlayerHeaders = this.playerHeaders!.filter(p => p.gamesNumber! >= 10);
+    } else {
+      this.filteredPlayerHeaders = this.playerHeaders;
+    }
   }
 }

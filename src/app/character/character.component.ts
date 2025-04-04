@@ -10,10 +10,11 @@ import { Observable } from 'rxjs';
 import { DtoMapperService } from '../shared/service/dtoMapper.service';
 import { SelectModule } from 'primeng/select';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { TableModule } from 'primeng/table';
 
 @Component({
   selector: 'app-character',
-  imports: [CommonModule, FormsModule, MatButtonModule, SelectModule, InputNumberModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, SelectModule, InputNumberModule, TableModule],
   templateUrl: './character.component.html',
   styleUrl: './character.component.css'
 })
@@ -46,9 +47,6 @@ export class CharacterComponent {
     this.sharedService.selectedCharacter$.subscribe((character) => {
       this.cancel();
       this.selectedCharacter = character;
-      if(this.selectedCharacter){
-        this.getCharacterStats();
-      }
     })
   }
 
@@ -97,32 +95,6 @@ export class CharacterComponent {
     });
   }
 
-  private getCharacterStats(){
-    let charId = this.selectedCharacter!.id;
-    let characterScripts = this.scripts.filter(s => s.characters?.map(c => c.id)?.includes(charId));
-    let characterTotalGames = this.games.filter(g => g.assignments!.map(a => a.character!.id).includes(charId));
-    let characterTotalWonGames = characterTotalGames.filter(g => g.goodWon === g.assignments?.find(a => a.character!.id === charId)?.good);
-    this.characterStats = {
-      name: this.selectedCharacter?.name!,
-      characterScripts: characterScripts.length,
-      characterTotalTimesPlayed: characterTotalGames.length,
-      characterTotalWonGames: characterTotalWonGames.length,
-      characterTotalWinRatio: characterTotalGames.length === 0 ? 0 : 100 * characterTotalWonGames.length / characterTotalGames.length,
-      characterPerScriptDetails: []
-    }
-    for(let script of characterScripts){
-      let scriptId = script.id;
-      let characterGames = characterTotalGames.filter(g => g.script!.id === scriptId);
-      let characterWonGames = characterGames.filter(g => g.goodWon === g.assignments?.find(a => a.character!.id === charId)?.good);
-      this.characterStats.characterPerScriptDetails.push({
-        scriptName: script!.name!,
-        characterTimesPlayed: characterGames.length,
-        characterWonGames: characterWonGames.length,
-        characterWinRatio: characterGames.length === 0 ? 0 : 100 * characterWonGames.length / characterGames.length
-      })
-    }
-  }
-
   private validate(character: Character){
     if(!character.name){
       this.sharedService.showDialog(DialogType.INFORMATION, "Nazwa jest wymagana!");
@@ -145,15 +117,9 @@ export class CharacterComponent {
       next: (response: HttpResponse<ResponseId>) => {
         const status = response.status;
         if(status === HttpStatusCode.Ok){
-          this.selectedCharacter!.name = this.tempCharacter!.name;
-          this.selectedCharacter!.alignment = this.tempCharacter!.alignment;
-          this.selectedCharacter!.description = this.tempCharacter!.description;
-          this.selectedCharacter!.linkToWiki = this.tempCharacter!.linkToWiki;
           this.sharedService.showDialog(DialogType.INFORMATION, "Edycja zakończone pomyślnie!")
-          this.cancel();
+          this.sharedService.fetchCharacterAndSelect(this.selectedCharacter!.id!)
         } else if(status === HttpStatusCode.Created){
-          this.tempCharacter!.id = response.body!.id;
-          this.characters.push(this.tempCharacter!);
           this.sharedService.showDialog(DialogType.INFORMATION, "Dodano nową postać!")
           this.cancel();
         } else if(status === HttpStatusCode.NoContent){
@@ -162,7 +128,7 @@ export class CharacterComponent {
         } else {
           this.sharedService.showDialog(DialogType.INFORMATION, 'Sukces!');
         }
-        this.sharedService.fetchAllCharacters();
+        this.sharedService.fetchCharacterHeaders();
       },
       error: (error: HttpErrorResponse) => {
         const status = error.status;

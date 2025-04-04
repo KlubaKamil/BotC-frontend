@@ -1,10 +1,21 @@
-
 :root {
-    --p-togglebutton-checked-background: #004EA1 !important;
-    --p-togglebutton-background: #AF1218 !important;
-    --p-togglebutton-hover-background: #AF1218 !important;
+    --p-togglebutton-checked-background: var(--blue) !important;
+    --p-togglebutton-background: var(--red) !important;
+    --p-togglebutton-hover-background: var(--red) !important;
     --p-togglebutton-hover-color: white !important;
     --p-togglebutton-color: white !important;
     --p-togglebutton-checked-color: white !important;
 }
 
+.table-header {
+    min-width: 100px;
+}
+
+.table-header-id {
+    min-width: 20px;
+}
+
+.table-header > div,
+.table-header-id > div {
+    width: 100%;
+}

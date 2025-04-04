@@ -5,15 +5,16 @@ import { CommonModule } from '@angular/common';
 import { environment } from '../../environments/environment';
 import { SharedService } from '../shared/service/shared.service';
 import { MatButtonModule } from '@angular/material/button';
+import { TableModule, TableRowSelectEvent } from 'primeng/table';
 
 @Component({
   selector: 'app-scripts',
-  imports: [CommonModule, MatButtonModule],
+  imports: [CommonModule, MatButtonModule, TableModule],
   templateUrl: './scripts.component.html',
   styleUrl: './scripts.component.css'
 })
 export class ScriptsComponent {
-  scripts: Script[] | null = null;
+  scriptHeaders: Script[] | null = null;
   characters: Character[] | null = null;
   games: Game[] | null = null;
   error: string = '';
@@ -22,26 +23,15 @@ export class ScriptsComponent {
   constructor(private sharedService: SharedService) {}
 
   ngOnInit() {
-    this.sharedService.scripts$.subscribe((scripts) => {
-      this.scripts = scripts;
-      this.getDetails();
+    this.sharedService.scriptHeaders$.subscribe((scriptHeaders) => {
+      this.scriptHeaders = scriptHeaders;
     })
-    this.sharedService.games$.subscribe((games) => this.games = games);
-    this.sharedService.characters$.subscribe((characters) => this.characters = characters);
-    
   }
 
-  selectScript(script: Script){
-    this.sharedService.setSelectedScript(script);
-  }
-
-  addScript(script: Script){
-    this.scripts?.push(script)
-  }
-
-  private getDetails(){
-    this.scripts?.forEach(s => {
-      s.timesPlayed = this.games?.filter(g => g.script?.id === s.id).length;
-    })
+  selectScript(event: TableRowSelectEvent){
+    let scriptHeader = event.data;
+    let id = scriptHeader.id;
+    this.sharedService.fetchScriptAndSelect(id);
+    this.sharedService.setSelectedScriptHeader(scriptHeader);
   }
 }

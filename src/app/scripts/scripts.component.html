@@ -1,23 +1,40 @@
 <div class="card">
     <div class="card-body">
         <label class="mat-headline-5">Lista skryptów:</label>
-        <div *ngIf="scripts" class="table-responsive" style="min-height: 88vh; max-height: 88vh; overflow-y: auto;">
-            <table class="table table-bordered table-striped table-hover">
-                <thead class="thead-dark">
+        <div *ngIf="scriptHeaders" style="min-height: 88vh; max-height: 88vh; overflow-y: auto;">
+            <p-table [value]="scriptHeaders" stripedRows sortField="id" selectionMode="single" (onRowSelect)="selectScript($event)">
+                <ng-template #header>
                     <tr>
-                        <th>Id</th>
-                        <th>Nazwa</th>
-                        <th>Liczba rozgrywek</th>
+                        <th pSortableColumn="id">
+                            <div class="table-header-id">
+                                <div class="mb-2">Id</div>
+                                <p-sortIcon field="id"/>
+                            </div>
+                        </th>
+                        <th pSortableColumn="scriptName">
+                            <div class="table-header">
+                                <div>Nazwa</div>
+                                <p-sortIcon field="scriptName"/>
+                                <p-columnFilter type="text" field="scriptName" display="menu"></p-columnFilter>
+                            </div>
+                        </th>
+                        <th pSortableColumn="gamesNumber">
+                            <div class="table-header">
+                                <div>Liczba ryzgrywek</div>
+                                <p-sortIcon field="gamesNumber"/>
+                                <p-columnFilter type="text" field="gamesNumber" display="menu"></p-columnFilter>
+                            </div>
+                        </th>
                     </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let script of scripts" (click)="selectScript(script)">
-                        <td>{{ script.id }}</td>
-                        <td>{{ script.name }}</td>
-                        <td>{{ script.timesPlayed }}</td>
+                </ng-template>
+                <ng-template #body let-scriptHeader>
+                    <tr [pSelectableRow]="scriptHeader">
+                        <td>{{ scriptHeader.id }}</td>
+                        <td>{{ scriptHeader.scriptName }}</td>
+                        <td>{{ scriptHeader.gamesNumber }}</td>
                     </tr>
-                </tbody>
-            </table>
+                </ng-template>
+            </p-table>
         </div>
     </div>
 </div>
