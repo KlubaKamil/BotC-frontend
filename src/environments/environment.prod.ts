@@ -1,3 +1,3 @@
 export const environment = {
-  apiUrl: 'https://blood.kerbal.space/api/'
+  apiUrl: 'https://czachodym.ddns.net/api/'
 }
