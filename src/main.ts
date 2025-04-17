@@ -1,5 +1,5 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { AppComponent } from './app/app.component';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { importProvidersFrom } from '@angular/core';
@@ -7,11 +7,17 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { providePrimeNG } from 'primeng/config';
 import Lara from '@primeng/themes/lara';
 import { MyPreset } from './assets/mytheme';
+import { provideRouter } from '@angular/router';
+import { routes } from './app/app.routes';
+import { authInterceptor } from './app/authinterceptor/auth.interceptor';
 
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideHttpClient(withFetch()), 
+    provideRouter(routes),
+    provideHttpClient(
+      withFetch(),
+      withInterceptors([authInterceptor])), 
     importProvidersFrom(MatDialogModule), 
     provideAnimationsAsync(), 
     providePrimeNG({

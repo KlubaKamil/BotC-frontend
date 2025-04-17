@@ -1,0 +1,64 @@
+<div class="card">
+    <div class="card-body">
+        <label class="mat-headline-5">Lista postaci:</label>
+        <div *ngIf="characterHeaders" style="min-height: 88vh; max-height: 88vh; overflow-y: auto;">
+            <p-table [value]="characterHeaders" stripedRows sortField="id" selectionMode="single" (onRowSelect)="selectCharacter($event)">
+                <ng-template #header>
+                    <tr>
+                        <th pSortableColumn="id">
+                            <div class="table-header-idr">
+                                <div class="mb-2">Id</div>
+                                <p-sortIcon field="id"/>
+                            </div>
+                        </th>
+                        <th pSortableColumn="name"> 
+                            <div class="table-header">
+                                <div>Nazwa</div>
+                                <p-sortIcon field="name"/>
+                                <p-columnFilter type="text" field="name" display="menu"></p-columnFilter>
+                            </div>
+                        </th>
+                        <th pSortableColumn="alignment"> 
+                            <div class="table-header">
+                                <div>Przynależność</div>
+                                <p-sortIcon field="length"/>
+                                <p-columnFilter type="text" field="alignment" display="menu"></p-columnFilter>
+                            </div>
+                        </th>
+                        <th pSortableColumn="description"> 
+                            <div class="table-header" style="min-width: 200px;">
+                                <div>Opis</div>
+                                <p-sortIcon field="description"/>
+                                <p-columnFilter type="text" field="description" display="menu"></p-columnFilter>
+                            </div>
+                        </th>
+                        <th>Wiki</th>
+                    </tr>
+                </ng-template>
+                <ng-template #body let-characterHeader>
+                    <tr [pSelectableRow]="characterHeader">
+                        <td>{{ characterHeader.id }}</td>
+                        <td>{{ characterHeader.name }}</td>
+                        <td>                         
+                            <i class="pi pi-circle-fill" 
+                            [ngStyle]="{
+                                'background': characterHeader.alignment === 'Traveller' ? 'linear-gradient(to right, var(--blue) 50%, var(--red) 50%)' : '',
+                                '-webkit-background-clip': characterHeader.alignment === 'Traveller' ? 'text' : '',
+                                '-webkit-text-fill-color': characterHeader.alignment === 'Traveller' ? 'transparent' : '',
+                                'color': ['Townsfolk', 'Outsider'].includes(characterHeader.alignment!) ? 'var(--blue)' :
+                                         ['Minion', 'Demon'].includes(characterHeader.alignment!) ? 'var(--red)' :
+                                         characterHeader.alignment === 'Fabled' ? 'var(--gold)' : ''
+                              }"
+                              style="margin-right: 10px;"></i>
+                            <span> {{ characterHeader.alignment }}</span>
+                        </td>
+                        <td>{{ characterHeader.description }}</td>
+                        <td>
+                            <a [href]="characterHeader.linkToWiki" target="_blank" rel="noopener noreferrer">Wiki</a>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+</div>

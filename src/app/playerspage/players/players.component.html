@@ -1,0 +1,70 @@
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <label class="mat-headline-5">Lista graczy:</label>
+            </div>
+            <div class="d-flex align-items-center">
+                <mat-slide-toggle (change)="filterInactive($event.checked)" color="secondary"></mat-slide-toggle>
+                <span class="ml-2">Ukryj nieaktywnych</span>
+            </div>
+        </div>
+        <div *ngIf="playerHeaders" style="min-height: 88vh; max-height: 88vh; overflow-y: auto;">
+            <p-table [value]="filteredPlayerHeaders!" stripedRows sortField="gamesNumber" [sortOrder]="-1" selectionMode="single" (onRowSelect)="selectPlayer($event)">
+                <ng-template #header>
+                    <tr>
+                        <th pSortableColumn="id">
+                            <div class="table-header-id">
+                                <div class="mb-2">Id</div>
+                                <p-sortIcon field="id"/>
+                            </div>
+                        </th>                        
+                        <th pSortableColumn="name">
+                            <div class="table-header">
+                                <div>Nazwa</div> 
+                                <p-sortIcon field="name"/>
+                                <p-columnFilter type="text" field="name" display="menu"></p-columnFilter>
+                            </div>
+                        </th>                        
+                        <th pSortableColumn="gamesNumber">
+                            <div class="table-header">
+                                <div>Liczba rozgrywek</div>
+                                <p-sortIcon field="gamesNumber"/>
+                                <p-columnFilter type="text" field="gamesNumber" display="menu"></p-columnFilter>
+                            </div>
+                        </th>                        
+                        <th pSortableColumn="goodPercentage">
+                            <div class="table-header">
+                                <div>% bycia dobrym</div>
+                                <p-sortIcon field="goodPercentage"/>
+                                <p-columnFilter type="text" field="goodPercentage" display="menu"></p-columnFilter>
+                            </div>
+                        </th>                        
+                        <th pSortableColumn="winRatio">
+                            <div class="table-header">
+                                <div>% wygranych</div>
+                                <p-sortIcon field="winRatio"/>
+                                <p-columnFilter type="text" field="winRatio" display="menu"></p-columnFilter>
+                            </div>
+                        </th>
+                    </tr>
+                </ng-template>
+                <ng-template #body let-playerHeader>
+                    <tr [pSelectableRow]="playerHeader">
+                        <td>{{ playerHeader.id }}</td>
+                        <td>{{ playerHeader.name }}</td>
+                        <td>{{ playerHeader.gamesNumber }}</td>
+                        <td>
+                            <i class="pi pi-circle-fill" [ngStyle]="{'color': getAlignmentGradient(playerHeader.gamesNumber, playerHeader.goodPercentage!)}" style="margin-right: 10px;"></i>
+                            <span> {{ playerHeader.goodPercentage!.toFixed(2) }}</span>
+                        </td>
+                        <td>
+                            <i class="pi pi-circle-fill" [ngStyle]="{'color': getVictoryGradient(playerHeader.gamesNumber, playerHeader.winRatio!)}" style="margin-right: 10px;"></i>
+                            <span> {{ playerHeader.winRatio!.toFixed(2) }}</span>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div> 
+    </div>
+</div>

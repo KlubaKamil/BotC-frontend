@@ -11,6 +11,9 @@ import { DtoMapperService } from './dtoMapper.service';
   providedIn: 'root'
 })
 export class SharedService {
+  private view : boolean = false;
+  private detailsView = new BehaviorSubject<boolean>(this.view);
+  
   private gameHeaders = new BehaviorSubject<GameHeader[] | null>(null);
   private scriptHeaders = new BehaviorSubject<ScriptHeader[] | null>(null);
   private characterHeaders = new BehaviorSubject<CharacterHeader[] | null>(null);
@@ -31,6 +34,8 @@ export class SharedService {
   private selectedScript = new BehaviorSubject<Script | null>(null);
   private selectedCharacter = new BehaviorSubject<Character | null>(null);
   private selectedPlayer = new BehaviorSubject<Player | null>(null);
+
+  detailsView$ = this.detailsView.asObservable();
 
   gameHeaders$ = this.gameHeaders.asObservable();
   scriptHeaders$ = this.scriptHeaders.asObservable();
@@ -57,6 +62,11 @@ export class SharedService {
   
 
   constructor(private dialog: MatDialog, private http: HttpClient, private mapper: DtoMapperService){
+  }
+  
+  toggleView(){
+    this.view = !this.view
+    this.detailsView.next(this.view);
   }
 
   fetchAll(){
@@ -258,7 +268,7 @@ export class SharedService {
     });
   }
 
-  fetchGameAndSelect(id: number){
+  fetchGameAndSelect(id: string | number){
     this.http.get<GameDto>(this.apiUrl + '/game/' + id).subscribe({
       next: (gameDto: GameDto) => {
         this.setSelectedGame(this.mapper.mapDtoToGame(gameDto));
@@ -269,7 +279,7 @@ export class SharedService {
     });
   }
 
-  fetchScriptAndSelect(id: number){
+  fetchScriptAndSelect(id: string | number){
     this.http.get<ScriptDto>(this.apiUrl + '/script/' + id).subscribe({
       next: (scriptDto: ScriptDto) => {
         this.setSelectedScript(this.mapper.mapDtoToScript(scriptDto));
@@ -280,7 +290,7 @@ export class SharedService {
     });
   }
 
-  fetchCharacterAndSelect(id: number){
+  fetchCharacterAndSelect(id: string | number){
     this.http.get<CharacterDto>(this.apiUrl + '/character/' + id).subscribe({
       next: (characterDto: CharacterDto) => {
         this.setSelectedCharacter(this.mapper.mapDtoToCharacter(characterDto));
@@ -291,7 +301,7 @@ export class SharedService {
     });
   }
 
-  fetchPlayerAndSelect(id: number){
+  fetchPlayerAndSelect(id: string | number){
     this.http.get<PlayerDto>(this.apiUrl + '/player/' + id).subscribe({
       next: (playerDto: PlayerDto) => {
         this.setSelectedPlayer(this.mapper.mapDtoToPlayer(playerDto));

@@ -41,6 +41,7 @@ export class DtoMapperService {
         return {
             id: model.id,
             name: model.name!,
+            notes: model.notes,
             characters: this.mapCharactersToDtos(model.characters!)
         };
     }
@@ -53,6 +54,7 @@ export class DtoMapperService {
         return {
             id: dto.id,
             name: dto.name,
+            notes: dto.notes,
             characters: this.mapDtosToCharacters(dto.characters),
             scriptDetails: dto.scriptDetails
         };

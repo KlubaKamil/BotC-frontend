@@ -1,0 +1,14 @@
+<div class="main-container">
+    <div class="slider-container" [class.show-detail]="detailsView">
+      <div class="slide left">
+        <app-scripts></app-scripts>
+      </div>
+      <div class="slide right">
+        <app-script></app-script>
+      </div>
+    </div>
+  
+    <button mat-fab color="secondary" class="toggle-btn" (click)="toggleView()">
+      <mat-icon>{{ detailsView ? 'arrow_back' : 'arrow_forward' }}</mat-icon>
+    </button>
+</div>

@@ -4,11 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { SharedService } from '../shared/service/shared.service';
 import { ButtonModule } from 'primeng/button'
+import { MatIconModule } from '@angular/material/icon';
+import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../authservice/auth.service';
 
 @Component({
   selector: 'app-buttons',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, ButtonModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, ButtonModule, MatIconModule, RouterModule],
   templateUrl: './buttons.component.html',
   styleUrl: './buttons.component.css'
 })
@@ -16,22 +19,10 @@ export class ButtonsComponent {
   @Output() activeComponent = new EventEmitter<string>();
   firstClick: boolean = true;
 
-  constructor(private sharedService: SharedService){}
+  constructor(private sharedService: SharedService, private router: Router, private auth: AuthService){}
 
-  changeComponent(componentName: string){
-    if(this.firstClick){
-      this.sharedService.fetchAll();
-      this.firstClick = false;
-    } else if(componentName === 'games'){
-      this.sharedService.fetchGameHeaders();
-    } else if(componentName === 'scripts'){
-      this.sharedService.fetchScriptHeaders();
-    } else if(componentName === 'characters'){
-      this.sharedService.fetchCharacterHeaders();
-    } else if(componentName === 'players'){
-      this.sharedService.fetchPlayerHeaders();
-    }
-    this.activeComponent.emit(componentName);
+  login(){
+    localStorage.removeItem('jwt');
   }
 
   toggleDarkMode(){

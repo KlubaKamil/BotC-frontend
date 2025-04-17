@@ -31,9 +31,6 @@ export const MyPreset = definePreset(Lara, {
                     800: '{zinc.800}',
                     900: '{zinc.900}',
                     950: '{zinc.950}'
-                },
-                custom: {
-                    buttoncolor: 'rgba(255,255,0,1)'
                 }
             },
             dark: {

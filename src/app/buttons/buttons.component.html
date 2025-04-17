@@ -1,6 +1,7 @@
-<div class="d-flex w-100">
-    <button mat-raised-button class="flex-fill m-2 p-4" (click)="changeComponent('games')">Gry</button>
-    <button mat-raised-button class="flex-fill m-2 p-4" (click)="changeComponent('scripts')">Skrypty</button>
-    <button mat-raised-button class="flex-fill m-2 p-4" (click)="changeComponent('characters')">Postacie</button>
-    <button mat-raised-button class="flex-fill m-2 p-4" (click)="changeComponent('players')">Gracze</button>
+<div class="d-flex w-100 gap-2">
+    <button mat-raised-button class="w-100 p-4 mt-2" [routerLink]="['games']">Gry</button>
+    <button mat-raised-button class="w-100 p-4 mt-2" [routerLink]="['scripts']">Skrypty</button>
+    <button mat-raised-button class="w-100 p-4 mt-2" [routerLink]="['characters']">Postacie</button>
+    <button mat-raised-button class="w-100 p-4 mt-2" [routerLink]="['players']">Gracze</button>
+    <!-- <button mat-raised-button class="w-100 p-4 mt-2" (click)="login()">Login</button> -->
 </div>

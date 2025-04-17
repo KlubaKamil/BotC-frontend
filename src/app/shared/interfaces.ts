@@ -62,6 +62,7 @@ export interface AssignmentDto {
 export interface ScriptDto{
   id?: number;
   name: String;
+  notes?: String;
   characters: CharacterDto[];
   scriptDetails?: ScriptDetails;
 }
@@ -99,6 +100,7 @@ export interface CharacterDetails {
 }
 
 export interface CharacterInScriptDetails {
+  scriptId: number,
   scriptName: string;
   gamesNumber: number;
   wonGamesNumber: number;
@@ -112,11 +114,15 @@ export interface PlayerDto{
 }
 
 export interface PlayerDetails {
+  gamesNumber?: number;
+  goodPercentage?: number;
+  winRatio?: number;
   playerCharactersDetails: PlayerCharacterDetails[];
   playerScriptsDetails: PlayerScriptDetails[];
 }
 
 export interface PlayerCharacterDetails{
+  characterId: number,
   characterName: string,
   gamesNumber: number,
   wonGamesNumber: number,
@@ -124,6 +130,7 @@ export interface PlayerCharacterDetails{
 }
 
 export interface PlayerScriptDetails{
+  scriptId: number,
   scriptName: string,
   gamesNumber: number,
   wonGamesNumber: number,
@@ -155,6 +162,7 @@ export class Game {
 export class Script {
   id?: number;
   name?: String;
+  notes?: String;
   characters?: Character[];
   scriptDetails?: ScriptDetails
 }
@@ -172,9 +180,6 @@ export class Character {
 export class Player{
   id?: number; 
   name?: string;
-  gamesNumber?: number;
-  goodPercentage?: number;
-  winRatio?: number;
   playerDetails?: PlayerDetails
 }
 
@@ -198,7 +203,8 @@ export class Transformation {
 
 export enum DialogType {
   CONFIRMATION,
-  INFORMATION
+  INFORMATION,
+  INSERTION
 }
 
 export interface ResponseId {
