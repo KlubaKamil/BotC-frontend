@@ -7,7 +7,10 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:BotC-frontend": "node dist/botc-frontend/server/server.mjs"
+    "serve:ssr:BotC-frontend": "node dist/botc-frontend/server/server.mjs",
+    "dev:ssr": "ng run BotC-frontend:serve-ssr",
+    "build:ssr": "ng build && ng run BotC-frontend:server",
+    "serve:ssr": "node dist/BotC-frontend/server/main.js"
   },
   "private": true,
   "dependencies": {
