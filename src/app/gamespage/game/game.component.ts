@@ -118,14 +118,16 @@ export class GameComponent {
     }
   }
 
-  deleteGame() {
-    const dialogRef = this.sharedService.showDialog(DialogType.CONFIRMATION, "Na pewno chcesz usunąć tę rozgrywkę?")
+  async deleteGame() {
+    if(await this.authService.isLoggedIn()){
+      const dialogRef = this.sharedService.showDialog(DialogType.CONFIRMATION, "Na pewno chcesz usunąć tę rozgrywkę?")
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if(result) {
-        this.handleResponse(this.http.delete<any>(`${this.apiUrl}/game/${this.selectedGame!.id}`, { observe: 'response' }));
-      } 
-    });
+      dialogRef.afterClosed().subscribe((result) => {
+        if(result) {
+          this.handleResponse(this.http.delete<any>(`${this.apiUrl}/game/${this.selectedGame!.id}`, { observe: 'response' }));
+        } 
+      });
+    }
   }
 
   getAssignment(character: Character, index: number): Assignment | undefined {

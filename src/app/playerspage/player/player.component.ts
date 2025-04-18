@@ -80,14 +80,16 @@ export class PlayerComponent {
     }
   }
 
-  deletePlayer() {
-    const dialogRef = this.sharedService.showDialog(DialogType.CONFIRMATION, "Na pewno chcesz usunąć tego gracza?")
+  async deletePlayer() {
+    if(await this.authService.isLoggedIn()){
+      const dialogRef = this.sharedService.showDialog(DialogType.CONFIRMATION, "Na pewno chcesz usunąć tego gracza?")
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if(result) {
-        this.handleResponse(this.http.delete<ResponseId>(this.apiUrl + '/player/' + this.selectedPlayer?.id, { observe: 'response' }));
-      } 
-    });
+      dialogRef.afterClosed().subscribe((result) => {
+        if(result) {
+          this.handleResponse(this.http.delete<ResponseId>(this.apiUrl + '/player/' + this.selectedPlayer?.id, { observe: 'response' }));
+        } 
+      });
+    }
   }
 
   private validate(player: Player){

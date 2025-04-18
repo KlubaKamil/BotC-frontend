@@ -99,14 +99,16 @@ export class CharacterComponent {
     }
   }
 
-  deleteCharacter() {
-    const dialogRef = this.sharedService.showDialog(DialogType.CONFIRMATION, "Na pewno chcesz usunąć tę postać?")
+  async deleteCharacter() {
+    if(await this.authService.isLoggedIn()){
+      const dialogRef = this.sharedService.showDialog(DialogType.CONFIRMATION, "Na pewno chcesz usunąć tę postać?")
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if(result) {
-        this.handleResponse(this.http.delete<any>(`${this.apiUrl}/character/${this.selectedCharacter!.id}`, {observe: 'response'}));
-      } 
-    });
+      dialogRef.afterClosed().subscribe((result) => {
+        if(result) {
+          this.handleResponse(this.http.delete<any>(`${this.apiUrl}/character/${this.selectedCharacter!.id}`, {observe: 'response'}));
+        } 
+      });
+    }
   }
 
   private validate(character: Character){

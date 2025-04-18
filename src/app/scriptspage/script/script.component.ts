@@ -110,14 +110,16 @@ export class ScriptComponent {
     this.isCreating = false;
   }
 
-  deleteScript() {
-    const dialogRef = this.sharedService.showDialog(DialogType.CONFIRMATION, 'Na pewno chcesz usunąć ten skrypt?')
+  async deleteScript() {
+    if(await this.authService.isLoggedIn()){
+      const dialogRef = this.sharedService.showDialog(DialogType.CONFIRMATION, 'Na pewno chcesz usunąć ten skrypt?')
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if(result) {
-        this.handleResponse(this.http.delete<any>(`${this.apiUrl}/script/${this.selectedScript!.id}`, {observe: 'response'}));
-      }
-    })
+      dialogRef.afterClosed().subscribe((result) => {
+        if(result) {
+          this.handleResponse(this.http.delete<any>(`${this.apiUrl}/script/${this.selectedScript!.id}`, {observe: 'response'}));
+        }
+      })
+    }
   }
 
   addCharacter(event: any){
