@@ -18,7 +18,7 @@ import { Router } from '@angular/router';
 })
 export class PlayersComponent {
   playerHeaders: PlayerHeader[] | null = null;
-  filteredPlayerHeaders: Player[] | null = null;
+  filteredPlayerHeaders: PlayerHeader[] | null = null;
   characters: Character[] | null = null;
   scripts: Script[] | null = null;
   games: Game[] | null = null;
@@ -48,13 +48,13 @@ export class PlayersComponent {
     let r, g, b;
 
     if (goodPercentage > goodThreshhold){
-      r = (100 - goodPercentage) * 7;
-      g = 78 + (100 - goodPercentage) * 5.5;
-      b = 161 + (100 - goodPercentage) * 3;
+      r = (100 - goodPercentage) * 8;
+      g = 78 + (100 - goodPercentage) * 6;
+      b = 161 + (100 - goodPercentage) * 3.5;
     } else {
-      r = Math.max(175, 175 + (goodPercentage - 40) * 3);
-      g = Math.max(18, 18 + (goodPercentage - 40) * 7);
-      b = Math.max(24, 24 + (goodPercentage - 40) * 6);
+      r = Math.max(175, 175 + (goodPercentage - 50) * 3.6);
+      g = Math.max(18, 18 + (goodPercentage - 50) * 11.5);
+      b = Math.max(24, 24 + (goodPercentage - 50) * 10.5);
     }
     r = Math.round(r);
     g = Math.round(g);

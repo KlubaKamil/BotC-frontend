@@ -1,0 +1,24 @@
+:host{
+    --p-slider-track-background: linear-gradient(to right, var(--red), white, var(--blue)) !important;
+    --p-slider-range-background: none;
+    --p-slider-handle-background: linear-gradient(to right, var(--red), white, var(--blue)) !important;
+    --p-slider-handle-hover-background: linear-gradient(to right, var(--red), white, var(--blue)) !important;
+    --p-slider-handle-content-hover-background: white;
+    --p-slider-handle-width: 20px;
+    --p-slider-handle-height: 20px;
+    --p-slider-handle-content-width: 16px;
+    --p-slider-handle-content-height: 16px;
+    --p-slider-track-size: 7px;
+}
+
+
+/* Prevent the visual "disabled" style */
+::ng-deep .custom-disabled-slider.p-disabled {
+    opacity: 1 !important;  /* Remove default fade effect */
+    pointer-events: none;   /* Still prevent interaction */
+}
+
+/* Optionally prevent cursor change */
+    ::ng-deep .custom-disabled-slider.p-disabled .p-slider-handle {
+    cursor: default !important;
+}

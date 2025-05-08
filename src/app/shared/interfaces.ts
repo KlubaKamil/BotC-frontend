@@ -34,9 +34,16 @@ export interface CharacterHeader{
 export interface PlayerHeader{
   id: number,
   name: string,
+  discordName?: String
   gamesNumber: number,
   goodPercentage: number,
   winRatio: number
+}
+
+export interface AchievementHeader{
+  id: number,
+  name: string,
+  description: string
 }
 
 export interface GameDto {
@@ -49,6 +56,8 @@ export interface GameDto {
   date?: Date;
   notes?: string;
   place?: PlaceDto;
+  imageUrl?: String;
+  balanceMarks?: number[];
 }
 
 export interface AssignmentDto {
@@ -62,6 +71,7 @@ export interface AssignmentDto {
 export interface ScriptDto{
   id?: number;
   name: String;
+  author?: String;
   notes?: String;
   characters: CharacterDto[];
   scriptDetails?: ScriptDetails;
@@ -74,7 +84,7 @@ export interface ScriptDetails{
 }
 
 export interface ScriptCharacterDetails{
-  characterId: number,
+  id: number,
   name: String,
   gamesNumber: number,
   occurrencePercentage: number,
@@ -89,6 +99,7 @@ export interface CharacterDto {
   alignment: Alignment;
   description: String;
   linkToWiki?: String;
+  tips?: String;
   characterDetails?: CharacterDetails;
 }
 
@@ -110,6 +121,8 @@ export interface CharacterInScriptDetails {
 export interface PlayerDto{
   id?: number;
   name: string;
+  discordName?: string;
+  playerAchievements?: PlayerAchievementDto[],
   playerDetails?: PlayerDetails
 }
 
@@ -147,6 +160,31 @@ export interface TransformationDto{
   good: boolean;
 }
 
+export interface PlayerAchievementDto {
+  id?: number;
+  achievement: AchievementDto;
+  date?: Date;
+}
+
+export interface AchievementDto {
+  id?: number;
+  name: string;
+  description: string;
+  date?: Date;
+  achievementDetails?: AchievementDetails
+}
+
+export interface AchievementDetails {
+  accomplishmentNumber: number;
+  achievementPlayerDetails: AchievementPlayerDetails[];
+}
+
+export interface AchievementPlayerDetails{
+  id: number;
+  name: String;
+  date: Date;
+}
+
 export class Game {
   id?: number;
   script?: Script;
@@ -157,11 +195,14 @@ export class Game {
   date?: Date;
   notes?: string;
   place?: Place;
+  imageUrl?: String;
+  balanceMarks?: number[];
 }
 
 export class Script {
   id?: number;
   name?: String;
+  author?: String;
   notes?: String;
   characters?: Character[];
   scriptDetails?: ScriptDetails
@@ -174,12 +215,15 @@ export class Character {
   alignment?: Alignment;
   description?: String;
   linkToWiki?: String;
+  tips?: String;
   characterDetails?: CharacterDetails;
 }
 
 export class Player{
   id?: number; 
   name?: string;
+  discordName?: string;
+  playerAchievements?: PlayerAchievement[];
   playerDetails?: PlayerDetails
 }
 
@@ -201,12 +245,42 @@ export class Transformation {
   good?: boolean;
 }
 
+export class Achievement {
+  id?: number;
+  name?: string;
+  description?: string;
+  achievementDetails?: AchievementDetails;
+}
+
+export class PlayerAchievement {
+  id?: number;
+  achievement?: Achievement;
+  date?: Date;
+}
+
 export enum DialogType {
   CONFIRMATION,
   INFORMATION,
-  INSERTION
+  INFORMATION_DISCORD,
+  INSERTION,
+  PASSWORD,
+  PHOTOGRAPHY
+}
+
+export enum NotificationType {
+  GAME = "GAME",
+  SCRIPT = "SCRIPT",
+  CHARACTER = "CHARACTER",
+  PLAYER = "PLAYER",
+  ACHIEVEMENT = "ACHIEVEMENT"
 }
 
 export interface ResponseId {
   id: number;
+}
+
+interface JwtPayload {
+  exp: number;
+  iat?: number;
+  [key: string]: any;
 }

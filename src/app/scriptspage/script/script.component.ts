@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { Alignment, Character, CharacterHeader, DialogType, ResponseId, Script, ScriptCharacterDetails, ScriptHeader } from '../../shared/interfaces';
+import { Alignment, Character, CharacterHeader, DialogType, NotificationType, ResponseId, Script, ScriptCharacterDetails, ScriptHeader } from '../../shared/interfaces';
 import { SharedService } from '../../shared/service/shared.service';
 import { HttpClient, HttpErrorResponse, HttpResponse, HttpStatusCode } from '@angular/common/http';
 import { CommonModule, Location } from '@angular/common';
@@ -20,13 +20,14 @@ import { TableModule } from 'primeng/table';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { AuthService } from '../../authservice/auth.service';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 
 @Component({
   selector: 'app-script',
   imports: [CommonModule, FormsModule, DragDropModule, MatMenuModule, MatButtonModule, MatIconModule, 
     MatFormFieldModule, TextFieldModule, SelectModule, PickListModule, CdkDropList, CdkDrag, TableModule,
-  RouterModule],
+  RouterModule, MatSnackBarModule],
   templateUrl: './script.component.html',
   styleUrl: './script.component.css',
 })
@@ -39,13 +40,11 @@ export class ScriptComponent {
   availableCharacters: CharacterHeader[] = [];
   isEditing: boolean = false;
   isCreating: boolean = false;
-  myControl = new FormControl('');
-  options: string[] = ['One', 'Two', 'Three'];
-  filteredOptions: Observable<Character[]>;
+  imageSize = '100';
   
   constructor(private sharedService: SharedService, private http: HttpClient, private mapper: DtoMapperService,
-    private route: ActivatedRoute, private clipboard: Clipboard, private authService: AuthService, private location: Location) {
-    this.filteredOptions = new Observable;
+    private route: ActivatedRoute, private clipboard: Clipboard, private authService: AuthService, private location: Location,
+    private snackBar: MatSnackBar) {
   }
 
   ngOnInit() {
@@ -58,16 +57,13 @@ export class ScriptComponent {
       this.cancel();
       this.selectedScript = selectedScript;
     })
-    this.filteredOptions = this.myControl.valueChanges.pipe(
-      startWith(''),
-      map(value => this.availableCharacters.filter(option => option.name!.toLowerCase().includes(value || ''))
-    ))
     this.route.paramMap.subscribe(params => {
       let scriptId = params.get('id');
       if(scriptId){
         this.sharedService.fetchScriptAndSelect(scriptId!)
       }
     });
+    window.addEventListener('resize', () => this.imageSize = window.innerWidth >= 992 ? '30' : '100');
   }
 
   async createNewScript() {
@@ -77,6 +73,7 @@ export class ScriptComponent {
       this.tempScript.characters = [];
       this.isEditing = false;
       this.isCreating = true;
+      this.fetchData();
       this.location.go('/scripts');
     }
   }
@@ -94,6 +91,7 @@ export class ScriptComponent {
       }
     } else {
       if(await this.authService.isLoggedIn()){
+        this.fetchData();
         this.tempScript = { ...this.selectedScript } as Script;
         this.isEditing = true;
       }
@@ -151,7 +149,7 @@ export class ScriptComponent {
         completeList.push(foundChar);
         playedCharacters = playedCharacters.filter(c => c != foundChar)
       } else {
-        completeList.push({characterId: defaultC.id, name: defaultC.name, gamesNumber: 0, occurrencePercentage: 0, wonGamesNumber: 0, winRatio: 0} as ScriptCharacterDetails);
+        completeList.push({id: defaultC.id, name: defaultC.name, gamesNumber: 0, occurrencePercentage: 0, wonGamesNumber: 0, winRatio: 0} as ScriptCharacterDetails);
       }
     })
     //a to dodaje potencjalnych travellerów
@@ -161,10 +159,47 @@ export class ScriptComponent {
   }
 
   copyJson(){
-    let json = `[{"id":"_meta","author":"Ktoś na pewno, ale skopiowano z blood.kerbal.space","name":"${this.selectedScript!.name}"}`;
+    let author = this.selectedScript?.author ? this.selectedScript.author : 'Gal Anonim';
+    let json = `[{"id":"_meta","author":"${author}","name":"${this.selectedScript!.name}"}`;
     this.selectedScript?.characters?.forEach(c => json += `,"${c.name}"`);
     json += "]";
     this.clipboard.copy(json);
+    this.snackBar.open('Skopiowano', undefined, {
+      duration: 1000,
+      horizontalPosition: 'right',
+      verticalPosition: 'top',
+    });
+  }
+
+  addJson(){
+    let dialogRef = this.sharedService.showDialog(DialogType.INSERTION, "Wklej JSON skryptu:");
+    dialogRef.afterClosed().subscribe((text) => {
+      let json = JSON.parse(text)
+      this.parseJson(json);
+    })
+  }
+
+  private parseJson(json: any){
+    let keys = Object.keys(json);
+      keys.forEach(key => {
+        let value = json[key];
+        if(typeof value == 'object'){
+          this.parseJson(value);
+        } else if(key == 'author'){
+          this.tempScript!.author = value
+        } else if(key == 'name'){
+          this.tempScript!.name = value
+        } else {
+          let char = this.availableCharacters.find(c => c.name.toLowerCase() == value)
+          if(char && !this.tempScript!.characters?.find(c => c == char)){
+            this.tempScript?.characters?.push(char);
+          }
+        }
+      })
+  }
+
+  private fetchData(){
+    this.sharedService.fetchCharacterHeaders();
   }
   
   private validate(script: Script){
@@ -182,11 +217,22 @@ export class ScriptComponent {
     httpResponse.subscribe({
       next: (response: HttpResponse<ResponseId>) => {
         const status = response.status;
+        const id = response.body!.id;
         if(status === HttpStatusCode.Ok){
-          this.sharedService.showDialog(DialogType.INFORMATION, 'Edycja zakończona pomyślnie!');
+          let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, 'Edycja zakończona pomyślnie!');
+          dialogRef.afterClosed().subscribe((notifyDiscord) => {
+            if(notifyDiscord) {
+              this.sharedService.notifyDiscord(NotificationType.SCRIPT, id);
+            }
+          });
           this.sharedService.fetchScriptAndSelect(this.selectedScript!.id!);
         } else if(status === HttpStatusCode.Created){
-          this.sharedService.showDialog(DialogType.INFORMATION, 'Dodano nowy skrypt!');
+          let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, 'Dodano nowy skrypt!');
+          dialogRef.afterClosed().subscribe((notifyDiscord) => {
+            if(notifyDiscord) {
+              this.sharedService.notifyDiscord(NotificationType.SCRIPT, id);
+            }
+          });
           this.cancel();
         } else if(status === HttpStatusCode.NoContent){
           this.sharedService.showDialog(DialogType.INFORMATION, "Usunięcie zakończone pomyślnie!")

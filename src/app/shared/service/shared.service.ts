@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { Character, CharacterDto, DialogType, Game, GameDto, Player, PlayerDto, Script, ScriptDto, Place, PlaceDto, GameHeader, ScriptHeader, CharacterHeader, PlayerHeader } from '../interfaces'
+import { Character, CharacterDto, DialogType, Game, GameDto, Player, PlayerDto, Script, ScriptDto, Place, PlaceDto, GameHeader, ScriptHeader, CharacterHeader, PlayerHeader, Achievement, AchievementHeader, AchievementDto, NotificationType } from '../interfaces'
 import { MatDialog } from '@angular/material/dialog';
 import { DialogComponent } from '../../dialog/dialog.component';
 import { HttpClient } from '@angular/common/http';
@@ -18,22 +18,26 @@ export class SharedService {
   private scriptHeaders = new BehaviorSubject<ScriptHeader[] | null>(null);
   private characterHeaders = new BehaviorSubject<CharacterHeader[] | null>(null);
   private playerHeaders = new BehaviorSubject<PlayerHeader[] | null>(null);
+  private achievementHeaders = new BehaviorSubject<AchievementHeader[] | null>(null);
   
   private selectedGameHeader = new BehaviorSubject<GameHeader | null>(null);
   private selectedScriptHeader = new BehaviorSubject<ScriptHeader | null>(null);
   private selectedCharacterHeader = new BehaviorSubject<CharacterHeader | null>(null);
   private selectedPlayerHeader = new BehaviorSubject<PlayerHeader | null>(null);
+  private selectedAchievementHeader = new BehaviorSubject<AchievementHeader | null>(null);
 
   private games = new BehaviorSubject<Game[] | null>(null);
   private scripts = new BehaviorSubject<Script[] | null>(null);
   private characters = new BehaviorSubject<Character[] | null>(null);
   private players = new BehaviorSubject<Player[] | null>(null);
   private places = new BehaviorSubject<Place[] | null>(null);
+  private achievements = new BehaviorSubject<Achievement[] | null>(null);
   
   private selectedGame = new BehaviorSubject<Game | null>(null);
   private selectedScript = new BehaviorSubject<Script | null>(null);
   private selectedCharacter = new BehaviorSubject<Character | null>(null);
   private selectedPlayer = new BehaviorSubject<Player | null>(null);
+  private selectedAchievement = new BehaviorSubject<Achievement | null>(null);
 
   detailsView$ = this.detailsView.asObservable();
 
@@ -41,22 +45,26 @@ export class SharedService {
   scriptHeaders$ = this.scriptHeaders.asObservable();
   characterHeaders$ = this.characterHeaders.asObservable();
   playerHeaders$ = this.playerHeaders.asObservable();
+  achievementHeaders$ = this.achievementHeaders.asObservable();
   
   selectedGameHeader$ =  this.selectedGameHeader.asObservable();
   selectedScriptHeader$ =  this.selectedScriptHeader.asObservable();
   selectedCharacterHeader$ =  this.selectedCharacterHeader.asObservable();
   selectedPlayerHeader$ =  this.selectedPlayerHeader.asObservable();
+  selectedAchievementHeader$ =  this.selectedAchievementHeader.asObservable();
 
   games$ = this.games.asObservable();
   scripts$ = this.scripts.asObservable();
   characters$ = this.characters.asObservable();
   players$ = this.players.asObservable();
   places$ = this.places.asObservable();
+  achievements$ = this.places.asObservable();
   
   selectedGame$ =  this.selectedGame.asObservable();
   selectedScript$ =  this.selectedScript.asObservable();
   selectedCharacter$ =  this.selectedCharacter.asObservable();
   selectedPlayer$ =  this.selectedPlayer.asObservable();
+  selectedAchievement$ =  this.selectedAchievement.asObservable();
   
   apiUrl = environment.apiUrl;
   
@@ -74,6 +82,7 @@ export class SharedService {
     this.fetchScriptHeaders();
     this.fetchCharacterHeaders();
     this.fetchPlayerHeaders();
+    this.fetchAchievementHeaders();
   }
 
   setGames(games: Game[]){
@@ -94,6 +103,10 @@ export class SharedService {
 
   setPlaces(places: Place[]){
     this.places.next(places);
+  }
+
+  setAchievements(achievements: Place[]){
+    this.achievements.next(achievements);
   }
 
   removeGame(id: number){
@@ -121,6 +134,11 @@ export class SharedService {
     this.places.next(updatedPlaces!);
   }
 
+  removeAchievements(id: number){
+    const updatedAchievements = this.achievements.getValue()?.filter(achievement => achievement.id !== id);
+    this.achievements.next(updatedAchievements!);
+  }
+
   setSelectedGame(game: Game){
     this.selectedGame.next(game);
   }
@@ -135,6 +153,10 @@ export class SharedService {
 
   setSelectedPlayer(player: Player){
     this.selectedPlayer.next(player);
+  }
+
+  setSelectedAchievement(achievement: Achievement){
+    this.selectedAchievement.next(achievement);
   }
 
   setGameHeaders(gameHeaders: GameHeader[]){
@@ -153,6 +175,10 @@ export class SharedService {
     this.playerHeaders.next(playerHeaders)
   }
 
+  setAchievementHeaders(achievementHeaders: AchievementHeader[]){
+    this.achievementHeaders.next(achievementHeaders)
+  }
+
   setSelectedGameHeader(gameHeader: GameHeader){
     this.selectedGameHeader.next(gameHeader);
   }
@@ -167,6 +193,10 @@ export class SharedService {
 
   setSelectedPlayerHeader(playerHeader: PlayerHeader){
     this.selectedPlayerHeader.next(playerHeader);
+  }
+
+  setSelectedAchievementHeader(achievementHeader: AchievementHeader){
+    this.selectedAchievementHeader.next(achievementHeader);
   }
 
   fetchAllCharacters() {
@@ -224,6 +254,17 @@ export class SharedService {
     });
   }
 
+  fetchAllAchievements(){
+    this.http.get<AchievementDto[]>(this.apiUrl + '/achievement/all').subscribe({
+      next: (achievementDtos: AchievementDto[]) => {
+        this.setAchievements(this.mapper.mapDtosToAchievements(achievementDtos));
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania osiągnięć.');
+      }
+    });
+  }
+
   fetchGameHeaders(){
     this.http.get<GameHeader[]>(this.apiUrl + '/game/headers').subscribe({
       next: (gameHeaders: GameHeader[]) => {
@@ -264,6 +305,17 @@ export class SharedService {
       },
       error: (error) => {
         this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania nagłówków graczy.');
+      }
+    });
+  }
+  
+  fetchAchievementHeaders(){
+    this.http.get<AchievementHeader[]>(this.apiUrl + '/achievement/headers').subscribe({
+      next: (achievementHeader: AchievementHeader[]) => {
+        this.setAchievementHeaders(achievementHeader);
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania nagłówków osiągnięć.');
       }
     });
   }
@@ -312,12 +364,28 @@ export class SharedService {
     });
   }
 
-  showDialog(type: DialogType, message: string){
+  fetchAchievementAndSelect(id: string | number){
+    this.http.get<AchievementDto>(this.apiUrl + '/achievement/' + id).subscribe({
+      next: (achievementDto: AchievementDto) => {
+        this.setSelectedAchievement(this.mapper.mapDtoToAchievement(achievementDto));
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania osiągnięcia.');
+      }
+    });
+  }
+
+  showDialog(type: DialogType, message: String, url?: String, discord?: boolean){
     return this.dialog.open(DialogComponent, {
       data: {
         type: type,
-        message: message
+        message: message,
+        url: url
       }
     })
+  }
+
+  notifyDiscord(type: NotificationType, id: number){
+    this.http.post<PlayerDto>(this.apiUrl + `/notification/${type.valueOf()}/${id}`, null).subscribe({});
   }
 }

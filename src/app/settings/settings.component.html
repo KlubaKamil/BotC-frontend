@@ -1,0 +1,13 @@
+<div class="card">
+    <div class="card-body">
+        <label mat-dialog-title class="mat-headline-5">Tutaj kiedyś będą fajne rzeczy, ale jeszcze nie teraz.</label>
+        <div>
+            <a href="https://docs.google.com/spreadsheets/d/1rEzY_2qaqRN79fOFwrhjm1XlmxAPtND_CzzwJqUw17Q/edit?gid=0#gid=0" class="mt-5" target="_blank" rel="noopener noreferrer">
+                Link do google docsa ze statystykami.
+            </a>
+        </div>
+        <div *ngIf="token" style="display: flex; justify-content: flex-end;">
+            <button mat-raised-button color="secondary" (click)="logout()">Wyloguj</button>
+        </div>
+    </div>
+</div>

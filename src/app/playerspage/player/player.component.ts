@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { DialogType, Player, PlayerHeader, ResponseId } from '../../shared/interfaces';
+import { Achievement, AchievementHeader, DialogType, NotificationType, Player, PlayerAchievement, PlayerHeader, ResponseId } from '../../shared/interfaces';
 import { SharedService } from '../../shared/service/shared.service'
 import { HttpClient, HttpErrorResponse, HttpResponse, HttpStatusCode } from '@angular/common/http';
 import { CommonModule, Location } from '@angular/common';
@@ -11,10 +11,12 @@ import { DtoMapperService } from '../../shared/service/dtoMapper.service';
 import { TableModule } from 'primeng/table';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../authservice/auth.service';
+import { MatIconModule } from '@angular/material/icon';
+import { SelectModule } from 'primeng/select';
 
 @Component({
   selector: 'app-player',
-  imports: [CommonModule, FormsModule, MatButtonModule, TableModule, RouterModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, TableModule, RouterModule, MatIconModule, SelectModule],
   templateUrl: './player.component.html',
   styleUrl: './player.component.css'
 })
@@ -24,6 +26,8 @@ export class PlayerComponent {
   tempPlayer: Player | null = null;
   isEditing: boolean = false;
   isCreating: boolean = false;
+  achievementHeaders: AchievementHeader[] | null = [];
+  imageSize = '100';
 
   constructor(private sharedService: SharedService, private http: HttpClient, private mapper: DtoMapperService, private route: ActivatedRoute,
     private authService: AuthService, private location: Location){}
@@ -33,12 +37,16 @@ export class PlayerComponent {
       this.cancel();
       this.selectedPlayer = selectedPlayer;
     })
+    this.sharedService.achievementHeaders$.subscribe((achievementHeaders) => {
+      this.achievementHeaders = achievementHeaders;
+    })
     this.route.paramMap.subscribe(params => {
       let id = params.get('id');
       if(id){
         this.sharedService.fetchPlayerAndSelect(id!)
       }
     });
+    window.addEventListener('resize', () => this.imageSize = window.innerWidth >= 992 ? '30': '100');
   }
 
   async createNewPlayer() {
@@ -47,6 +55,7 @@ export class PlayerComponent {
       this.tempPlayer = {} as Player;
       this.isEditing = false;
       this.isCreating = true;
+      this.fetchData();
       this.location.go('/players');
     }
   }
@@ -64,6 +73,7 @@ export class PlayerComponent {
       }
     } else {
       if(await this.authService.isLoggedIn()){
+        this.fetchData();
         this.tempPlayer = { ...this.selectedPlayer } as Player;
         this.isEditing = true;
       }
@@ -92,6 +102,25 @@ export class PlayerComponent {
     }
   }
 
+  addAchievement(event: any){
+    let achievement = event.value;
+    if(achievement){
+      let playerAchievements: PlayerAchievement[] = this.tempPlayer!.playerAchievements!;
+      if(playerAchievements.map(pa => pa.achievement).indexOf(achievement) == -1){
+        this.tempPlayer?.playerAchievements?.push({achievement: achievement});
+      }
+    }
+  }
+
+  removeAchievement(playerAchievement: PlayerAchievement){
+    this.tempPlayer!.playerAchievements = this.tempPlayer?.playerAchievements?.filter(pa => pa != playerAchievement);
+  }
+
+  private fetchData(){
+    this.sharedService.fetchAchievementHeaders();
+  }
+
+
   private validate(player: Player){
     if(!player.name){
       this.sharedService.showDialog(DialogType.INFORMATION, "Imię jest wymagane!");
@@ -104,11 +133,22 @@ export class PlayerComponent {
     httpResponse.subscribe({
       next: (response: HttpResponse<ResponseId>) => {
         const status = response.status;
+        const id = response.body!.id;
         if(status === HttpStatusCode.Ok){
-          this.sharedService.showDialog(DialogType.INFORMATION, "Edycja zakończona pomyślnie!")
+          let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończona pomyślnie!")
+          dialogRef.afterClosed().subscribe((notifyDiscord) => {
+            if(notifyDiscord) {
+              this.sharedService.notifyDiscord(NotificationType.PLAYER, id);
+            }
+          });
           this.sharedService.fetchPlayerAndSelect(this.selectedPlayer!.id!)
         } else if(status === HttpStatusCode.Created){
-          this.sharedService.showDialog(DialogType.INFORMATION, "Dodano nowego gracza!")
+          let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Dodano nowego gracza!")
+          dialogRef.afterClosed().subscribe((notifyDiscord) => {
+            if(notifyDiscord) {
+              this.sharedService.notifyDiscord(NotificationType.PLAYER, id);
+            }
+          });
           this.cancel();
         } else if(status === HttpStatusCode.NoContent){
           this.sharedService.showDialog(DialogType.INFORMATION, "Usunięcie zakończone pomyślnie!")

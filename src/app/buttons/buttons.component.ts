@@ -7,6 +7,8 @@ import { ButtonModule } from 'primeng/button'
 import { MatIconModule } from '@angular/material/icon';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../authservice/auth.service';
+import { MatDialog } from '@angular/material/dialog';
+import { SettingsComponent } from '../settings/settings.component';
 
 @Component({
   selector: 'app-buttons',
@@ -16,13 +18,10 @@ import { AuthService } from '../authservice/auth.service';
   styleUrl: './buttons.component.css'
 })
 export class ButtonsComponent {
-  @Output() activeComponent = new EventEmitter<string>();
-  firstClick: boolean = true;
+  constructor(private router: Router, private auth: AuthService, private dialog: MatDialog){}
 
-  constructor(private sharedService: SharedService, private router: Router, private auth: AuthService){}
-
-  login(){
-    localStorage.removeItem('jwt');
+  showSettings(){
+    this.dialog.open(SettingsComponent);
   }
 
   toggleDarkMode(){

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Alignment, Character, DialogType, Game, ResponseId, Script } from '../../shared/interfaces';
+import { Alignment, Character, DialogType, Game, NotificationType, ResponseId, Script } from '../../shared/interfaces';
 import { SharedService } from '../../shared/service/shared.service';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,10 +13,11 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { TableModule } from 'primeng/table';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../authservice/auth.service';
+import { TextFieldModule } from '@angular/cdk/text-field';
 
 @Component({
   selector: 'app-character',
-  imports: [CommonModule, FormsModule, MatButtonModule, SelectModule, InputNumberModule, TableModule, RouterModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, SelectModule, InputNumberModule, TableModule, RouterModule, TextFieldModule],
   templateUrl: './character.component.html',
   styleUrl: './character.component.css'
 })
@@ -33,6 +34,7 @@ export class CharacterComponent {
   characterStats: {name: string, characterScripts: number, characterTotalTimesPlayed: number, characterTotalWonGames: number,
                   characterTotalWinRatio: number, characterPerScriptDetails: {scriptName: String, characterTimesPlayed: number, 
                   characterWonGames: number, characterWinRatio: number}[]} | undefined;
+  imageSize = '100';
 
   constructor(private sharedService: SharedService, private http: HttpClient, private mapper: DtoMapperService, private route: ActivatedRoute,
     private authService: AuthService, private location: Location) {}
@@ -57,6 +59,7 @@ export class CharacterComponent {
       this.cancel();
       this.selectedCharacter = character;
     })
+    window.addEventListener('resize', () => this.imageSize = window.innerWidth >= 992 ? '100': 'orig');
   }
 
   async createNewCharacter() {
@@ -132,11 +135,22 @@ export class CharacterComponent {
     httpResponse.subscribe({
       next: (response: HttpResponse<ResponseId>) => {
         const status = response.status;
+        const id = response.body!.id;
         if(status === HttpStatusCode.Ok){
-          this.sharedService.showDialog(DialogType.INFORMATION, "Edycja zakończone pomyślnie!")
+          let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończone pomyślnie!")
+          dialogRef.afterClosed().subscribe((notifyDiscord) => {
+            if(notifyDiscord) {
+              this.sharedService.notifyDiscord(NotificationType.CHARACTER, id);
+            }
+          });
           this.sharedService.fetchCharacterAndSelect(this.selectedCharacter!.id!)
         } else if(status === HttpStatusCode.Created){
-          this.sharedService.showDialog(DialogType.INFORMATION, "Dodano nową postać!")
+          let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Dodano nową postać!")
+          dialogRef.afterClosed().subscribe((notifyDiscord) => {
+            if(notifyDiscord) {
+              this.sharedService.notifyDiscord(NotificationType.CHARACTER, id);
+            }
+          });
           this.cancel();
         } else if(status === HttpStatusCode.NoContent){
           this.sharedService.showDialog(DialogType.INFORMATION, "Usunięcie zakończone pomyślnie!")

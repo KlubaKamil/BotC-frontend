@@ -1,5 +1,6 @@
 import { Injectable } from "@angular/core";
-import { Assignment, AssignmentDto, Character, CharacterDto, Game, GameDto, Place, PlaceDto, Player, PlayerDto, Script, ScriptDto, Transformation, TransformationDto } from "../interfaces";
+import { Achievement, AchievementDto, Assignment, AssignmentDto, Character, CharacterDto, Game, GameDto, Place, PlaceDto, Player, PlayerAchievement, PlayerAchievementDto, PlayerDto, Script, ScriptDto, Transformation, TransformationDto } from "../interfaces";
+import { dt } from "@primeng/themes";
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,8 @@ export class DtoMapperService {
             maxStartNumber: model.maxStartNumber!,
             alignment: model.alignment!,
             description: model.description!,
-            linkToWiki: model.linkToWiki
+            linkToWiki: model.linkToWiki,
+            tips: model.tips
         };
     }
 
@@ -28,6 +30,7 @@ export class DtoMapperService {
             alignment: dto.alignment,
             description: dto.description,
             linkToWiki: dto.linkToWiki,
+            tips: dto.tips,
             characterDetails: dto.characterDetails
         };
     }
@@ -41,6 +44,7 @@ export class DtoMapperService {
         return {
             id: model.id,
             name: model.name!,
+            author: model.author,
             notes: model.notes,
             characters: this.mapCharactersToDtos(model.characters!)
         };
@@ -54,6 +58,7 @@ export class DtoMapperService {
         return {
             id: dto.id,
             name: dto.name,
+            author: dto.author,
             notes: dto.notes,
             characters: this.mapDtosToCharacters(dto.characters),
             scriptDetails: dto.scriptDetails
@@ -68,7 +73,9 @@ export class DtoMapperService {
     mapPlayerToDto(model: Player): PlayerDto {
         return {
             id: model.id,
-            name: model.name!
+            name: model.name!,
+            discordName: model.discordName,
+            playerAchievements: model.playerAchievements ? this.mapPlayerAchievementToDtos(model.playerAchievements) : []
         };
     }
     
@@ -81,6 +88,8 @@ export class DtoMapperService {
         return {
             id: dto.id,
             name: dto.name,
+            discordName: dto.discordName,
+            playerAchievements: dto.playerAchievements ? this.mapDtosToPlayerAchievements(dto.playerAchievements) : [],
             playerDetails: dto.playerDetails
         };
     }
@@ -153,7 +162,9 @@ export class DtoMapperService {
             goodWon: model.goodWon!,
             date: model.date,
             notes: model.notes,
-            place: model.place ? this.mapPlaceToDto(model.place) : undefined
+            place: model.place ? this.mapPlaceToDto(model.place) : undefined,
+            imageUrl: model.imageUrl,
+            balanceMarks: model.balanceMarks
         };
     }
     
@@ -171,7 +182,9 @@ export class DtoMapperService {
             goodWon: dto.goodWon,
             date: dto.date,
             notes: dto.notes,
-            place: dto.place ? this.mapDtoToPlace(dto.place) : undefined
+            place: dto.place ? this.mapDtoToPlace(dto.place) : undefined,
+            imageUrl: dto.imageUrl,
+            balanceMarks: dto.balanceMarks ? dto.balanceMarks : []
         };
     }
     
@@ -201,5 +214,58 @@ export class DtoMapperService {
     
     mapDtosToTransformations(dtos: TransformationDto[]): Transformation[] {
         return dtos.map(dto => this.mapDtoToTransformation(dto));
+    }
+
+
+    
+    mapAchievementToDto(model: Achievement): AchievementDto {
+        return {
+            id: model.id,
+            name: model.name!,
+            description: model.description!,
+        };
+    }
+    
+    mapAchievementsToDtos(models: Achievement[]): AchievementDto[] {
+        return models.map(model => this.mapAchievementToDto(model));
+    }
+    
+    mapDtoToAchievement(dto: AchievementDto): Achievement {
+        return {
+            id: dto.id,
+            name: dto.name,
+            description: dto.description,
+            achievementDetails: dto.achievementDetails
+        };
+    }
+    
+    mapDtosToAchievements(dtos: AchievementDto[]): Achievement[] {
+        return dtos.map(dto => this.mapDtoToAchievement(dto));
+    }
+
+
+
+    mapPlayerAchievementToDto(model: PlayerAchievement): PlayerAchievementDto {
+        return {
+            id: model.id,
+            achievement: this.mapAchievementToDto(model.achievement!),
+            date: model.date
+        };
+    }
+    
+    mapPlayerAchievementToDtos(models: PlayerAchievement[]): PlayerAchievementDto[] {
+        return models.map(model => this.mapPlayerAchievementToDto(model));
+    }
+    
+    mapDtoToPlayerAchievement(dto: PlayerAchievementDto): PlayerAchievement {
+        return {
+            id: dto.id,
+            achievement: this.mapDtoToAchievement(dto.achievement),
+            date: dto.date
+        };
+    }
+    
+    mapDtosToPlayerAchievements(dtos: PlayerAchievementDto[]): PlayerAchievement[] {
+        return dtos.map(dto => this.mapDtoToPlayerAchievement(dto));
     }
 }

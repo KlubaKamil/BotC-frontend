@@ -39,6 +39,11 @@ export class GamesComponent {
         let date1 = this.parseDate(a.date);
         let date2 = this.parseDate(b.date);
         let result = date1 > date2 ? 1 : date1 < date2 ? -1 : 0;
+        if(result == 0){
+          let id1 = a.id;
+          let id2 = b.id;
+          result = id1 - id2;
+        }
         return event.order! * result;
       } else if(event.field === 'goodWon'){
         let value1 = a[event.field!];

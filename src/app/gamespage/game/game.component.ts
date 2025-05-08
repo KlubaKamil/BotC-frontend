@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Alignment, Assignment, Character, DialogType, Game, Place, Player, ResponseId, Script, Transformation } from '../../shared/interfaces'
+import { Alignment, Assignment, Character, DialogType, Game, NotificationType, Place, Player, ResponseId, Script, Transformation } from '../../shared/interfaces'
 import { CommonModule, Location } from '@angular/common';
 import { environment } from '../../../environments/environment';
 import { SharedService } from '../../shared/service/shared.service';
@@ -20,11 +20,17 @@ import { ButtonModule } from 'primeng/button';
 import { DividerModule } from 'primeng/divider';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../authservice/auth.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { TableModule } from 'primeng/table';
+import { SliderModule } from 'primeng/slider';
+import { MatSliderModule } from '@angular/material/slider';
+
 
 @Component({
   selector: 'app-game',
   imports: [FormsModule, CommonModule, MatButtonModule, MatIconModule, MatFormFieldModule, ButtonModule, DividerModule,
-    MatInputModule, MatNativeDateModule, ToggleSwitchModule, ToggleButtonModule, SelectModule, DatePickerModule, RouterModule
+    MatInputModule, MatNativeDateModule, ToggleSwitchModule, ToggleButtonModule, SelectModule, DatePickerModule, RouterModule,
+    TableModule, SliderModule, MatSliderModule
   ],
   templateUrl: './game.component.html',
   styleUrl: './game.component.css'
@@ -42,9 +48,15 @@ export class GameComponent {
   isCreating: boolean = false;
   availableTravellers: Character[] = [];
   availableFables: Character[] = [];
+  formData: FormData | null = null;
+  isPhotoUploaded: boolean = false;
+  balanceSliderValue = 5;
+  averageBalanceMark = 5;
+  imageSize = 100;
   
   constructor(private sharedService: SharedService, private http: HttpClient, private mapper: DtoMapperService,
-    private route: ActivatedRoute, private authService: AuthService, private location: Location) {
+    private route: ActivatedRoute, private authService: AuthService, private location: Location, 
+    private snackBar: MatSnackBar) {
   }
 
   ngOnInit() {
@@ -65,6 +77,7 @@ export class GameComponent {
     this.sharedService.selectedGame$.subscribe((selectedGame) => {
       this.cancel();
       this.selectedGame = selectedGame;
+      this.calculateBalance();
     })
     this.route.paramMap.subscribe(params => {
       let id = params.get('id');
@@ -72,6 +85,7 @@ export class GameComponent {
         this.sharedService.fetchGameAndSelect(id!)
       }
     });
+    window.addEventListener('resize', () => this.imageSize = window.innerWidth >= 992 ? 30 : 100);
   }
 
   async createNewGame() {
@@ -102,7 +116,7 @@ export class GameComponent {
     } else {
       if(await this.authService.isLoggedIn()){
         this.fetchData();
-        this.tempGame = { ...this.selectedGame } as Game;
+        this.tempGame = JSON.parse(JSON.stringify(this.selectedGame));
         this.isEditing = true;
       }
     }
@@ -111,6 +125,7 @@ export class GameComponent {
   cancel() {
     this.tempGame = null;
     this.isCreating = false;
+    this.isPhotoUploaded = false;
     if(this.isEditing){
       this.isEditing = false;
     } else {
@@ -184,6 +199,57 @@ export class GameComponent {
     this.tempGame!.assignments = [];
   }
 
+  showImage(){
+    let date = this.selectedGame?.date ? ', ' + this.selectedGame?.date : '';
+    let place = this.selectedGame?.place ? ', ' + this.selectedGame?.place.name : '';
+    this.sharedService.showDialog(
+      DialogType.PHOTOGRAPHY, 
+      `Gra ${this.selectedGame?.id}, ${this.selectedGame?.script?.name}${place}${date}`, 
+      `${this.apiUrl}/${this.selectedGame!.imageUrl}`)
+  }
+
+  addImage(event: Event){
+    const input = event.target as HTMLInputElement;
+    const maxSizeInMB = 10;  
+    const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      if (file.size > maxSizeInBytes) {
+        this.sharedService.showDialog(DialogType.INFORMATION, "Maksymalny rozmiar zdjęcia to 10MB.");
+      } else {
+        this.formData = new FormData();
+        this.formData.append('image', file);
+        this.isPhotoUploaded = true;
+        this.snackBar.open('Przesłano, gotowe do zapisania.', undefined, {
+          duration: 1000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+        });
+      }
+    }
+  }
+
+  addBalanceMark(){
+    let message = `Na pewno chcesz dodać ocenę balansu: ${this.balanceSliderValue}?`;
+    let dialogRef = this.sharedService.showDialog(DialogType.CONFIRMATION, message);
+    dialogRef.afterClosed().subscribe((result) => {
+      if(result) {
+        this.tempGame?.balanceMarks?.push(this.balanceSliderValue);
+        this.sharedService.showDialog(DialogType.INFORMATION, "Dodano ocenę!")
+      }
+      this.balanceSliderValue = 5;
+    })
+  }
+
+  private calculateBalance(){
+    let length = this.selectedGame?.balanceMarks?.length!;
+    if(length > 0){
+      let sum = 0;
+      this.selectedGame?.balanceMarks?.forEach(bm => sum += bm);
+      this.averageBalanceMark = sum / length;
+    }
+  }
+
   private fetchData(){
     this.sharedService.fetchAllScripts();
     this.sharedService.fetchAllCharacters();
@@ -223,15 +289,37 @@ export class GameComponent {
     return anyFailed;
   }
 
-  private handleResponse(httpResponse: Observable<HttpResponse<ResponseId>>){
+  private handleResponse(httpResponse: Observable<HttpResponse<ResponseId>>, handlePhotoResponse?: boolean){
     httpResponse.subscribe({
       next: (response: HttpResponse<ResponseId>) => {
         const status = response.status;
+        const id = response.body!.id;
         if(status === HttpStatusCode.Ok){
-          this.sharedService.showDialog(DialogType.INFORMATION, "Edycja zakończona pomyślnie!")
-          this.sharedService.fetchGameAndSelect(this.selectedGame!.id!);
+          if(this.isPhotoUploaded){
+            this.isPhotoUploaded = false;
+            this.handleResponse(this.http.post<ResponseId>(`${this.apiUrl}/game/${id}/image`, this.formData, { observe: 'response' }), true)
+          } else {
+            let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończona pomyślnie!")
+            dialogRef.afterClosed().subscribe((notifyDiscord) => {
+              if(notifyDiscord) {
+                this.sharedService.notifyDiscord(NotificationType.GAME, id);
+              }
+            });
+            this.sharedService.fetchGameAndSelect(id);
+          }
         } else if(status === HttpStatusCode.Created){
-          this.sharedService.showDialog(DialogType.INFORMATION, "Dodano nową rozgrywkę!")
+          if(this.isPhotoUploaded){
+            this.isPhotoUploaded = false;
+            this.handleResponse(this.http.put<ResponseId>(`${this.apiUrl}/game/${id}/image`, this.formData, { observe: 'response' }), true)
+          } else {
+            let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Dodano nową rozgrywkę!")
+            dialogRef.afterClosed().subscribe((notifyDiscord) => {
+              if(notifyDiscord) {
+                this.sharedService.notifyDiscord(NotificationType.GAME, id);
+              }
+            });
+            this.sharedService.fetchGameAndSelect(id);
+          }
           this.cancel();
         } else if(status === HttpStatusCode.NoContent){
           this.sharedService.showDialog(DialogType.INFORMATION, "Usunięcie zakończone pomyślnie!")
@@ -242,7 +330,11 @@ export class GameComponent {
         this.sharedService.fetchGameHeaders();
       },
       error: (error: HttpErrorResponse) => {
-        this.sharedService.showDialog(DialogType.INFORMATION, 'Coś poszło nie tak!');
+        if(handlePhotoResponse){
+          this.sharedService.showDialog(DialogType.INFORMATION, "Rozgrywka zapisana pomyślnie, natomiast przesłanie zdjęcia nie powiodło się!")
+        } else {
+          this.sharedService.showDialog(DialogType.INFORMATION, 'Coś poszło nie tak!');
+        }
       }
     })
   }

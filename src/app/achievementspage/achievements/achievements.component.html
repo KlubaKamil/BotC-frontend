@@ -1,0 +1,40 @@
+<div class="card">
+    <div class="card-body">
+        <label class="mat-headline-5">Lista osiągnięć:</label>
+        <div *ngIf="achievementHeaders" style="height: 88vh;">
+            <p-table [value]="achievementHeaders!" stripedRows sortField="gamesNumber" [sortOrder]="-1" selectionMode="single" (onRowSelect)="selectAchievement($event)"
+                [scrollable]="true" scrollHeight="88vh">
+                <ng-template #header>
+                    <tr>
+                        <th pSortableColumn="id">
+                            <div class="table-header-id">
+                                <div class="mb-2">Id</div>
+                                <p-sortIcon field="id"/>
+                            </div>
+                        </th>                        
+                        <th pSortableColumn="name">
+                            <div class="table-header">
+                                <div>Nazwa</div> 
+                                <p-sortIcon field="name"/>
+                                <p-columnFilter type="text" field="name" display="menu"></p-columnFilter>
+                            </div>
+                        </th>                            
+                        <th pSortableColumn="description">
+                            <div class="table-header">
+                                <div>Opis</div> 
+                                <p-sortIcon field="description"/>
+                                <p-columnFilter type="text" field="description" display="menu"></p-columnFilter>
+                            </div>
+                        </th>                        
+                    </tr>
+                </ng-template>
+                <ng-template #body let-achievementHeader>
+                    <tr [pSelectableRow]="achievementHeader">
+                        <td>{{ achievementHeader.id }}</td>
+                        <td>{{ achievementHeader.name }}</td>
+                        <td>{{ achievementHeader.description }}</td>
+                </ng-template>
+            </p-table>
+        </div> 
+    </div>
+</div>

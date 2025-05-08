@@ -1,8 +1,9 @@
 <div class="card">
     <div class="card-body">
         <label class="mat-headline-5">Lista postaci:</label>
-        <div *ngIf="characterHeaders" style="min-height: 88vh; max-height: 88vh; overflow-y: auto;">
-            <p-table [value]="characterHeaders" stripedRows sortField="id" selectionMode="single" (onRowSelect)="selectCharacter($event)">
+        <div *ngIf="characterHeaders" style="height: 88vh;">
+            <p-table [value]="characterHeaders" stripedRows sortField="id" selectionMode="single" (onRowSelect)="selectCharacter($event)"
+                [scrollable]="true" scrollHeight="88vh">
                 <ng-template #header>
                     <tr>
                         <th pSortableColumn="id">

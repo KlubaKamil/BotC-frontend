@@ -15,7 +15,8 @@ import { FormsModule } from '@angular/forms';
 })
 export class DialogComponent {
   types = DialogType;
-  password: string = '';
+  text: string = '';
+  timestamp: number = Date.now();
 
   constructor(private dialogRef: MatDialogRef<DialogComponent>, @Inject(MAT_DIALOG_DATA) public data: any) {}
 
@@ -27,7 +28,11 @@ export class DialogComponent {
     this.dialogRef.close(true);
   }
 
-  confirmPassword() {
-    this.dialogRef.close(this.password);
+  confirmInsert() {
+    this.dialogRef.close(this.text);
+  }
+
+  notifyDiscord() {
+    
   }
 }

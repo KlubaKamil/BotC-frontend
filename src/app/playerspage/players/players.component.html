@@ -9,8 +9,9 @@
                 <span class="ml-2">Ukryj nieaktywnych</span>
             </div>
         </div>
-        <div *ngIf="playerHeaders" style="min-height: 88vh; max-height: 88vh; overflow-y: auto;">
-            <p-table [value]="filteredPlayerHeaders!" stripedRows sortField="gamesNumber" [sortOrder]="-1" selectionMode="single" (onRowSelect)="selectPlayer($event)">
+        <div *ngIf="playerHeaders" style="height: 88vh;">
+            <p-table [value]="filteredPlayerHeaders!" stripedRows sortField="gamesNumber" [sortOrder]="-1" selectionMode="single" 
+            (onRowSelect)="selectPlayer($event)" [scrollable]="true" scrollHeight="88vh">
                 <ng-template #header>
                     <tr>
                         <th pSortableColumn="id">
@@ -24,6 +25,13 @@
                                 <div>Nazwa</div> 
                                 <p-sortIcon field="name"/>
                                 <p-columnFilter type="text" field="name" display="menu"></p-columnFilter>
+                            </div>
+                        </th>                            
+                        <th pSortableColumn="discordName">
+                            <div class="table-header">
+                                <div>Nick na Discordzie</div> 
+                                <p-sortIcon field="discordName"/>
+                                <p-columnFilter type="text" field="discordName" display="menu"></p-columnFilter>
                             </div>
                         </th>                        
                         <th pSortableColumn="gamesNumber">
@@ -53,6 +61,7 @@
                     <tr [pSelectableRow]="playerHeader">
                         <td>{{ playerHeader.id }}</td>
                         <td>{{ playerHeader.name }}</td>
+                        <td>{{ playerHeader.discordName }}</td>
                         <td>{{ playerHeader.gamesNumber }}</td>
                         <td>
                             <i class="pi pi-circle-fill" [ngStyle]="{'color': getAlignmentGradient(playerHeader.gamesNumber, playerHeader.goodPercentage!)}" style="margin-right: 10px;"></i>

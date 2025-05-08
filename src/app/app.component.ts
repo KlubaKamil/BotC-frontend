@@ -10,10 +10,4 @@ import { RouterModule } from '@angular/router';
   imports: [CommonModule, ButtonsComponent, RouterModule]
 })
 export class AppComponent {
-  title = 'BotC-frontend';
-  activeComponent: string = 'welcome';
-
-  changeComponent(activeComponent: string){
-    this.activeComponent = activeComponent;
-  }
 }

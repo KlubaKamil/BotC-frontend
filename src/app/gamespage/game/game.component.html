@@ -6,7 +6,23 @@
 </div>
 <div *ngIf="selectedGame || tempGame" class="card" style="min-height: 90vh; max-height: 90vh; overflow-y: auto;">
     <div class="card-body">
-        <label class="mat-headline-5">Szczegóły rozgrywki:</label>
+        <div class="d-flex justify-content-between align-items-center">
+            <label class="mat-headline-5">Szczegóły rozgrywki:</label>
+            <button *ngIf="!tempGame && selectedGame && selectedGame.imageUrl" mat-fab color="secondary" class="col-7 col-sm-8" 
+                style="transform: scale(0.75); transform-origin: top right;" (click)="showImage()">
+                <mat-icon>image</mat-icon>
+            </button>
+            <div *ngIf="tempGame" class="row">
+                <button mat-fab color="secondary" class="col-6" style="transform: scale(0.75); transform-origin: top;" (click)="fileInput.click()">
+                    <mat-icon>add_a_photo</mat-icon>
+                </button>
+                <button *ngIf="tempGame?.imageUrl" mat-fab color="secondary" class="col-6" style="transform: scale(0.75); transform-origin: top;"
+                    (click)="tempGame.imageUrl = undefined;">
+                    <mat-icon>delete</mat-icon>
+                </button>
+            </div>
+            <input #fileInput type="file" accept="image/*" hidden (change)="addImage($event)"/>
+        </div>
         <div class="row pt-1 pb-1 myborder bg-stripped">
             <label class="col-5 col-sm-4 fw-bold">Id:</label>
             <label *ngIf="selectedGame" class="col-7 col-sm-8">{{ selectedGame.id }}</label>
@@ -51,7 +67,10 @@
         <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
             <label class="col-5 col-sm-4 fw-bold">Zwyciezcy:</label>
             <div class="col-7 col-sm-8">
-                <label *ngIf="!tempGame && selectedGame">{{ selectedGame.goodWon ? 'Dobro' : 'Zło' }}</label>
+                <div *ngIf="!tempGame && selectedGame" >
+                    <i class="pi pi-circle-fill" [ngStyle]="{'color': selectedGame.goodWon ? 'var(--blue)' : 'var(--red)'}" style="margin-right: 5px;"></i>
+                    <span> {{ selectedGame.goodWon ? 'DOBRO' : 'ZŁO' }}</span>
+                </div>
                 <p-togglebutton *ngIf="tempGame" [(ngModel)]="tempGame.goodWon" onLabel="Dobro" offLabel="Zło"/>            
             </div>
         </div>
@@ -86,15 +105,48 @@
                 </p-select>
             </div>
         </div>
+        <div class="row pt-1 pb-1 myborder d-flex align-items-center">
+            <label class="col-5 col-sm-4 fw-bold">Balans:</label>
+            <div *ngIf="!tempGame && selectedGame" class="col-7 col-sm-8">
+                <div *ngIf="selectedGame.balanceMarks?.length! == 0" class="mt-1">Brak ocen do wyświetlenia.</div>
+                <div *ngIf="selectedGame.balanceMarks?.length! > 0" class="mt-1">{{ averageBalanceMark.toFixed(1) }}/10, {{ selectedGame!.balanceMarks!.length }} ocen.</div>
+                <div class="balance-slider mt-2">
+                    <p-slider 
+                        [disabled]="true"
+                        [(ngModel)]="averageBalanceMark"
+                        [min]="0"
+                        [max]="10"
+                        [step]="0.5"
+                        styleClass="custom-disabled-slider"
+                    ></p-slider>
+                    </div>
+            </div>
+            <div *ngIf="tempGame" class="col-7 col-sm-8">
+                <div class="mt-1">Ocena do dodania: {{ balanceSliderValue }}/10.</div>
+                <div class="balance-slider mt-2">
+                    <p-slider 
+                        [(ngModel)]="balanceSliderValue"
+                        [min]="0"
+                        [max]="10"
+                        [step]="0.5"
+                        styleClass="custom-disabled-slider"
+                    ></p-slider>
+                    <button mat-raised-button color="secondary" class="mt-2" style="width: 150px;" (click)="addBalanceMark()">Dodaj ocenę</button>
+                </div>
+            </div>
+        </div>
         <label *ngIf="selectedGame?.script || tempGame?.script" class="mat-headline-6 mt-5">Lista postaci i graczy:</label>
-        <div class="card-body">
+        <div>
             <div *ngIf="!tempGame && selectedGame">
                 <div class="character-item d-flex align-items-center p-2 border row"
                     *ngFor="let assignment of selectedGame?.assignments">
-                    <div class="col-5">
+                    <div class="col-3 col-sm-4">
                         <a [routerLink]="['/players', assignment.player!.id]" style="text-decoration: none;">
                             <label class="d-block">{{ assignment.player!.name }}</label>
                         </a>
+                    </div>
+                    <div class="col-2 col-sm-1">
+                        <img [src]="apiUrl + '/character/image/' + imageSize + '/' + assignment.character?.name" style="max-width: 30px; max-height: 30px;">
                     </div>
                     <div class="col-5 col-sm-6">
                         <a [routerLink]="['/characters', assignment.character!.id]" style="text-decoration: none;">
@@ -106,14 +158,17 @@
                     </div>
                     <div *ngFor="let transformation of assignment.transformations" class="col-12">
                         <div class="row">
-                            <div class="col-1 col-sm-2"></div>
-                            <div class="col-4 col-sm-3">Zamiana w:</div>
+                            <div class="col-0 col-sm-1"></div>
+                            <div class="col-3">Zmiana:</div>
+                            <div class="col-2 col-sm-1">
+                                <img [src]="apiUrl + '/character/image/' + imageSize + '/' + transformation.character?.name" style="max-width: 30px; max-height: 30px;">
+                            </div>            
                             <div class="col-5 col-sm-6">            
                                 <a [routerLink]="['/characters', transformation.character!.id]" style="text-decoration: none;">
                                     {{ transformation.character?.name }}
                                 </a>
                             </div>
-                            <div class="col-2 col-sm-1 d-flex align-items-center">
+                            <div class="col-2 col-sm-1">
                                 <mat-icon [class.blue]="transformation.good" [class.red]="!transformation.good">circle</mat-icon>
                             </div>
                         </div>
@@ -144,7 +199,7 @@
                             </div>
                             <div *ngFor="let transformation of getAssignment(character, i)?.transformations" class="col-12">
                                 <div class="row">
-                                    <label class="col-8 col-sm-2 d-flex align-items-center">Zamiana w:</label>
+                                    <label class="col-8 col-sm-2 d-flex align-items-center">Zmiana w:</label>
                                     <div class="col-12 col-sm-5 col-xxl-6">
                                         <p-select [options]="characters" [(ngModel)]="transformation.character"
                                         [filter]="true" filterBy="name" [showClear]="true">
@@ -167,8 +222,8 @@
             </div>
         </div>
         <label *ngIf="tempGame?.script" class="mat-headline-6" >Podróżnicy: </label>
-        <div *ngIf="tempGame?.script" class="card-body">
-            <div *ngFor="let character of availableTravellers" class="character-item d-flex align-items-center p-2 border" cdkDrag>
+        <div *ngIf="tempGame?.script">
+            <div *ngFor="let character of availableTravellers" class="character-item row p-2 border" cdkDrag>
                 <div class="col-5 col-sm-3 d-flex align-items-center">
                     <label>{{ character.name }}</label>
                 </div>
@@ -191,7 +246,7 @@
                         </div>
                         <div *ngFor="let transformation of getAssignment(character, i)?.transformations" class="col-12">
                             <div class="row">
-                                <label class="col-8 col-sm-2 d-flex align-items-center">Zamiana w:</label>
+                                <label class="col-8 col-sm-2 d-flex align-items-center">Zmiana w:</label>
                                 <div class="col-12 col-sm-5 col-xxl-6">
                                     <p-select [options]="characters" [(ngModel)]="transformation.character"
                                     [filter]="true" filterBy="name" [showClear]="true">
@@ -215,3 +270,38 @@
         <div class="m-5"></div>
     </div>
 </div>
+<!-- <div *ngIf="!(tempGame || selectedGame)" class="card" style="min-height: 90vh; max-height: 90vh; overflow-y: auto;">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+            <label class="mat-headline-5">Globalne statystyki gier:</label>
+            <div class="mt-5" style="max-height: 40vh; overflow-y: auto;" >
+                <p-table [value]="selectedPlayer!.playerDetails!.playerCharactersDetails!" stripedRows sortField="characterName" size="small">
+                    <ng-template #header>
+                        <tr>
+                            <th pSortableColumn="characterName">
+                                <div class="table-header">
+                                    <div>Liczba gier</div>
+                                    <p-sortIcon field="characterName"/>
+                                    <p-columnFilter type="text" field="characterName" display="menu"></p-columnFilter>
+                                </div>
+                            </th>                        
+                            <th pSortableColumn="gamesNumber">
+                                <div class="table-header">
+                                    <div>% wygranych dobrych</div>
+                                    <p-sortIcon field="gamesNumber"/>
+                                    <p-columnFilter type="text" field="gamesNumber" display="menu"></p-columnFilter>
+                                </div>
+                            </th>
+                        </tr>
+                    </ng-template>
+                    <ng-template #body let-playerCharacterDetails>
+                        <tr>
+                            <td>{{ playerCharacterDetails.wonGamesNumber }}</td>
+                            <td>{{ playerCharacterDetails.winRatio.toFixed(2) }}</td>
+                        </tr>
+                    </ng-template>
+                </p-table> 
+            </div>
+        </div>
+    </div>
+</div> -->

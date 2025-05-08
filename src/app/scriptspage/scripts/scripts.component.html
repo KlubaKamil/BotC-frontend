@@ -1,8 +1,9 @@
 <div class="card">
     <div class="card-body">
         <label class="mat-headline-5">Lista skryptów:</label>
-        <div *ngIf="scriptHeaders" style="min-height: 88vh; max-height: 88vh; overflow-y: auto;">
-            <p-table [value]="scriptHeaders" stripedRows sortField="id" selectionMode="single" (onRowSelect)="selectScript($event)">
+        <div *ngIf="scriptHeaders" style="height: 88vh;">
+            <p-table [value]="scriptHeaders" stripedRows sortField="id" selectionMode="single" (onRowSelect)="selectScript($event)"
+                [scrollable]="true" scrollHeight="88vh">
                 <ng-template #header>
                     <tr>
                         <th pSortableColumn="id">

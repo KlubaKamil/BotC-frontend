@@ -1,9 +1,9 @@
 <div class="card">
     <div class="card-body">
         <label class="mat-headline-5">Lista rozgrywek:</label>
-        <div *ngIf="gameHeaders" style="min-height: 88vh; max-height: 88vh; overflow-y: auto;">
+        <div *ngIf="gameHeaders" style="height: 88vh;">
             <p-table [value]="gameHeaders" stripedRows sortField="date" [sortOrder]="-1" [customSort]="true" (sortFunction)="customSort($event)"
-            selectionMode="single" (onRowSelect)="selectGame($event)">
+            selectionMode="single" (onRowSelect)="selectGame($event)" [scrollable]="true" scrollHeight="88vh">
                 <ng-template #header>
                     <tr>
                         <th pSortableColumn="id">
@@ -55,7 +55,7 @@
                         <td>{{ gameHeader.storytellerName }}</td>
                         <td>{{ gameHeader.playersNumber }}</td>
                         <td>
-                            <i class="pi pi-circle-fill" [ngStyle]="{'color': gameHeader.goodWon ? 'var(--blue)' : 'var(--red)'}" style="margin-right: 10px;"></i>
+                            <i class="pi pi-circle-fill" [ngStyle]="{'color': gameHeader.goodWon ? 'var(--blue)' : 'var(--red)'}" style="margin-right: 5px;"></i>
                             <span> {{ gameHeader.goodWon ? 'DOBRO' : 'ZŁO' }}</span>
                         <td>{{ gameHeader.date }}</td>
                     </tr>
