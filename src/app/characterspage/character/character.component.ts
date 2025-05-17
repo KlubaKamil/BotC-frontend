@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Alignment, Character, DialogType, Game, NotificationType, ResponseId, Script } from '../../shared/interfaces';
+import { Alignment, Character, DialogType, Game, NotificationMode, NotificationType, ResponseId, Script } from '../../shared/interfaces';
 import { SharedService } from '../../shared/service/shared.service';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -140,7 +140,7 @@ export class CharacterComponent {
           let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończone pomyślnie!")
           dialogRef.afterClosed().subscribe((notifyDiscord) => {
             if(notifyDiscord) {
-              this.sharedService.notifyDiscord(NotificationType.CHARACTER, id);
+              this.sharedService.showNotificationDialog(NotificationType.CHARACTER, id, NotificationMode.UPDATE);
             }
           });
           this.sharedService.fetchCharacterAndSelect(this.selectedCharacter!.id!)
@@ -148,7 +148,7 @@ export class CharacterComponent {
           let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Dodano nową postać!")
           dialogRef.afterClosed().subscribe((notifyDiscord) => {
             if(notifyDiscord) {
-              this.sharedService.notifyDiscord(NotificationType.CHARACTER, id);
+              this.sharedService.showNotificationDialog(NotificationType.CHARACTER, id, NotificationMode.NEW);
             }
           });
           this.cancel();

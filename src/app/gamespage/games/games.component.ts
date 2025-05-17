@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Game, GameHeader } from '../../shared/interfaces'
 import { SharedService } from '../../shared/service/shared.service';
@@ -17,12 +17,13 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 export class GamesComponent {
   gameHeaders: GameHeader[] | null = null;
 
-  constructor(private sharedService: SharedService, private router: Router, private route: ActivatedRoute) {}
+  constructor(private sharedService: SharedService, private router: Router, private route: ActivatedRoute, private cd: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.sharedService.fetchGameHeaders();
     this.sharedService.gameHeaders$.subscribe((gameHeaders) => {
       this.gameHeaders = gameHeaders;
+      this.cd.detectChanges();
     })
   }
 

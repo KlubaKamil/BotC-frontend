@@ -20,3 +20,4 @@ export const routes: Routes = [
   { path: 'achievements/:id', component: AchievementspageComponent },
   { path: 'welcome', component: WelcomepageComponent }
 ];
+

@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { Alignment, Assignment, Character, DialogType, Game, NotificationType, Place, Player, ResponseId, Script, Transformation } from '../../shared/interfaces'
+import { ChangeDetectorRef, Component } from '@angular/core';
+import { Alignment, Assignment, Character, DialogType, Game, NotificationMode, NotificationType, Place, Player, ResponseId, Script, Transformation } from '../../shared/interfaces'
 import { CommonModule, Location } from '@angular/common';
 import { environment } from '../../../environments/environment';
 import { SharedService } from '../../shared/service/shared.service';
@@ -50,13 +50,13 @@ export class GameComponent {
   availableFables: Character[] = [];
   formData: FormData | null = null;
   isPhotoUploaded: boolean = false;
-  balanceSliderValue = 5;
-  averageBalanceMark = 5;
+  balanceSliderValue = 0;
+  averageBalanceMark = 0;
   imageSize = 100;
   
   constructor(private sharedService: SharedService, private http: HttpClient, private mapper: DtoMapperService,
     private route: ActivatedRoute, private authService: AuthService, private location: Location, 
-    private snackBar: MatSnackBar) {
+    private snackBar: MatSnackBar, private cd: ChangeDetectorRef) {
   }
 
   ngOnInit() {
@@ -78,6 +78,7 @@ export class GameComponent {
       this.cancel();
       this.selectedGame = selectedGame;
       this.calculateBalance();
+      this.cd.detectChanges();
     })
     this.route.paramMap.subscribe(params => {
       let id = params.get('id');
@@ -202,7 +203,7 @@ export class GameComponent {
   showImage(){
     let date = this.selectedGame?.date ? ', ' + this.selectedGame?.date : '';
     let place = this.selectedGame?.place ? ', ' + this.selectedGame?.place.name : '';
-    this.sharedService.showDialog(
+    this.sharedService.showPhotoDialog(
       DialogType.PHOTOGRAPHY, 
       `Gra ${this.selectedGame?.id}, ${this.selectedGame?.script?.name}${place}${date}`, 
       `${this.apiUrl}/${this.selectedGame!.imageUrl}`)
@@ -302,7 +303,7 @@ export class GameComponent {
             let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończona pomyślnie!")
             dialogRef.afterClosed().subscribe((notifyDiscord) => {
               if(notifyDiscord) {
-                this.sharedService.notifyDiscord(NotificationType.GAME, id);
+                this.sharedService.showNotificationDialog(NotificationType.GAME, id, NotificationMode.UPDATE);
               }
             });
             this.sharedService.fetchGameAndSelect(id);
@@ -315,7 +316,7 @@ export class GameComponent {
             let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Dodano nową rozgrywkę!")
             dialogRef.afterClosed().subscribe((notifyDiscord) => {
               if(notifyDiscord) {
-                this.sharedService.notifyDiscord(NotificationType.GAME, id);
+                this.sharedService.showNotificationDialog(NotificationType.GAME, id, NotificationMode.NEW);
               }
             });
             this.sharedService.fetchGameAndSelect(id);

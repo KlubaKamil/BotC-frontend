@@ -258,6 +258,16 @@ export class PlayerAchievement {
   date?: Date;
 }
 
+export interface ResponseId {
+  id: number;
+}
+
+export interface JwtPayload {
+  exp: number;
+  iat?: number;
+  [key: string]: any;
+}
+
 export enum DialogType {
   CONFIRMATION,
   INFORMATION,
@@ -275,12 +285,74 @@ export enum NotificationType {
   ACHIEVEMENT = "ACHIEVEMENT"
 }
 
-export interface ResponseId {
-  id: number;
+export enum NotificationMode {
+  NEW = "NEW",
+  UPDATE = "UPDATE"
 }
 
-interface JwtPayload {
-  exp: number;
-  iat?: number;
-  [key: string]: any;
+export enum DiscordChannelType {
+  FORUM = "FORUM",
+  TEXT = "TEXT",
+  GUILD_PUBLIC_THREAD = "GUILD_PUBLIC_THREAD"
+}
+
+export class DiscordNotification{
+  id?: number;
+  notificationType?: NotificationType;
+  notificationMode?: NotificationMode
+  channelsToNotify?: DiscordNotifiedChannel[];
+}
+
+export class DiscordNotifiedChannel {
+  id ?: string;
+  channelType ?: DiscordChannelType;
+}
+
+export interface DiscordRootDto {
+  servers: DiscordServerDto[];
+}
+
+export interface DiscordServerDto {
+  id: string;
+  name: string;
+  channels: DiscordChannelDto[];
+}
+
+export interface DiscordChannelDto {
+  id: string;
+  name: string;
+  channelType: DiscordChannelType;
+  threads: DiscordThreadDto[];
+}
+
+export interface DiscordThreadDto {
+  id: string;
+  name: string;
+  channelType: DiscordChannelType;
+}
+
+export interface DiscordRoot {
+  servers: DiscordServer[];
+  expandedServers: { [key: string]: boolean } 
+}
+
+export interface DiscordServer {
+  id: string,
+  name: string,
+  channels: DiscordChannel[]
+  expandedChannels: { [key: string]: boolean }
+  selectedRow: any;
+}
+
+export interface DiscordChannel {
+  id: string,
+  name: string
+  channelType: DiscordChannelType,
+  threads: DiscordThread[]
+}
+
+export interface DiscordThread {
+  id: string,
+  name: string
+  channelType: DiscordChannelType;
 }

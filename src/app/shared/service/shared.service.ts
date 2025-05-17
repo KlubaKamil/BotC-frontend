@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { Character, CharacterDto, DialogType, Game, GameDto, Player, PlayerDto, Script, ScriptDto, Place, PlaceDto, GameHeader, ScriptHeader, CharacterHeader, PlayerHeader, Achievement, AchievementHeader, AchievementDto, NotificationType } from '../interfaces'
+import { Character, CharacterDto, DialogType, Game, GameDto, Player, PlayerDto, Script, ScriptDto, Place, PlaceDto, GameHeader, ScriptHeader, CharacterHeader, PlayerHeader, Achievement, AchievementHeader, AchievementDto, NotificationType, NotificationMode, DiscordNotification, DiscordRoot, DiscordRootDto } from '../interfaces'
 import { MatDialog } from '@angular/material/dialog';
 import { DialogComponent } from '../../dialog/dialog.component';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { DtoMapperService } from './dtoMapper.service';
+import { DiscordDialogComponent } from '../../discord-dialog/discord-dialog.component';
 
 @Injectable({
   providedIn: 'root'
@@ -375,7 +376,16 @@ export class SharedService {
     });
   }
 
-  showDialog(type: DialogType, message: String, url?: String, discord?: boolean){
+  showDialog(type: DialogType, message: String){
+    return this.dialog.open(DialogComponent, {
+      data: {
+        type: type,
+        message: message
+      }
+    })
+  }
+
+  showPhotoDialog(type: DialogType, message: String, url: String){
     return this.dialog.open(DialogComponent, {
       data: {
         type: type,
@@ -385,7 +395,44 @@ export class SharedService {
     })
   }
 
-  notifyDiscord(type: NotificationType, id: number){
-    this.http.post<PlayerDto>(this.apiUrl + `/notification/${type.valueOf()}/${id}`, null).subscribe({});
+  showNotificationDialog(notificationType: NotificationType, id: number, notificationMode: NotificationMode){
+    return this.dialog.open(DiscordDialogComponent, {
+      data: {
+        id: id,
+        notificationType: notificationType, 
+        notificationMode: notificationMode
+      }
+    })
+  }
+
+  sendNotification(discordNotification: DiscordNotification){
+    this.http.post(this.apiUrl + `/notification`, discordNotification).subscribe({
+      next: () => {
+        this.showDialog(DialogType.INFORMATION, "Powiadomienie wysłane.")
+      },
+      error: () => {
+        this.showDialog(DialogType.INFORMATION, "Coś poszło nie tak podczas wysyłania powiadomienia.")
+      }
+    });
+  }
+
+  fetchDiscordServers(discordRoot: DiscordRoot){
+    this.http.get<DiscordRootDto>(`${this.apiUrl}/notification`).subscribe({
+      next: (response) => {
+        let mappedResponse = this.mapper.mapDtoToDiscordRoot(response);
+        discordRoot.servers = mappedResponse.servers;
+        discordRoot!.servers.forEach(s => {
+          if(!discordRoot!.expandedServers) discordRoot!.expandedServers = {};
+          discordRoot!.expandedServers[s.id] = true;
+          s.channels.forEach(c => {
+            if(!s.expandedChannels) s.expandedChannels = {};
+            s.expandedChannels[c.id] = true;
+          })
+        })
+      },
+      error: () => {
+        this.showDialog(DialogType.INFORMATION, "Coś poszło nie tak podczas pobierania serwerów.")
+      }
+    })
   }
 }

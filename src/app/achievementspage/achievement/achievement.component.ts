@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Achievement, DialogType, NotificationType, ResponseId } from '../../shared/interfaces';
+import { Achievement, DialogType, NotificationMode, NotificationType, ResponseId } from '../../shared/interfaces';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SharedService } from '../../shared/service/shared.service';
@@ -111,7 +111,7 @@ export class AchievementComponent {
           let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończona pomyślnie!")
           dialogRef.afterClosed().subscribe((notifyDiscord) => {
             if(notifyDiscord) {
-              this.sharedService.notifyDiscord(NotificationType.ACHIEVEMENT, id);
+              this.sharedService.showNotificationDialog(NotificationType.ACHIEVEMENT, id, NotificationMode.UPDATE);
             }
           });
           this.sharedService.fetchAchievementAndSelect(this.selectedAchievement!.id!)
@@ -119,7 +119,7 @@ export class AchievementComponent {
           let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Dodano nowe osiągnięcie!")
           dialogRef.afterClosed().subscribe((notifyDiscord) => {
             if(notifyDiscord) {
-              this.sharedService.notifyDiscord(NotificationType.ACHIEVEMENT, id);
+              this.sharedService.showNotificationDialog(NotificationType.ACHIEVEMENT, id, NotificationMode.NEW);
             }
           });
           this.cancel();

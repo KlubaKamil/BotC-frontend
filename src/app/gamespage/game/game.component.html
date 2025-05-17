@@ -109,26 +109,26 @@
             <label class="col-5 col-sm-4 fw-bold">Balans:</label>
             <div *ngIf="!tempGame && selectedGame" class="col-7 col-sm-8">
                 <div *ngIf="selectedGame.balanceMarks?.length! == 0" class="mt-1">Brak ocen do wyświetlenia.</div>
-                <div *ngIf="selectedGame.balanceMarks?.length! > 0" class="mt-1">{{ averageBalanceMark.toFixed(1) }}/10, {{ selectedGame!.balanceMarks!.length }} ocen.</div>
+                <div *ngIf="selectedGame.balanceMarks?.length! > 0" class="mt-1">{{ averageBalanceMark.toFixed(1) }}, {{ selectedGame!.balanceMarks!.length }} ocen.</div>
                 <div class="balance-slider mt-2">
                     <p-slider 
                         [disabled]="true"
                         [(ngModel)]="averageBalanceMark"
-                        [min]="0"
+                        [min]="-10"
                         [max]="10"
-                        [step]="0.5"
+                        [step]="1"
                         styleClass="custom-disabled-slider"
                     ></p-slider>
                     </div>
             </div>
             <div *ngIf="tempGame" class="col-7 col-sm-8">
-                <div class="mt-1">Ocena do dodania: {{ balanceSliderValue }}/10.</div>
+                <div class="mt-1">Ocena do dodania: {{ balanceSliderValue }}.</div>
                 <div class="balance-slider mt-2">
                     <p-slider 
                         [(ngModel)]="balanceSliderValue"
-                        [min]="0"
+                        [min]="-10"
                         [max]="10"
-                        [step]="0.5"
+                        [step]="1"
                         styleClass="custom-disabled-slider"
                     ></p-slider>
                     <button mat-raised-button color="secondary" class="mt-2" style="width: 150px;" (click)="addBalanceMark()">Dodaj ocenę</button>

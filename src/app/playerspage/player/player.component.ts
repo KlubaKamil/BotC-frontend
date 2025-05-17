@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Achievement, AchievementHeader, DialogType, NotificationType, Player, PlayerAchievement, PlayerHeader, ResponseId } from '../../shared/interfaces';
+import { Achievement, AchievementHeader, DialogType, NotificationMode, NotificationType, Player, PlayerAchievement, PlayerHeader, ResponseId } from '../../shared/interfaces';
 import { SharedService } from '../../shared/service/shared.service'
 import { HttpClient, HttpErrorResponse, HttpResponse, HttpStatusCode } from '@angular/common/http';
 import { CommonModule, Location } from '@angular/common';
@@ -138,7 +138,7 @@ export class PlayerComponent {
           let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończona pomyślnie!")
           dialogRef.afterClosed().subscribe((notifyDiscord) => {
             if(notifyDiscord) {
-              this.sharedService.notifyDiscord(NotificationType.PLAYER, id);
+              this.sharedService.showNotificationDialog(NotificationType.PLAYER, id, NotificationMode.UPDATE);
             }
           });
           this.sharedService.fetchPlayerAndSelect(this.selectedPlayer!.id!)
@@ -146,7 +146,7 @@ export class PlayerComponent {
           let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Dodano nowego gracza!")
           dialogRef.afterClosed().subscribe((notifyDiscord) => {
             if(notifyDiscord) {
-              this.sharedService.notifyDiscord(NotificationType.PLAYER, id);
+              this.sharedService.showNotificationDialog(NotificationType.PLAYER, id, NotificationMode.NEW);
             }
           });
           this.cancel();

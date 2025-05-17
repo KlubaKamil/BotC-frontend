@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { Alignment, Character, CharacterHeader, DialogType, NotificationType, ResponseId, Script, ScriptCharacterDetails, ScriptHeader } from '../../shared/interfaces';
+import { Alignment, Character, CharacterHeader, DialogType, NotificationMode, NotificationType, ResponseId, Script, ScriptCharacterDetails, ScriptHeader } from '../../shared/interfaces';
 import { SharedService } from '../../shared/service/shared.service';
 import { HttpClient, HttpErrorResponse, HttpResponse, HttpStatusCode } from '@angular/common/http';
 import { CommonModule, Location } from '@angular/common';
@@ -222,7 +222,7 @@ export class ScriptComponent {
           let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, 'Edycja zakończona pomyślnie!');
           dialogRef.afterClosed().subscribe((notifyDiscord) => {
             if(notifyDiscord) {
-              this.sharedService.notifyDiscord(NotificationType.SCRIPT, id);
+              this.sharedService.showNotificationDialog(NotificationType.SCRIPT, id, NotificationMode.UPDATE);
             }
           });
           this.sharedService.fetchScriptAndSelect(this.selectedScript!.id!);
@@ -230,7 +230,7 @@ export class ScriptComponent {
           let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, 'Dodano nowy skrypt!');
           dialogRef.afterClosed().subscribe((notifyDiscord) => {
             if(notifyDiscord) {
-              this.sharedService.notifyDiscord(NotificationType.SCRIPT, id);
+              this.sharedService.showNotificationDialog(NotificationType.SCRIPT, id, NotificationMode.NEW);
             }
           });
           this.cancel();

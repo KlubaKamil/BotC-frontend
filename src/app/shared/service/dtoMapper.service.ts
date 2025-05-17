@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { Achievement, AchievementDto, Assignment, AssignmentDto, Character, CharacterDto, Game, GameDto, Place, PlaceDto, Player, PlayerAchievement, PlayerAchievementDto, PlayerDto, Script, ScriptDto, Transformation, TransformationDto } from "../interfaces";
+import { Achievement, AchievementDto, Assignment, AssignmentDto, Character, CharacterDto, DiscordChannel, DiscordChannelDto, DiscordRoot, DiscordRootDto, DiscordServer, DiscordServerDto, DiscordThread, DiscordThreadDto, Game, GameDto, Place, PlaceDto, Player, PlayerAchievement, PlayerAchievementDto, PlayerDto, Script, ScriptDto, Transformation, TransformationDto } from "../interfaces";
 import { dt } from "@primeng/themes";
 
 @Injectable({
@@ -267,5 +267,95 @@ export class DtoMapperService {
     
     mapDtosToPlayerAchievements(dtos: PlayerAchievementDto[]): PlayerAchievement[] {
         return dtos.map(dto => this.mapDtoToPlayerAchievement(dto));
+    }
+
+
+    mapDiscordThreadToDto(model: DiscordThread): DiscordThreadDto {
+        return { 
+            id: model.id, 
+            name: model.name,
+            channelType: model.channelType
+        };
+    }
+    
+    mapDiscordThreadsToDtos(models: DiscordThread[]): DiscordThreadDto[] {
+        return models.map(this.mapDiscordThreadToDto);
+    }
+    
+    mapDtoToDiscordThread(dto: DiscordThreadDto): DiscordThread {
+        return { 
+            id: dto.id, 
+            name: dto.name,
+            channelType: dto.channelType
+        };
+    }
+    
+    mapDtosToDiscordThreads(dtos: DiscordThreadDto[]): DiscordThread[] {
+        return dtos.map(this.mapDtoToDiscordThread);
+    }
+
+    
+    mapDiscordChannelToDto(model: DiscordChannel): DiscordChannelDto {
+        return {
+          id: model.id,
+          name: model.name,
+          channelType: model.channelType,
+          threads: this.mapDiscordThreadsToDtos(model.threads)
+        };
+    }
+    
+    mapDiscordChannelsToDtos(models: DiscordChannel[]): DiscordChannelDto[] {
+        return models.map(this.mapDiscordChannelToDto, this);
+    }
+    
+    mapDtoToDiscordChannel(dto: DiscordChannelDto): DiscordChannel {
+        return {
+          id: dto.id,
+          name: dto.name,
+          channelType: dto.channelType,
+          threads: this.mapDtosToDiscordThreads(dto.threads)
+        };
+    }
+    
+    mapDtosToDiscordChannels(dtos: DiscordChannelDto[]): DiscordChannel[] {
+        return dtos.map(this.mapDtoToDiscordChannel, this);
+    }
+    
+
+    mapDiscordServerToDto(model: DiscordServer): DiscordServerDto {
+        return {
+          id: model.id,
+          name: model.name,
+          channels: this.mapDiscordChannelsToDtos(model.channels)
+        };
+    }
+    
+    mapDiscordServersToDtos(models: DiscordServer[]): DiscordServerDto[] {
+        return models.map(this.mapDiscordServerToDto, this);
+    }
+    
+    mapDtoToDiscordServer(dto: DiscordServerDto): DiscordServer {
+        return {
+          id: dto.id,
+          name: dto.name,
+          channels: this.mapDtosToDiscordChannels(dto.channels),
+          expandedChannels: {},
+          selectedRow: null
+        };
+    }
+    
+    mapDtosToDiscordServers(dtos: DiscordServerDto[]): DiscordServer[] {
+        return dtos.map(this.mapDtoToDiscordServer, this);
+    }
+    
+    mapDiscordRootToDto(wrapper: DiscordRoot): DiscordRootDto {
+        return { servers: this.mapDiscordServersToDtos(wrapper.servers) };
+    }
+    
+    mapDtoToDiscordRoot(dto: DiscordRootDto): DiscordRoot {
+        return {
+          servers: this.mapDtosToDiscordServers(dto.servers),
+          expandedServers: {}
+        };
     }
 }

@@ -1,0 +1,74 @@
+<div style="max-height: 90vh; overflow-y: auto;">
+    <label mat-dialog-title class="mat-headline-5">Zaznacz kanały do powiadomienia</label>
+    <p-table #tableServers [value]="discordRoot!.servers!" dataKey="id" [expandedRowKeys]="discordRoot!.expandedServers" 
+    [tableStyle]="{ 'min-width': '40rem' }">
+        <ng-template #header>
+            <tr>
+                <th style="width: 3rem"></th>
+                <th>Nazwa serwera</th>
+            </tr>
+        </ng-template>
+        <ng-template #body let-server>
+            <tr>
+                <td (click)="tableServers.toggleRow(server)">
+                    <i class="pi" [ngClass]="tableServers.isRowExpanded(server) ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
+                </td>
+                <td>{{ server.name }}</td>
+            </tr>
+        </ng-template>
+        <ng-template #expandedrow let-server>
+            <tr>
+                <td colspan="2">
+                    <p-table #tableChannels [value]="server.channels" dataKey="id" [expandedRowKeys]="server.expandedChannels" 
+                    selectionMode="single" [(selection)]="server.selectedRow">
+                        <ng-template #header>
+                            <tr>
+                                <th style="width: 2rem"></th>
+                                <th style="width: 3rem"></th>
+                                <th style="width: 10rem">Nazwa kanału</th>
+                                <th>Typ kanału</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template #body let-channel>
+                            <tr [pSelectableRow]="channel.channelType === channelTypes.TEXT ? channel : null" (click)="tableChannels.toggleRow(channel)">
+                                <td></td>
+                                <td *ngIf="channel.channelType !== channelTypes.FORUM"></td>
+                                <td *ngIf="channel.channelType === channelTypes.FORUM">
+                                    <i class="pi" [ngClass]="tableChannels.isRowExpanded(channel) ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
+                                </td>
+                                <td>{{ channel.name }}</td>
+                                <td>{{ channel.channelType == channelTypes.TEXT ? "Kanał tekstowy" : "Kanał z dyskusjami" }}</td>
+                            </tr>
+                        </ng-template>
+                        <ng-template #expandedrow let-channel>
+                        <ng-container *ngIf="channel.channelType === channelTypes.FORUM">
+                            <tr>
+                                <td colspan="4">
+                                        <p-table [value]="channel.threads" selectionMode="single" [(selection)]="server.selectedRow"> 
+                                        <ng-template #header>
+                                            <tr>
+                                            <th style="width: 22rem"></th>
+                                            <th>Nazwa dyskusji</th>
+                                            </tr>
+                                        </ng-template>
+                                        <ng-template #body let-thread>
+                                            <tr [pSelectableRow]="thread">
+                                            <td></td>
+                                            <td>{{ thread.name }}</td>
+                                            </tr>
+                                        </ng-template>
+                                        </p-table>
+                                    </td>
+                                </tr>
+                            </ng-container>
+                        </ng-template>
+                    </p-table>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+    <mat-dialog-actions style="min-width: 300px; justify-content: flex-end;">
+    <button mat-raised-button class="m-2" (click)="sendNotification()">Wyślij</button>
+    <button mat-raised-button class="m-2" (click)="close()">Anuluj</button>
+    </mat-dialog-actions>
+</div>

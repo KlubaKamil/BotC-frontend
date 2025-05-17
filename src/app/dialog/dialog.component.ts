@@ -5,11 +5,14 @@ import { DialogType } from '../shared/interfaces';
 import { MatButtonModule } from '@angular/material/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
+import { environment } from '../../environments/environment';
+import { TableModule } from 'primeng/table';
+import { CheckboxModule } from 'primeng/checkbox';
 
 @Component({
   selector: 'app-dialog',
   standalone: true,
-  imports: [MatDialogModule, CommonModule, MatButtonModule, InputTextModule, FormsModule],
+  imports: [MatDialogModule, CommonModule, MatButtonModule, InputTextModule, FormsModule, TableModule, CheckboxModule],
   templateUrl: './dialog.component.html',
   styleUrls: ['./dialog.component.css']
 })
@@ -17,6 +20,7 @@ export class DialogComponent {
   types = DialogType;
   text: string = '';
   timestamp: number = Date.now();
+  apiUrl = environment.apiUrl;
 
   constructor(private dialogRef: MatDialogRef<DialogComponent>, @Inject(MAT_DIALOG_DATA) public data: any) {}
 
@@ -30,9 +34,5 @@ export class DialogComponent {
 
   confirmInsert() {
     this.dialogRef.close(this.text);
-  }
-
-  notifyDiscord() {
-    
   }
 }

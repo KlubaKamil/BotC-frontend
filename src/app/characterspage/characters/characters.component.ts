@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { Character, CharacterHeader } from '../../shared/interfaces';
+import { CharacterHeader } from '../../shared/interfaces';
 import { SharedService } from '../../shared/service/shared.service';
 import { MatButtonModule } from '@angular/material/button';
 import { TableModule, TableRowSelectEvent } from 'primeng/table';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 
 
 @Component({
