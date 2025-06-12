@@ -376,12 +376,23 @@ export class SharedService {
     });
   }
 
-  showDialog(type: DialogType, message: String){
-    return this.dialog.open(DialogComponent, {
-      data: {
-        type: type,
-        message: message
-      }
+  showDialog(type: DialogType, message: String, info?: String){
+      return this.dialog.open(DialogComponent, {
+        data: {
+          type: type,
+          message: message,
+          info: info
+        }
+    })
+  }
+
+  showDialogWithInfoText(type: DialogType, message: String, info: String){
+      return this.dialog.open(DialogComponent, {
+        data: {
+          type: type,
+          message: message,
+          info: info
+        }
     })
   }
 

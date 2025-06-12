@@ -8,7 +8,21 @@
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center">
             <label class="mat-headline-5">Szczegóły postaci:</label>
-            <img [src]="apiUrl + '/character/image/' + imageSize + '/' + selectedCharacter?.name" style="max-width: 100px; max-height: 100px;">
+            <div class="d-flex">
+                <div *ngIf="tempCharacter" class="row align-items-center">
+                    <button mat-fab color="secondary" class="col-6" style="transform: scale(0.75); transform-origin: top;" (click)="fileInput.click()">
+                        <mat-icon>add_a_photo</mat-icon>
+                    </button>
+                    <button *ngIf="tempCharacter?.imageUploaded" mat-fab color="secondary" class="col-6" style="transform: scale(0.75); transform-origin: top;"
+                        (click)="tempCharacter.imageUploaded = false;">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                    <input #fileInput type="file" accept="image/*" hidden (change)="addImage($event)"/>
+                </div>
+                <img *ngIf="(!tempCharacter && selectedCharacter?.imageUploaded) || tempCharacter?.imageUploaded"  
+                    [src]="apiUrl + '/character/image/' + imageSize + '/' + selectedCharacter?.name + '?t=' + timestamp" 
+                    class="ms-3" style="max-width: 100px; max-height: 100px; object-fit: contain;">
+            </div>
         </div>
         <div class="row pt-1 pb-1 myborder bg-stripped">
             <label class="col-5 col-sm-4 fw-bold">Id:</label>

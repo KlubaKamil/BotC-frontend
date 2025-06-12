@@ -4,14 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { TableModule } from 'primeng/table';
-import { DiscordChannelType, DiscordRoot, DiscordNotification } from '../shared/interfaces';
+import { DiscordChannelType, DiscordRoot, DiscordNotification, DialogType } from '../shared/interfaces';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { SharedService } from '../shared/service/shared.service';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-discord-dialog',
-  imports: [CommonModule, MatButtonModule, FormsModule, TableModule, MatDialogModule],
+  imports: [CommonModule, MatButtonModule, FormsModule, TableModule, MatDialogModule, MatIconModule],
   templateUrl: './discord-dialog.component.html',
   styleUrl: './discord-dialog.component.css'
 })
@@ -39,16 +40,27 @@ export class DiscordDialogComponent {
     discordNotification.channelsToNotify = [];
     this.discordRoot!.servers.forEach(s => {
       let selectedRow = s.selectedRow
-      console.log("SELECTED ")
-      console.log(selectedRow)
       if(selectedRow) {
         discordNotification.channelsToNotify!.push({
           id: selectedRow.id, 
           channelType: selectedRow.channelType})
       }
     });
-    console.log(discordNotification)
     this.sharedService.sendNotification(discordNotification);
     this.close();
+  }
+
+  showHelp(){
+    this.sharedService.showDialog(DialogType.INFORMATION, "Jak to działa?", 
+      "Ukazane są tutaj serwery discordowe, na których Grimlog został zainstalowany.\n" + 
+      "Aby kanał był widoczny, muszą zostać spełnione następujące warunki:\n" +
+      "- Grimlog musi mieć możliwośc pisania na kanale/w wątku\n" + 
+      "- jeśli serwer ma w nazwie \"blood\", wtedy widoczne są wszystkie kanały i wątki,\n" +
+      "  w pozostałych przypadkach wyświetlone zostaną tylko kanały z \"blood\" w nazwie" +
+      "- jeśli typ kanału to \"forum\", to analogicznie:\n" +
+      "   - jeśli zawiera w nazwie \"blood\", wyświetlone zostaną wszystkie wątki\n" +
+      "   - jeśli nie zawiera, wyświetlone zostaną tylko wątki z \"blood\" w nazwie" +
+      "Powiadomienie może zostac wysłane na jeden kanał/wątek na serwer."
+    );
   }
 }

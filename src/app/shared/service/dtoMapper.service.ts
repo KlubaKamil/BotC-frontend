@@ -14,7 +14,8 @@ export class DtoMapperService {
             alignment: model.alignment!,
             description: model.description!,
             linkToWiki: model.linkToWiki,
-            tips: model.tips
+            tips: model.tips,
+            imageUploaded: model.imageUploaded
         };
     }
 
@@ -31,6 +32,7 @@ export class DtoMapperService {
             description: dto.description,
             linkToWiki: dto.linkToWiki,
             tips: dto.tips,
+            imageUploaded: dto.imageUploaded,
             characterDetails: dto.characterDetails
         };
     }
@@ -163,7 +165,7 @@ export class DtoMapperService {
             date: model.date,
             notes: model.notes,
             place: model.place ? this.mapPlaceToDto(model.place) : undefined,
-            imageUrl: model.imageUrl,
+            imageUploaded: model.imageUploaded,
             balanceMarks: model.balanceMarks
         };
     }
@@ -183,7 +185,7 @@ export class DtoMapperService {
             date: dto.date,
             notes: dto.notes,
             place: dto.place ? this.mapDtoToPlace(dto.place) : undefined,
-            imageUrl: dto.imageUrl,
+            imageUploaded: dto.imageUploaded,
             balanceMarks: dto.balanceMarks ? dto.balanceMarks : []
         };
     }

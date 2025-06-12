@@ -1,4 +1,5 @@
 <label mat-dialog-title class="mat-headline-5">{{ data.message }}</label>
+<label mat-dialog-content *ngIf="data.info"  style="white-space: pre-line">{{ data.info }}</label>
 <input *ngIf="data.type === types.PASSWORD" pInputText type="password" class="mx-3" [(ngModel)]="text">
 <input *ngIf="data.type === types.INSERTION" pInputText type="text" class="mx-3" [(ngModel)]="text">
 <mat-dialog-actions *ngIf="![types.PHOTOGRAPHY].includes(data.type)" style="min-width: 300px; justify-content: flex-end;">

@@ -44,7 +44,7 @@
 }
 
 /* Hide slider on large screens and show both views */
-@media (min-width: 992px) {
+@media (min-width: 1200px) {
     .main-container {
         height: 95%;
     }

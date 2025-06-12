@@ -26,14 +26,18 @@
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center">
+            <label class="col-5 col-sm-4 fw-bold">Liczba rozgrywek jako narrator:</label>
+            <label *ngIf="selectedPlayer" class="col-7 col-sm-8">{{ selectedPlayer.playerDetails!.storytellerGamesNumber }}</label>
+        </div>
+        <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
             <label class="col-5 col-sm-4 fw-bold">Liczba rozgrywek:</label>
             <label *ngIf="selectedPlayer" class="col-7 col-sm-8">{{ selectedPlayer.playerDetails!.gamesNumber }}</label>
         </div>
-        <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
+        <div class="row pt-1 pb-1 myborder d-flex align-items-center">
             <label class="col-5 col-sm-4 fw-bold">% bycia dobrym:</label>
             <label *ngIf="selectedPlayer" class="col-7 col-sm-8">{{ selectedPlayer.playerDetails!.goodPercentage?.toFixed(2) }}</label>
         </div>
-        <div class="row pt-1 pb-1 myborder d-flex align-items-center">
+        <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
             <label class="col-5 col-sm-4 fw-bold">% wygranych:</label>
             <label *ngIf="selectedPlayer" class="col-7 col-sm-8">{{ selectedPlayer.playerDetails!.winRatio?.toFixed(2) }}</label>
         </div>
@@ -64,12 +68,15 @@
                         </th> 
                     </tr>
                 </ng-template>
-                <ng-template #body let-playerAchievements>
+                <ng-template #body let-playerAchievement>
                     <tr>
-                        <td><a [routerLink]="['/achievements', playerAchievements.achievement.id]" style="text-decoration: none;">{{ playerAchievements.achievement.name }}</a></td>
-                        <td>{{ playerAchievements.date }}</td>
+                        <td><a [routerLink]="['/achievements', playerAchievement.achievement.id]" style="text-decoration: none;">{{ playerAchievement.achievement.name }}</a></td>
+                        <td>
+                            <label *ngIf="!tempPlayer">{{ playerAchievement.date }}</label>
+                            <p-datepicker *ngIf="tempPlayer" dataType="string" [showIcon]="true" [(ngModel)]="playerAchievement.date" dateFormat="dd/mm/yy" appendTo="body"></p-datepicker>
+                        </td>
                         <td *ngIf="tempPlayer" style="display: flex; justify-content: flex-end">
-                            <button mat-mini-fab color="secondary" (click)="removeAchievement(playerAchievements)">
+                            <button mat-mini-fab color="secondary" (click)="removeAchievement(playerAchievement)">
                                 <mat-icon>delete</mat-icon>
                             </button>
                         </td>

@@ -14,10 +14,13 @@ import { TableModule } from 'primeng/table';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../authservice/auth.service';
 import { TextFieldModule } from '@angular/cdk/text-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-character',
-  imports: [CommonModule, FormsModule, MatButtonModule, SelectModule, InputNumberModule, TableModule, RouterModule, TextFieldModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, SelectModule, InputNumberModule, TableModule, RouterModule, 
+    TextFieldModule, MatIconModule],
   templateUrl: './character.component.html',
   styleUrl: './character.component.css'
 })
@@ -35,9 +38,12 @@ export class CharacterComponent {
                   characterTotalWinRatio: number, characterPerScriptDetails: {scriptName: String, characterTimesPlayed: number, 
                   characterWonGames: number, characterWinRatio: number}[]} | undefined;
   imageSize = '100';
+  formData: FormData | null = null;
+  isPhotoUploaded: boolean = false;
+  timestamp: number = Date.now();
 
   constructor(private sharedService: SharedService, private http: HttpClient, private mapper: DtoMapperService, private route: ActivatedRoute,
-    private authService: AuthService, private location: Location) {}
+    private authService: AuthService, private location: Location, private snackBar: MatSnackBar) {}
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
@@ -114,6 +120,27 @@ export class CharacterComponent {
     }
   }
 
+  addImage(event: Event){
+    const input = event.target as HTMLInputElement;
+    const maxSizeInMB = 10;  
+    const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      if (file.size > maxSizeInBytes) {
+        this.sharedService.showDialog(DialogType.INFORMATION, "Maksymalny rozmiar zdjęcia to 15MB.");
+      } else {
+        this.formData = new FormData();
+        this.formData.append('image', file);
+        this.isPhotoUploaded = true;
+        this.snackBar.open('Przesłano, gotowe do zapisania.', undefined, {
+          duration: 1000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top',
+        });
+      }
+    }
+  }
+
   private validate(character: Character){
     if(!character.name){
       this.sharedService.showDialog(DialogType.INFORMATION, "Nazwa jest wymagana!");
@@ -131,27 +158,43 @@ export class CharacterComponent {
     return true;
   }
   
-  private handleResponse(httpResponse: Observable<HttpResponse<ResponseId>>){
+  private handleResponse(httpResponse: Observable<HttpResponse<ResponseId>>, handlePhotoResponse?: boolean){
     httpResponse.subscribe({
       next: (response: HttpResponse<ResponseId>) => {
         const status = response.status;
         const id = response.body!.id;
         if(status === HttpStatusCode.Ok){
-          let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończone pomyślnie!")
-          dialogRef.afterClosed().subscribe((notifyDiscord) => {
-            if(notifyDiscord) {
-              this.sharedService.showNotificationDialog(NotificationType.CHARACTER, id, NotificationMode.UPDATE);
-            }
-          });
-          this.sharedService.fetchCharacterAndSelect(this.selectedCharacter!.id!)
+          if(this.isPhotoUploaded){
+            this.isPhotoUploaded = false;
+            this.handleResponse(this.http.post<ResponseId>(`${this.apiUrl}/character/${id}/image`, this.formData, { observe: 'response' }), true)
+            setTimeout(() => {
+              this.timestamp = Date.now();
+              }, 1000);
+          } else {
+            let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończone pomyślnie!")
+            dialogRef.afterClosed().subscribe((notifyDiscord) => {
+              if(notifyDiscord) {
+                this.sharedService.showNotificationDialog(NotificationType.CHARACTER, id, NotificationMode.UPDATE);
+              }
+            this.sharedService.fetchCharacterAndSelect(this.selectedCharacter!.id!)
+            });
+          }
         } else if(status === HttpStatusCode.Created){
-          let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Dodano nową postać!")
-          dialogRef.afterClosed().subscribe((notifyDiscord) => {
-            if(notifyDiscord) {
-              this.sharedService.showNotificationDialog(NotificationType.CHARACTER, id, NotificationMode.NEW);
-            }
-          });
-          this.cancel();
+          if(this.isPhotoUploaded){
+            this.isPhotoUploaded = false;
+            this.handleResponse(this.http.put<ResponseId>(`${this.apiUrl}/character/${id}/image`, this.formData, { observe: 'response' }), true)
+            setTimeout(() => {
+              this.timestamp = Date.now();
+            }, 1000);
+          } else {
+            let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Dodano nową postać!")
+            dialogRef.afterClosed().subscribe((notifyDiscord) => {
+              if(notifyDiscord) {
+                this.sharedService.showNotificationDialog(NotificationType.CHARACTER, id, NotificationMode.NEW);
+              }
+            });
+            this.sharedService.fetchCharacterAndSelect(this.selectedCharacter!.id!)
+          }
         } else if(status === HttpStatusCode.NoContent){
           this.sharedService.showDialog(DialogType.INFORMATION, "Usunięcie zakończone pomyślnie!")
           this.cancel();
@@ -162,7 +205,9 @@ export class CharacterComponent {
       },
       error: (error: HttpErrorResponse) => {
         const status = error.status;
-        if(status === HttpStatusCode.PreconditionRequired){ 
+         if(handlePhotoResponse){
+          this.sharedService.showDialog(DialogType.INFORMATION, "Postać zapisana pomyślnie, natomiast przesłanie zdjęcia nie powiodło się!")
+        } else if(status === HttpStatusCode.PreconditionRequired){ 
           this.sharedService.showDialog(DialogType.INFORMATION, 'Istnieje co najmniej jedna gra lub skrypt, w której ta postac bierze udział!');
         } else if (status === HttpStatusCode.Conflict){
           this.sharedService.showDialog(DialogType.INFORMATION, 'Postać z tą nazwą już istnieje!');

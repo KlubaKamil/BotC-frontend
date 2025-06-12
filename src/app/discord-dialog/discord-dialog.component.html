@@ -1,5 +1,10 @@
 <div style="max-height: 90vh; overflow-y: auto;">
-    <label mat-dialog-title class="mat-headline-5">Zaznacz kanały do powiadomienia</label>
+    <div class="d-flex justify-content-between">
+        <label mat-dialog-title class="mat-headline-5">Zaznacz kanały do powiadomienia</label>
+        <button mat-fab color="secondary" (click)="showHelp()" class="mt-1" style="transform: scale(0.85);">
+            <mat-icon>question_mark</mat-icon>
+        </button>
+    </div>
     <p-table #tableServers [value]="discordRoot!.servers!" dataKey="id" [expandedRowKeys]="discordRoot!.expandedServers" 
     [tableStyle]="{ 'min-width': '40rem' }">
         <ng-template #header>

@@ -4,11 +4,11 @@
     <button *ngIf="selectedGame"  mat-raised-button class="flex-fill m-2" (click)="deleteGame()">Usuń</button>
     <button *ngIf="selectedGame || tempGame" mat-raised-button class="flex-fill m-2" (click)="cancel()">Anuluj</button>
 </div>
-<div *ngIf="selectedGame || tempGame" class="card" style="min-height: 90vh; max-height: 90vh; overflow-y: auto;">
+<div *ngIf="selectedGame || tempGame" class="card" style="min-height: 90vh; max-height: 90vh; overflow-y: auto;" #scrollContainer>
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center">
             <label class="mat-headline-5">Szczegóły rozgrywki:</label>
-            <button *ngIf="!tempGame && selectedGame && selectedGame.imageUrl" mat-fab color="secondary" class="col-7 col-sm-8" 
+            <button *ngIf="!tempGame && selectedGame && selectedGame.imageUploaded" mat-fab color="secondary" class="col-7 col-sm-8" 
                 style="transform: scale(0.75); transform-origin: top right;" (click)="showImage()">
                 <mat-icon>image</mat-icon>
             </button>
@@ -16,8 +16,8 @@
                 <button mat-fab color="secondary" class="col-6" style="transform: scale(0.75); transform-origin: top;" (click)="fileInput.click()">
                     <mat-icon>add_a_photo</mat-icon>
                 </button>
-                <button *ngIf="tempGame?.imageUrl" mat-fab color="secondary" class="col-6" style="transform: scale(0.75); transform-origin: top;"
-                    (click)="tempGame.imageUrl = undefined;">
+                <button *ngIf="tempGame?.imageUploaded" mat-fab color="secondary" class="col-6" style="transform: scale(0.75); transform-origin: top;"
+                    (click)="tempGame.imageUploaded = false;">
                     <mat-icon>delete</mat-icon>
                 </button>
             </div>
@@ -97,9 +97,9 @@
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
             <label class="col-5 col-sm-4 fw-bold">Miejsce rozgrywki:</label>
-            <div class="col-7 col-sm-8">
-                <label *ngIf="!tempGame && selectedGame">{{ selectedGame.place?.name }}</label>
-                <p-select *ngIf="tempGame" [options]="places" [(ngModel)]="tempGame.place" [filter]="true" filterBy="name" [showClear]="true">
+            <div class="col-7 col-sm-8" #dropdownWrapper>
+                <label  #dropdown *ngIf="!tempGame && selectedGame">{{ selectedGame.place?.name }}</label>
+                <p-select #dropdown *ngIf="tempGame" [options]="places" [(ngModel)]="tempGame.place" [filter]="true" filterBy="name" [showClear]="true">
                     <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
                     <ng-template let-place #item>{{ place.name }}</ng-template>
                 </p-select>
@@ -145,10 +145,10 @@
                             <label class="d-block">{{ assignment.player!.name }}</label>
                         </a>
                     </div>
-                    <div class="col-2 col-sm-1">
-                        <img [src]="apiUrl + '/character/image/' + imageSize + '/' + assignment.character?.name" style="max-width: 30px; max-height: 30px;">
-                    </div>
-                    <div class="col-5 col-sm-6">
+                    <div class="col-7 d-flex align-items-center">
+                        <div style="width: 35px;">
+                            <img [src]="apiUrl + '/character/image/' + imageSize + '/' + assignment.character?.name" style="max-width: 30px; max-height: 30px;">
+                        </div>
                         <a [routerLink]="['/characters', assignment.character!.id]" style="text-decoration: none;">
                             <label class="d-block">{{ assignment.character!.name }}</label>
                         </a>
@@ -160,10 +160,10 @@
                         <div class="row">
                             <div class="col-0 col-sm-1"></div>
                             <div class="col-3">Zmiana:</div>
-                            <div class="col-2 col-sm-1">
-                                <img [src]="apiUrl + '/character/image/' + imageSize + '/' + transformation.character?.name" style="max-width: 30px; max-height: 30px;">
-                            </div>            
-                            <div class="col-5 col-sm-6">            
+                            <div class="col-7 d-flex align-items-center">
+                                <div style="width: 35px;">
+                                    <img [src]="apiUrl + '/character/image/' + imageSize + '/' + transformation.character?.name" style="max-width: 30px; max-height: 30px;">            
+                                </div>
                                 <a [routerLink]="['/characters', transformation.character!.id]" style="text-decoration: none;">
                                     {{ transformation.character?.name }}
                                 </a>

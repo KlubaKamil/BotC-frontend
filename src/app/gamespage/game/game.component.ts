@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, ViewChild } from '@angular/core';
 import { Alignment, Assignment, Character, DialogType, Game, NotificationMode, NotificationType, Place, Player, ResponseId, Script, Transformation } from '../../shared/interfaces'
 import { CommonModule, Location } from '@angular/common';
 import { environment } from '../../../environments/environment';
@@ -14,7 +14,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { DtoMapperService } from '../../shared/service/dtoMapper.service';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { ToggleButtonModule } from 'primeng/togglebutton';
-import { SelectModule } from 'primeng/select'
+import { Select, SelectModule } from 'primeng/select'
 import { DatePickerModule } from 'primeng/datepicker';
 import { ButtonModule } from 'primeng/button';
 import { DividerModule } from 'primeng/divider';
@@ -24,7 +24,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { TableModule } from 'primeng/table';
 import { SliderModule } from 'primeng/slider';
 import { MatSliderModule } from '@angular/material/slider';
-
 
 @Component({
   selector: 'app-game',
@@ -58,6 +57,36 @@ export class GameComponent {
     private route: ActivatedRoute, private authService: AuthService, private location: Location, 
     private snackBar: MatSnackBar, private cd: ChangeDetectorRef) {
   }
+
+// @ViewChild('dropdownWrapper') dropdownWrapper!: ElementRef;
+// @ViewChild('buttons') buttons!: ElementRef;
+// @ViewChild('dropdown') dropdown!: Select; // For p-select component
+
+// scrollToDropdownAndOpen() {
+//   const dropdownElement = this.dropdownWrapper.nativeElement;
+//   const containerElement = this.scrollContainer.nativeElement;
+
+//   const offsetTop = dropdownElement.offsetTop;
+
+//   // Smooth scroll
+//   containerElement.scrollTo({
+//     top: offsetTop,
+//     behavior: 'smooth'
+//   });
+
+//   // Wait until the scroll has completed
+//   const checkIfScrollDone = () => {
+//     const currentScroll = containerElement.scrollTop;
+//     if (Math.abs(currentScroll - offsetTop) < 2) {
+//       // Scroll is complete, now open the dropdown
+//       this.dropdown.show(); // or this.dropdown.show() if available
+//     } else {
+//       requestAnimationFrame(checkIfScrollDone);
+//     }
+//   };
+
+//   requestAnimationFrame(checkIfScrollDone);
+// }
 
   ngOnInit() {
     this.sharedService.players$.subscribe((players) => {
@@ -206,7 +235,7 @@ export class GameComponent {
     this.sharedService.showPhotoDialog(
       DialogType.PHOTOGRAPHY, 
       `Gra ${this.selectedGame?.id}, ${this.selectedGame?.script?.name}${place}${date}`, 
-      `${this.apiUrl}/${this.selectedGame!.imageUrl}`)
+      `${this.apiUrl}/game/${this.selectedGame?.id}/image`)
   }
 
   addImage(event: Event){
@@ -216,7 +245,7 @@ export class GameComponent {
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
       if (file.size > maxSizeInBytes) {
-        this.sharedService.showDialog(DialogType.INFORMATION, "Maksymalny rozmiar zdjęcia to 10MB.");
+        this.sharedService.showDialog(DialogType.INFORMATION, "Maksymalny rozmiar zdjęcia to 15MB.");
       } else {
         this.formData = new FormData();
         this.formData.append('image', file);

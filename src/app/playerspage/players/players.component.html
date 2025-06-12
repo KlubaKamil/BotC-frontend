@@ -1,12 +1,22 @@
 <div class="card">
     <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
+        <div class="d-flex justify-content-between align-items-center mb-1 row">
+            <div class="mt-2 col-4">
                 <label class="mat-headline-5">Lista graczy:</label>
             </div>
-            <div class="d-flex align-items-center">
-                <mat-slide-toggle (change)="filterInactive($event.checked)" color="secondary"></mat-slide-toggle>
-                <span class="ml-2">Ukryj nieaktywnych</span>
+            <div class="col-8 row">
+                <div class="col-12 col-md-6">
+                    <p-select [options]="['Gracze', 'Narratorzy']" (onChange)="changeTableCard($event.value)">
+                        <ng-template #selectedItem let-group>{{ group }}</ng-template>
+                        <ng-template let-group #item>{{ group }}</ng-template>
+                    </p-select>      
+                </div>
+                <div class="col-12 col-md-6">
+                    <p-select [options]="['Wszyscy', 'Zaawansowani', 'Eksperci']"  (onChange)="filterPlayers($event.value)">
+                        <ng-template #selectedItem let-group>{{ group }}</ng-template>
+                        <ng-template let-group #item>{{ group }}</ng-template>
+                    </p-select>   
+                </div>
             </div>
         </div>
         <div *ngIf="playerHeaders" style="height: 88vh;">
@@ -34,27 +44,41 @@
                                 <p-columnFilter type="text" field="discordName" display="menu"></p-columnFilter>
                             </div>
                         </th>                        
-                        <th pSortableColumn="gamesNumber">
+                        <th *ngIf="tableCard == 'Gracze'" pSortableColumn="gamesNumber">
                             <div class="table-header">
                                 <div>Liczba rozgrywek</div>
                                 <p-sortIcon field="gamesNumber"/>
                                 <p-columnFilter type="text" field="gamesNumber" display="menu"></p-columnFilter>
                             </div>
                         </th>                        
-                        <th pSortableColumn="goodPercentage">
+                        <th *ngIf="tableCard == 'Gracze'" pSortableColumn="goodPercentage">
                             <div class="table-header">
                                 <div>% bycia dobrym</div>
                                 <p-sortIcon field="goodPercentage"/>
                                 <p-columnFilter type="text" field="goodPercentage" display="menu"></p-columnFilter>
                             </div>
                         </th>                        
-                        <th pSortableColumn="winRatio">
+                        <th *ngIf="tableCard == 'Gracze'" pSortableColumn="winRatio">
                             <div class="table-header">
                                 <div>% wygranych</div>
                                 <p-sortIcon field="winRatio"/>
                                 <p-columnFilter type="text" field="winRatio" display="menu"></p-columnFilter>
                             </div>
-                        </th>
+                        </th>                        
+                        <th *ngIf="tableCard == 'Narratorzy'" pSortableColumn="storytellerGamesNumber">
+                            <div class="table-header">
+                                <div>Liczba prowadzonych gier</div>
+                                <p-sortIcon field="storytellerGamesNumber"/>
+                                <p-columnFilter type="text" field="storytellerGamesNumber" display="menu"></p-columnFilter>
+                            </div>
+                        </th>                        
+                        <th *ngIf="tableCard == 'Narratorzy'" pSortableColumn="storytellerWinRatio">
+                            <div class="table-header">
+                                <div>% zwycięstw dobrych</div>
+                                <p-sortIcon field="storytellerWinRatio"/>
+                                <p-columnFilter type="text" field="storytellerWinRatio" display="menu"></p-columnFilter>
+                            </div>
+                        </th> 
                     </tr>
                 </ng-template>
                 <ng-template #body let-playerHeader>
@@ -62,14 +86,19 @@
                         <td>{{ playerHeader.id }}</td>
                         <td>{{ playerHeader.name }}</td>
                         <td>{{ playerHeader.discordName }}</td>
-                        <td>{{ playerHeader.gamesNumber }}</td>
-                        <td>
+                        <td *ngIf="tableCard == 'Gracze'">{{ playerHeader.gamesNumber }}</td>
+                        <td *ngIf="tableCard == 'Gracze'">
                             <i class="pi pi-circle-fill" [ngStyle]="{'color': getAlignmentGradient(playerHeader.gamesNumber, playerHeader.goodPercentage!)}" style="margin-right: 10px;"></i>
                             <span> {{ playerHeader.goodPercentage!.toFixed(2) }}</span>
                         </td>
-                        <td>
+                        <td *ngIf="tableCard == 'Gracze'">
                             <i class="pi pi-circle-fill" [ngStyle]="{'color': getVictoryGradient(playerHeader.gamesNumber, playerHeader.winRatio!)}" style="margin-right: 10px;"></i>
                             <span> {{ playerHeader.winRatio!.toFixed(2) }}</span>
+                        </td>
+                        <td *ngIf="tableCard == 'Narratorzy'">{{ playerHeader.storytellerGamesNumber }}</td>
+                        <td *ngIf="tableCard == 'Narratorzy'">
+                            <i class="pi pi-circle-fill" [ngStyle]="{'color': getStorytellerVictoryGradient(playerHeader.storytellerGamesNumber, playerHeader.storytellerWinRatio!)}" style="margin-right: 10px;"></i>
+                            <span> {{ playerHeader.storytellerWinRatio!.toFixed(2) }}</span>
                         </td>
                     </tr>
                 </ng-template>

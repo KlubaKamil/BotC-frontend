@@ -16,7 +16,7 @@ export class AuthService {
   isLoggedIn(): Promise<boolean> {
     let token = this.getToken();
     if(!token){
-      return this.showLoginDialog("Aby wykonać tę akcję, musisz się zalogować. Podać hasło:");
+      return this.showLoginDialog("Aby wykonać tę akcję, musisz się zalogować. Podaj hasło:");
     }
     let expired = this.isExpired(token);
     if(expired){

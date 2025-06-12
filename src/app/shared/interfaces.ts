@@ -34,7 +34,8 @@ export interface CharacterHeader{
 export interface PlayerHeader{
   id: number,
   name: string,
-  discordName?: String
+  discordName?: String,
+  storytellerGamesNumber: number,
   gamesNumber: number,
   goodPercentage: number,
   winRatio: number
@@ -56,7 +57,7 @@ export interface GameDto {
   date?: Date;
   notes?: string;
   place?: PlaceDto;
-  imageUrl?: String;
+  imageUploaded?: boolean;
   balanceMarks?: number[];
 }
 
@@ -100,6 +101,7 @@ export interface CharacterDto {
   description: String;
   linkToWiki?: String;
   tips?: String;
+  imageUploaded?: boolean;
   characterDetails?: CharacterDetails;
 }
 
@@ -127,6 +129,7 @@ export interface PlayerDto{
 }
 
 export interface PlayerDetails {
+  storytellerGamesNumber?: number;
   gamesNumber?: number;
   goodPercentage?: number;
   winRatio?: number;
@@ -195,7 +198,7 @@ export class Game {
   date?: Date;
   notes?: string;
   place?: Place;
-  imageUrl?: String;
+  imageUploaded?: boolean;
   balanceMarks?: number[];
 }
 
@@ -216,6 +219,7 @@ export class Character {
   description?: String;
   linkToWiki?: String;
   tips?: String;
+  imageUploaded?: boolean;
   characterDetails?: CharacterDetails;
 }
 

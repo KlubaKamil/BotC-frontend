@@ -13,10 +13,11 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../authservice/auth.service';
 import { MatIconModule } from '@angular/material/icon';
 import { SelectModule } from 'primeng/select';
+import { DatePickerModule } from 'primeng/datepicker';
 
 @Component({
   selector: 'app-player',
-  imports: [CommonModule, FormsModule, MatButtonModule, TableModule, RouterModule, MatIconModule, SelectModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, TableModule, RouterModule, MatIconModule, SelectModule, DatePickerModule],
   templateUrl: './player.component.html',
   styleUrl: './player.component.css'
 })

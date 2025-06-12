@@ -8,11 +8,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { ToggleButtonModule } from 'primeng/togglebutton';
 import { FormsModule } from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle'; 
+import { MatButtonToggleModule } from '@angular/material/button-toggle'
 import { Router } from '@angular/router';
+import { SelectModule } from 'primeng/select';
 
 @Component({
   selector: 'app-players',
-  imports: [FormsModule, CommonModule, MatButtonModule, TableModule, MatIconModule, ToggleButtonModule, MatSlideToggleModule],
+  imports: [FormsModule, CommonModule, MatButtonModule, TableModule, MatIconModule, ToggleButtonModule, MatSlideToggleModule, MatButtonToggleModule, SelectModule],
   templateUrl: './players.component.html',
   styleUrl: './players.component.scss'
 })
@@ -22,6 +24,16 @@ export class PlayersComponent {
   characters: Character[] | null = null;
   scripts: Script[] | null = null;
   games: Game[] | null = null;
+  tableCard = "Gracze"
+  filterValue = "Wszyscy"
+  availableFilters: Record<string, Record<string, number>> = {
+    Gracze: { Wszyscy: 0, Zaawansowani: 15, Eksperci: 40 },
+    Narratorzy: { Wszyscy: 1, Zaawansowani: 10, expEkspercirt: 30 }
+  };
+  filteredField: Record<string, (p: PlayerHeader) => number> = {
+    Gracze: p => p.gamesNumber,
+    Narratorzy: p => p.storytellerGamesNumber
+  };
 
   constructor(private sharedService: SharedService, private router: Router) {}
 
@@ -31,7 +43,7 @@ export class PlayersComponent {
     this.sharedService.characters$.subscribe((characters) => this.characters = characters);
     this.sharedService.playerHeaders$.subscribe((playerHeaders) => {
       this.playerHeaders = playerHeaders; 
-      this.filterInactive(false);
+      this.filterPlayers(this.filterValue);
     })
   }
 
@@ -43,7 +55,7 @@ export class PlayersComponent {
   }
 
   getAlignmentGradient(gamesNumber: number, goodPercentage: number): string {
-    if(gamesNumber < 10) return 'gray'
+    if(gamesNumber < 10) return 'gray';
     let goodThreshhold = 70
     let r, g, b;
 
@@ -89,12 +101,41 @@ export class PlayersComponent {
 
     return `rgb(${r}, ${g}, ${b})`;
   }
+  
+  getStorytellerVictoryGradient(gamesNumber: number, goodPercentage: number): string {
+    if(gamesNumber == 0) return 'gray'
+    let goodThreshhold = 50
+    let r, g, b;
+    let value = goodPercentage - goodThreshhold;
 
-  filterInactive(checked: boolean){
-    if(checked){
-      this.filteredPlayerHeaders = this.playerHeaders!.filter(p => p.gamesNumber! >= 10);
+    if (value > 0){
+      r = 255 - value * 5.1;
+      g = 255 - value * 3.56;
+      b = 255 - value * 1.9;
     } else {
-      this.filteredPlayerHeaders = this.playerHeaders;
+      r = 255 + value * 1.6;
+      g = 255 + value * 4.74;
+      b = 255 + value * 4.62;
     }
+    r = Math.round(r);
+    g = Math.round(g);
+    b = Math.round(b);
+    return `rgb(${r}, ${g}, ${b}`;
+  }
+
+  filterPlayers(checked: string){
+    this.filterValue = checked;
+    let tc = this.tableCard;
+    let fv = this.filterValue;
+
+    let field = this.filteredField[tc];
+    let minValue = this.availableFilters[tc][fv];
+
+    this.filteredPlayerHeaders = this.playerHeaders!.filter(p => field(p) >= minValue);
+  }
+
+  changeTableCard(value: string){
+    this.tableCard = value
+    this.filterPlayers(this.filterValue)
   }
 }

@@ -5,8 +5,8 @@ html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 :root{
-  --red: #AF1218;
-  --blue: #004EA1;
+  --red: rgb(175, 18, 24);
+  --blue: rgb(0, 78, 161);
   --gold: #ffd700;
 }
 .bg-stripped{
