@@ -2,7 +2,7 @@ import { HttpClient, HttpStatusCode } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { SharedService } from '../shared/service/shared.service';
-import { DialogType } from '../shared/interfaces';
+import { BotcJwtPayload, DialogType, Role } from '../shared/interfaces';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 
 @Injectable({
@@ -13,17 +13,52 @@ export class AuthService {
 
   constructor(private http: HttpClient, private sharedService: SharedService){}
 
-  isLoggedIn(): Promise<boolean> {
-    let token = this.getToken();
+  isModTokenValid(): Promise<boolean> {
+    let token = localStorage.getItem('jwt');
     if(!token){
       return this.showLoginDialog("Aby wykonać tę akcję, musisz się zalogować. Podaj hasło:");
     }
-    let expired = this.isExpired(token);
-    if(expired){
+    let decodedToken = jwtDecode<BotcJwtPayload>(token);
+    if(this.isExpired(decodedToken)){
       localStorage.removeItem('jwt');
       return this.showLoginDialog("Token dostępu wygasł, zaloguj się ponownie:");
     }
+    if(!this.hasGroupRole([Role.MODERATOR, Role.ADMIN])){
+      this.sharedService.showDialog(DialogType.INFORMATION, 
+        "Nie masz uprawnień, aby wykonać tę akcję. Skontaktuj się z administratorem grupy");
+        return Promise.resolve(false);
+    }
     return Promise.resolve(true);
+  }
+
+  isMemberTokenValid(): Promise<boolean> {
+    let token = localStorage.getItem('jwt');
+    if(!token){
+      return this.showLoginDialog("Aby wykonać tę akcję, musisz się zalogować. Podaj hasło:");
+    }
+    let decodedToken = jwtDecode<BotcJwtPayload>(token);
+    if(this.isExpired(decodedToken)){
+      localStorage.removeItem('jwt');
+      return this.showLoginDialog("Token dostępu wygasł, zaloguj się ponownie:");
+    }
+    if(!this.hasGroupRole([Role.MEMBER, Role.MODERATOR, Role.ADMIN])){
+      this.sharedService.showDialog(DialogType.INFORMATION, 
+        "Nie masz uprawnień, aby wykonać tę akcję. Skontaktuj się z administratorem grupy");
+        return Promise.resolve(false);
+    }
+    return Promise.resolve(true);
+  }
+
+  isMember(): boolean {
+    return this.hasGroupRole([Role.MEMBER, Role.MODERATOR, Role.ADMIN]);
+  }
+
+  isMod(): boolean {
+    return this.hasGroupRole([Role.MODERATOR, Role.ADMIN]);
+  }
+
+  isAdmin(): boolean {
+    return this.hasGroupRole([Role.ADMIN]);
   }
 
   showLoginDialog(message: string): Promise<boolean>{
@@ -39,13 +74,52 @@ export class AuthService {
     })
   }
 
+  hasGroupRole(roles: Role[]): boolean{
+    let token = localStorage.getItem('jwt');
+    if(!token){
+      return false;
+    }
+    let decodedToken = jwtDecode<BotcJwtPayload>(token);
+    const groupRoles = decodedToken.groupRoles;
+    if(groupRoles.some(gr => roles.includes(gr.role) && gr.group.id === this.sharedService.getGroup().id)){
+      return true;
+    }
+    return false;
+  }
+
+  loginWithDiscord(code: string){
+    this.http.post(`${this.apiUrl}/authentication/login/discord/${code}`, null)
+      .subscribe({
+        next: (response: any) => {
+          let decodedToken = jwtDecode<BotcJwtPayload>(response.token);
+          localStorage.setItem('jwt', response.token);
+          localStorage.setItem('username', decodedToken.sub);
+          if(this.hasGroupRole([Role.MODERATOR, Role.ADMIN])){
+            this.sharedService.showDialog(DialogType.INFORMATION, decodedToken.sub + ", logowanie pomyślne!")
+          } else {
+            this.sharedService.showDialog(DialogType.INFORMATION, 
+              decodedToken.sub + ", logowanie pomyślne, lecz nie posiadasz uprawnień do wykonywania akcji w tej grupie. Skontaktuj się z jej administratorem.")
+          }
+        },
+        error: err => this.sharedService.showDialog(DialogType.INFORMATION, 'Coś poszło nie tak podczas logowania.')
+      });
+  }
+
   private login(password: any): Promise<boolean> {
     return new Promise<boolean>((resolve) => {
-      this.http.post<{ token: string }>(`${this.apiUrl}/user/login`, {password: password}).subscribe({
-        next: (response) => {
+      this.http.post(`${this.apiUrl}/authentication/login`, {password: password}).subscribe({
+        next: (response: any) => {
+          let decodedToken = jwtDecode<BotcJwtPayload>(response.token);
           localStorage.setItem('jwt', response.token);
-          this.sharedService.showDialog(DialogType.INFORMATION, "Logowanie pomyślne!")
-          resolve(true);
+          localStorage.setItem('username', decodedToken.sub);
+          if(this.hasGroupRole([Role.MODERATOR, Role.ADMIN])){
+            this.sharedService.showDialog(DialogType.INFORMATION, decodedToken.sub + ", logowanie pomyślne!")
+            resolve(true);
+          } else {
+            this.sharedService.showDialog(DialogType.INFORMATION, 
+              decodedToken.sub + ", logowanie pomyślne, lecz nie posiadasz uprawnień do wykonywania akcji w tej grupie. Skontaktuj się z jej administratorem.")
+            resolve(false)
+          }
         },
         error: (error) => {
           if (error.status === HttpStatusCode.Forbidden) {
@@ -58,19 +132,15 @@ export class AuthService {
       });
     })
   }
-
-  private getToken(): string | null {
-    return localStorage.getItem('jwt');
-  }
  
-  private logout() {
+  logout() {
     localStorage.removeItem('jwt');
+    localStorage.removeItem('username');
   }
 
-  private isExpired(token: string){
+  private isExpired(decodedToken: BotcJwtPayload): boolean{
     try {
-      let decoded = jwtDecode<JwtPayload>(token);
-      const exp = decoded.exp;
+      const exp = decodedToken.exp;
       const now = Math.floor(Date.now() / 1000);
       return  now > exp!;
     } catch (e) {

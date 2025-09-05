@@ -1,9 +1,9 @@
 import { ChangeDetectorRef, Component, ElementRef, ViewChild } from '@angular/core';
-import { Alignment, Assignment, Character, DialogType, Game, NotificationMode, NotificationType, Place, Player, ResponseId, Script, Transformation } from '../../shared/interfaces'
-import { CommonModule, Location } from '@angular/common';
+import { Alignment, Assignment, Character, DialogType, Game, Group, NotificationMode, NotificationType, Place, Player, ResponseId, Script, Transformation } from '../../shared/interfaces'
+import { CommonModule } from '@angular/common';
 import { environment } from '../../../environments/environment';
 import { SharedService } from '../../shared/service/shared.service';
-import { HttpClient, HttpErrorResponse, HttpResponse, HttpStatusCode } from '@angular/common/http';
+import { HttpErrorResponse, HttpEvent, HttpEventType, HttpResponse, HttpStatusCode, HttpUploadProgressEvent } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { Observable } from 'rxjs';
 import { FormsModule } from '@angular/forms';
@@ -20,22 +20,28 @@ import { ButtonModule } from 'primeng/button';
 import { DividerModule } from 'primeng/divider';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../authservice/auth.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
 import { TableModule } from 'primeng/table';
 import { SliderModule } from 'primeng/slider';
 import { MatSliderModule } from '@angular/material/slider';
+import { MatDialog } from '@angular/material/dialog';
+import { PlaceComponent } from '../../place/place.component';
+import { ProgressbarComponent } from '../../progressbar/progressbar.component';
+import { SelectBackCloseDirective } from '../../select-back-close-directive/select-back-close.directive';
+import { DropdownModule } from 'primeng/dropdown';
 
 @Component({
   selector: 'app-game',
   imports: [FormsModule, CommonModule, MatButtonModule, MatIconModule, MatFormFieldModule, ButtonModule, DividerModule,
     MatInputModule, MatNativeDateModule, ToggleSwitchModule, ToggleButtonModule, SelectModule, DatePickerModule, RouterModule,
-    TableModule, SliderModule, MatSliderModule
+    TableModule, SliderModule, MatSliderModule, SelectBackCloseDirective, DropdownModule
   ],
   templateUrl: './game.component.html',
   styleUrl: './game.component.css'
 })
 export class GameComponent {
   apiUrl = environment.apiUrl;
+  group: Group = { id: 0, name: 'brak' };
   games: Game[] = [];
   scripts: Script[] = [];
   characters: Character[] = [];
@@ -52,43 +58,18 @@ export class GameComponent {
   balanceSliderValue = 0;
   averageBalanceMark = 0;
   imageSize = 100;
-  
-  constructor(private sharedService: SharedService, private http: HttpClient, private mapper: DtoMapperService,
-    private route: ActivatedRoute, private authService: AuthService, private location: Location, 
-    private snackBar: MatSnackBar, private cd: ChangeDetectorRef) {
+  isMobile = false;
+  snackBarRef!: MatSnackBarRef<ProgressbarComponent>;
+
+  constructor(private sharedService: SharedService, private mapper: DtoMapperService, private route: ActivatedRoute, 
+    private authService: AuthService, private snackBar: MatSnackBar, private cd: ChangeDetectorRef, private dialog: MatDialog) {
   }
 
-// @ViewChild('dropdownWrapper') dropdownWrapper!: ElementRef;
-// @ViewChild('buttons') buttons!: ElementRef;
-// @ViewChild('dropdown') dropdown!: Select; // For p-select component
-
-// scrollToDropdownAndOpen() {
-//   const dropdownElement = this.dropdownWrapper.nativeElement;
-//   const containerElement = this.scrollContainer.nativeElement;
-
-//   const offsetTop = dropdownElement.offsetTop;
-
-//   // Smooth scroll
-//   containerElement.scrollTo({
-//     top: offsetTop,
-//     behavior: 'smooth'
-//   });
-
-//   // Wait until the scroll has completed
-//   const checkIfScrollDone = () => {
-//     const currentScroll = containerElement.scrollTop;
-//     if (Math.abs(currentScroll - offsetTop) < 2) {
-//       // Scroll is complete, now open the dropdown
-//       this.dropdown.show(); // or this.dropdown.show() if available
-//     } else {
-//       requestAnimationFrame(checkIfScrollDone);
-//     }
-//   };
-
-//   requestAnimationFrame(checkIfScrollDone);
-// }
-
   ngOnInit() {
+    this.isMobile = window.innerWidth < 768;
+    this.sharedService.group$.subscribe((group) => {
+      this.group = group;
+    })
     this.sharedService.players$.subscribe((players) => {
       this.players = players!;
     })
@@ -107,7 +88,6 @@ export class GameComponent {
       this.cancel();
       this.selectedGame = selectedGame;
       this.calculateBalance();
-      this.cd.detectChanges();
     })
     this.route.paramMap.subscribe(params => {
       let id = params.get('id');
@@ -119,34 +99,38 @@ export class GameComponent {
   }
 
   async createNewGame() {
-    if(await this.authService.isLoggedIn()){
+    if(await this.authService.isModTokenValid()){
       this.selectedGame = null;
       this.tempGame = {} as Game;
       this.tempGame.goodWon = true;
       this.tempGame.assignments = [];
+      this.tempGame.balanceMarks = [];
+      // this.tempGame.fables = [null as any];
+      this.tempGame.fables = [];
       this.isEditing = false;
       this.isCreating = true;
       this.fetchData();
-      this.location.go('/games');
+      this.sharedService.changeLocation('games');
     }
   }
 
   async toggleEdit() {
     if (this.isEditing) {
-      this.tempGame?.assignments!.filter(a => this.tempGame?.script!.characters!.find(c => c === a.character))
+      this.tempGame?.assignments!.filter(a => this.tempGame?.script!.scriptCharacters!.find(sc => sc.character === a.character))
       if(this.validate(this.tempGame!)){
         let dto = this.mapper.mapGameToDto(this.tempGame!);
-        this.handleResponse(this.http.post<ResponseId>(`${this.apiUrl}/game`, dto, { observe: 'response' }));
+        this.handleHttpEvent(this.sharedService.postEntity(dto, 'game'));
       }
     } else if(this.isCreating) {
       if(this.validate(this.tempGame!)){
         let dto = this.mapper.mapGameToDto(this.tempGame!);
-        this.handleResponse(this.http.put<ResponseId>(`${this.apiUrl}/game`, dto, { observe: 'response' }));
+        this.handleHttpEvent(this.sharedService.putEntity(dto, 'game'));
       }
     } else {
-      if(await this.authService.isLoggedIn()){
+      if(await this.authService.isModTokenValid()){
         this.fetchData();
         this.tempGame = JSON.parse(JSON.stringify(this.selectedGame));
+        // this.tempGame?.fables?.push(null as any);
         this.isEditing = true;
       }
     }
@@ -164,12 +148,12 @@ export class GameComponent {
   }
 
   async deleteGame() {
-    if(await this.authService.isLoggedIn()){
+    if(await this.authService.isModTokenValid()){
       const dialogRef = this.sharedService.showDialog(DialogType.CONFIRMATION, "Na pewno chcesz usunąć tę rozgrywkę?")
 
       dialogRef.afterClosed().subscribe((result) => {
         if(result) {
-          this.handleResponse(this.http.delete<any>(`${this.apiUrl}/game/${this.selectedGame!.id}`, { observe: 'response' }));
+          this.handleHttpEvent(this.sharedService.deleteEntity(this.selectedGame!.id, 'game'));
         } 
       });
     }
@@ -213,6 +197,56 @@ export class GameComponent {
     this.tempGame!.storyteller = player;
   }
 
+  // test(){
+  //   console.log(this.tempGame?.fables)
+  // }
+
+  // async updateFables(i: number, event: any){
+  //   let newValue = event.value;
+  //   let fables = this.tempGame!.fables!;
+  //   console.log(newValue)
+  //   if(newValue){
+  //     if(i == fables.length - 1){
+  //       this.tempGame?.fables?.push(null as any)
+  //     }
+  //   }
+  //   //vibe coding
+  //   fables = this.tempGame!.fables!.filter((f, index) => {
+  //     if (!f && i !== index) return true; // keep empty slots
+  //     if (i === index) return !!newValue; // keep the slot only if a new value exists
+  //     if (!newValue) return true; // if newValue is null, keep other items
+  //     return f.name !== newValue.name; // remove duplicates
+  //   });
+  //   //nie wiem kurwa czemu, ale musi być lekutki delay
+  //   await new Promise(f => setTimeout(f, 50));
+  //   this.tempGame!.fables = [...fables];
+  //   this.cd.detectChanges();
+  // }
+
+  // trackByIndex(index: number, _item: any): number {
+  //   return index;
+  // }
+
+  updateFable(i: number, event: any){
+    let fable = event.value;
+    if(!fable){
+      this.tempGame!.fables = this.tempGame?.fables?.filter((f, index) => i !== index)
+    } else {
+      this.tempGame!.fables = this.tempGame?.fables?.filter((f, index) => i !== index && f !== fable)
+    }
+
+    console.log(this.tempGame?.fables)
+  }
+
+  addFable(event: any){
+    let fable = event.value;
+    let alreadyAdded = this.tempGame?.fables?.some(f => f === fable)
+    if(fable && !alreadyAdded){
+      this.tempGame?.fables?.push(fable);
+    }
+    event.originalEvent.target.blur();
+  }
+
   newTransformation(character: Character, index: number){
     let assignment = this.getAssignment(character, index);
     if(!assignment!.transformations){
@@ -235,7 +269,7 @@ export class GameComponent {
     this.sharedService.showPhotoDialog(
       DialogType.PHOTOGRAPHY, 
       `Gra ${this.selectedGame?.id}, ${this.selectedGame?.script?.name}${place}${date}`, 
-      `${this.apiUrl}/game/${this.selectedGame?.id}/image`)
+      `${this.apiUrl}/game/${this.group.id}/${this.selectedGame?.id}/image`)
   }
 
   addImage(event: Event){
@@ -250,8 +284,8 @@ export class GameComponent {
         this.formData = new FormData();
         this.formData.append('image', file);
         this.isPhotoUploaded = true;
-        this.snackBar.open('Przesłano, gotowe do zapisania.', undefined, {
-          duration: 1000,
+        this.snackBar.open('Gotowe do zapisania.', undefined, {
+          duration: 2000,
           horizontalPosition: 'right',
           verticalPosition: 'top',
         });
@@ -259,24 +293,77 @@ export class GameComponent {
     }
   }
 
-  addBalanceMark(){
-    let message = `Na pewno chcesz dodać ocenę balansu: ${this.balanceSliderValue}?`;
-    let dialogRef = this.sharedService.showDialog(DialogType.CONFIRMATION, message);
-    dialogRef.afterClosed().subscribe((result) => {
-      if(result) {
-        this.tempGame?.balanceMarks?.push(this.balanceSliderValue);
-        this.sharedService.showDialog(DialogType.INFORMATION, "Dodano ocenę!")
-      }
-      this.balanceSliderValue = 5;
-    })
+  async addBalanceMark(){
+    if(await this.authService.isMemberTokenValid()){
+      let message = `Na pewno chcesz dodać ocenę balansu: ${this.balanceSliderValue}?`;
+      let dialogRef = this.sharedService.showDialog(DialogType.CONFIRMATION, message);
+      dialogRef.afterClosed().subscribe((result) => {
+        if(result) {
+          let username = localStorage.getItem('username')!;
+          let balanceMark = {mark: this.balanceSliderValue, username: username};
+          this.handleBalanceMarkResponse(this.sharedService.putEntity(balanceMark, 'game', `${this.selectedGame?.id}/balance`));
+        }
+        this.calculateBalance();
+      })
+    }
+  }
+
+  async updateBalanceMark(){
+    if(await this.authService.isMemberTokenValid()){
+      let message = `Na pewno chcesz zaktualizować ocenę balansu: ${this.balanceSliderValue}?`;
+      let dialogRef = this.sharedService.showDialog(DialogType.CONFIRMATION, message);
+      dialogRef.afterClosed().subscribe((result) => {
+        if(result) {
+          let username = localStorage.getItem('username')!;
+          let balanceMark = this.selectedGame?.balanceMarks?.find(bm => bm.username === username);
+          if(balanceMark) {
+            balanceMark.mark = this.balanceSliderValue;
+            this.handleBalanceMarkResponse(this.sharedService.postEntity(balanceMark, 'game', `${this.selectedGame?.id}/balance`));
+          }
+        }
+        this.calculateBalance();
+      })
+    }
+  }
+
+  async removeBalanceMark(){
+    if(await this.authService.isMemberTokenValid()){
+      let message = `Na pewno chcesz usunąć ocenę balansu: ${this.balanceSliderValue}?`;
+      let dialogRef = this.sharedService.showDialog(DialogType.CONFIRMATION, message);
+      dialogRef.afterClosed().subscribe((result) => {
+        if(result) {
+          let username = localStorage.getItem('username')!;
+          this.handleBalanceMarkResponse(this.sharedService.deleteEntity(`${this.selectedGame?.id}/balance/${username}`, 'game'));
+        }
+        this.calculateBalance();
+      })
+    }
+  }
+
+  getBalanceMarksAsString(): string {
+    return this.selectedGame?.balanceMarks?.map(bm => `${bm.username} (${bm.mark})`).join(', ') || '';
+  }
+
+  userAlreadyAddedBalanceMark(): boolean{
+    let username = localStorage.getItem('username')!;
+    return this.selectedGame?.balanceMarks?.some(bm => bm.username === username) || false;
+  }
+
+  openPlaceDialog(){
+    this.dialog.open(PlaceComponent, { data: {places: this.places}});
+  }
+
+  isGroupMember(): boolean{
+    return this.authService.isMember();
   }
 
   private calculateBalance(){
     let length = this.selectedGame?.balanceMarks?.length!;
     if(length > 0){
       let sum = 0;
-      this.selectedGame?.balanceMarks?.forEach(bm => sum += bm);
-      this.averageBalanceMark = sum / length;
+      this.selectedGame?.balanceMarks?.forEach(bm => sum += bm.mark!);
+      this.averageBalanceMark = sum / length
+      this.balanceSliderValue = Math.round(this.averageBalanceMark);
     }
   }
 
@@ -297,9 +384,9 @@ export class GameComponent {
     } else if(game.goodWon === undefined){
       this.sharedService.showDialog(DialogType.INFORMATION, "Zwycięzcy są wymagani!");
       return false;
-    } else if(game.assignments!.length < 5){
-      this.sharedService.showDialog(DialogType.INFORMATION, "Do gry potrzeba przynajmniej 5 graczy!");
-      return false;
+    // } else if(game.assignments!.length < 5){
+    //   this.sharedService.showDialog(DialogType.INFORMATION, "Do gry potrzeba przynajmniej 5 graczy!");
+    //   return false;
     } else if(this.anyTransformationIncomplete(game.assignments!)){
       this.sharedService.showDialog(DialogType.INFORMATION, "Co najmniej z transformacji postaci jest niekompletna!");
       return false;
@@ -319,53 +406,116 @@ export class GameComponent {
     return anyFailed;
   }
 
-  private handleResponse(httpResponse: Observable<HttpResponse<ResponseId>>, handlePhotoResponse?: boolean){
+  private handleHttpEvent(httpResponse: Observable<HttpEvent<ResponseId>>, handlePhotoResponse?: boolean){
     httpResponse.subscribe({
-      next: (response: HttpResponse<ResponseId>) => {
-        const status = response.status;
-        const id = response.body!.id;
-        if(status === HttpStatusCode.Ok){
-          if(this.isPhotoUploaded){
-            this.isPhotoUploaded = false;
-            this.handleResponse(this.http.post<ResponseId>(`${this.apiUrl}/game/${id}/image`, this.formData, { observe: 'response' }), true)
-          } else {
-            let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończona pomyślnie!")
-            dialogRef.afterClosed().subscribe((notifyDiscord) => {
-              if(notifyDiscord) {
-                this.sharedService.showNotificationDialog(NotificationType.GAME, id, NotificationMode.UPDATE);
-              }
-            });
-            this.sharedService.fetchGameAndSelect(id);
-          }
-        } else if(status === HttpStatusCode.Created){
-          if(this.isPhotoUploaded){
-            this.isPhotoUploaded = false;
-            this.handleResponse(this.http.put<ResponseId>(`${this.apiUrl}/game/${id}/image`, this.formData, { observe: 'response' }), true)
-          } else {
-            let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Dodano nową rozgrywkę!")
-            dialogRef.afterClosed().subscribe((notifyDiscord) => {
-              if(notifyDiscord) {
-                this.sharedService.showNotificationDialog(NotificationType.GAME, id, NotificationMode.NEW);
-              }
-            });
-            this.sharedService.fetchGameAndSelect(id);
-          }
-          this.cancel();
-        } else if(status === HttpStatusCode.NoContent){
-          this.sharedService.showDialog(DialogType.INFORMATION, "Usunięcie zakończone pomyślnie!")
-          this.cancel();
-        } else {
-          this.sharedService.showDialog(DialogType.INFORMATION, 'Sukces!');
+      next: (event: HttpEvent<ResponseId>) => {
+        const eventType = event.type;
+        switch(eventType){
+          case HttpEventType.UploadProgress:   
+            this.handleUploadProgress(event);
+            break;
+          case HttpEventType.Response:
+            this.handleResponse(event)
+            break;
         }
-        this.sharedService.fetchGameHeaders();
       },
       error: (error: HttpErrorResponse) => {
-        if(handlePhotoResponse){
-          this.sharedService.showDialog(DialogType.INFORMATION, "Rozgrywka zapisana pomyślnie, natomiast przesłanie zdjęcia nie powiodło się!")
-        } else {
-          this.sharedService.showDialog(DialogType.INFORMATION, 'Coś poszło nie tak!');
-        }
+        this.handleErrorResponse(error, handlePhotoResponse);
       }
     })
+  }
+
+  private handleUploadProgress(event: HttpEvent<any>){
+    let uploadEvent = event as HttpUploadProgressEvent;
+    if(uploadEvent.total){
+      let progress = Math.round(100 * uploadEvent.loaded / uploadEvent.total);
+      this.snackBarRef!.instance.progress = progress;
+    }
+  }
+
+  private handleResponse(response: HttpResponse<ResponseId>){
+    const status = response.status;
+    const id = response.body ? response.body?.id : 0;
+    if(status === HttpStatusCode.Ok){
+      if(this.isPhotoUploaded){
+        this.isPhotoUploaded = false;
+        this.openProgressBar();
+        this.handleHttpEvent(this.sharedService.postEntityWithProgress(this.formData, 'game', `${id}/image`), true)
+      } else {
+        let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończona pomyślnie!")
+        dialogRef.afterClosed().subscribe((notifyDiscord) => {
+          if(notifyDiscord) {
+            this.sharedService.showNotificationDialog(NotificationType.GAME, id, NotificationMode.UPDATE);
+          }
+        });
+        if(this.snackBarRef){
+          this.snackBarRef.dismiss();
+        } 
+        this.sharedService.fetchGameAndSelect(id);
+      }
+    } else if(status === HttpStatusCode.Created){
+      if(this.isPhotoUploaded){
+        this.isPhotoUploaded = false;
+        this.openProgressBar();
+        this.handleHttpEvent(this.sharedService.putEntityWithProgress(this.formData, 'game', `${id}/image`), true);
+      } else {
+        let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Dodano nową rozgrywkę!")
+        dialogRef.afterClosed().subscribe((notifyDiscord) => {
+          if(notifyDiscord) {
+            this.sharedService.showNotificationDialog(NotificationType.GAME, id, NotificationMode.NEW);
+          }
+        });
+        if(this.snackBarRef){
+          this.snackBarRef.dismiss();
+        }
+        this.sharedService.fetchGameAndSelect(id);
+      }
+      this.cancel();
+    } else if(status === HttpStatusCode.NoContent){
+      this.sharedService.showDialog(DialogType.INFORMATION, "Usunięcie zakończone pomyślnie!")
+      this.cancel();
+    } else {
+      this.sharedService.showDialog(DialogType.INFORMATION, 'Sukces!');
+    }
+    this.sharedService.fetchGameHeaders();
+
+  }
+
+  private handleErrorResponse(error: HttpErrorResponse, handlePhotoResponse?: boolean){
+    if(handlePhotoResponse){
+      this.snackBarRef.dismiss();
+      this.sharedService.showDialog(DialogType.INFORMATION, "Rozgrywka zapisana pomyślnie, natomiast przesłanie zdjęcia nie powiodło się!")
+    } else {
+      this.sharedService.showDialog(DialogType.INFORMATION, 'Coś poszło nie tak!');
+    }
+  }
+
+  private handleBalanceMarkResponse(httpResponse: Observable<HttpResponse<any>>){
+    httpResponse.subscribe({
+      next: (response: HttpResponse<any>) => {
+        const status = response.status;
+        if(status === HttpStatusCode.Ok){
+          this.sharedService.showDialog(DialogType.INFORMATION, "Zaktualizowano ocenę!");
+        } else if(status === HttpStatusCode.Created){
+          this.sharedService.showDialog(DialogType.INFORMATION, "Dodano ocenę!");
+        } else if(status === HttpStatusCode.NoContent) {
+          this.sharedService.showDialog(DialogType.INFORMATION, 'Usunięto ocenę!');
+        }
+        this.sharedService.fetchGameAndSelect(this.selectedGame!.id!);
+      }, 
+      error: (error: HttpErrorResponse) => {
+        this.sharedService.showDialog(DialogType.INFORMATION, 'Coś poszło nie tak!');
+      }
+    })
+  }
+
+  private openProgressBar(){
+    this.snackBarRef = this.snackBar.openFromComponent(ProgressbarComponent, {
+      horizontalPosition: 'right',
+      verticalPosition: 'top',
+      panelClass: ['upload-snackbar'],
+      data: { progress: 0 },
+      duration: undefined
+    });
   }
 }

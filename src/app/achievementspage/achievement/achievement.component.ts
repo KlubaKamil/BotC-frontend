@@ -26,7 +26,7 @@ export class AchievementComponent {
   isCreating: boolean = false;
 
   constructor(private sharedService: SharedService, private http: HttpClient, private mapper: DtoMapperService, private route: ActivatedRoute,
-    private authService: AuthService, private location: Location){}
+    private authService: AuthService){}
 
   ngOnInit(){
     this.sharedService.selectedAchievement$.subscribe((selectedAchievement) => {
@@ -41,12 +41,12 @@ export class AchievementComponent {
   }
 
   async createNewAchievement() {
-    if(await this.authService.isLoggedIn()){
+    if(await this.authService.isModTokenValid()){
       this.selectedAchievement = null;
       this.tempAchievement = {} as Achievement;
       this.isEditing = false;
       this.isCreating = true;
-      this.location.go('/achievements');
+      this.sharedService.changeLocation('achievements');
     }
   }
 
@@ -54,15 +54,15 @@ export class AchievementComponent {
     if (this.isEditing) {
       if(this.validate(this.tempAchievement!)){
         let dto = this.mapper.mapAchievementToDto(this.tempAchievement!);
-        this.handleResponse(this.http.post<ResponseId>(`${this.apiUrl}/achievement`, dto, { observe: 'response' }));
+        this.handleHttpEvent(this.sharedService.postEntity(dto, 'achievement'));
       }
     } else if(this.isCreating) {
       if(this.validate(this.tempAchievement!)){
         let dto = this.mapper.mapAchievementToDto(this.tempAchievement!);
-        this.handleResponse(this.http.put<ResponseId>(`${this.apiUrl}/achievement`, dto, { observe: 'response' }));
+        this.handleHttpEvent(this.sharedService.putEntity(dto, 'achievement'));
       }
     } else {
-      if(await this.authService.isLoggedIn()){
+      if(await this.authService.isModTokenValid()){
         this.tempAchievement = { ...this.selectedAchievement } as Achievement;
         this.isEditing = true;
       }
@@ -80,12 +80,12 @@ export class AchievementComponent {
   }
 
   async deleteAchievement() {
-    if(await this.authService.isLoggedIn()){
+    if(await this.authService.isModTokenValid()){
       const dialogRef = this.sharedService.showDialog(DialogType.CONFIRMATION, "Na pewno chcesz usunąć to osiągnięcie?")
 
       dialogRef.afterClosed().subscribe((result) => {
         if(result) {
-          this.handleResponse(this.http.delete<ResponseId>(this.apiUrl + '/achievement/' + this.selectedAchievement?.id, { observe: 'response' }));
+          this.handleHttpEvent(this.sharedService.deleteEntity(this.selectedAchievement?.id, 'achievement'));
         } 
       });
     }
@@ -102,11 +102,11 @@ export class AchievementComponent {
     return true;
   }
 
-  private handleResponse(httpResponse: Observable<HttpResponse<ResponseId>>){
+  private handleHttpEvent(httpResponse: Observable<HttpResponse<ResponseId>>){
     httpResponse.subscribe({
       next: (response: HttpResponse<ResponseId>) => {
         const status = response.status;
-        const id = response.body!.id;
+        const id = response.body ? response.body?.id : 0;
         if(status === HttpStatusCode.Ok){
           let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończona pomyślnie!")
           dialogRef.afterClosed().subscribe((notifyDiscord) => {

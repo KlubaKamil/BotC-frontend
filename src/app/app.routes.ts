@@ -8,16 +8,16 @@ import { AchievementspageComponent } from './achievementspage/achievementspage.c
 
 export const routes: Routes = [
   { path: '', redirectTo: 'welcome', pathMatch: 'full' },
-  { path: 'games', component: GamespageComponent },
-  { path: 'games/:id', component: GamespageComponent },
-  { path: 'scripts', component: ScriptspageComponent },
-  { path: 'scripts/:id', component: ScriptspageComponent },
-  { path: 'characters', component: CharacterspageComponent },
-  { path: 'characters/:id', component: CharacterspageComponent },
-  { path: 'players', component: PlayerspageComponent },
-  { path: 'players/:id', component: PlayerspageComponent },
-  { path: 'achievements', component: AchievementspageComponent },
-  { path: 'achievements/:id', component: AchievementspageComponent },
+  { path: 'games/:groupName', component: GamespageComponent },
+  { path: 'games/:groupName/:id', component: GamespageComponent },
+  { path: 'scripts/:groupName', component: ScriptspageComponent },
+  { path: 'scripts/:groupName/:id', component: ScriptspageComponent },
+  { path: 'characters/:groupName', component: CharacterspageComponent },
+  { path: 'characters/:groupName/:id', component: CharacterspageComponent },
+  { path: 'players/:groupName', component: PlayerspageComponent },
+  { path: 'players/:groupName/:id', component: PlayerspageComponent },
+  { path: 'achievements/:groupName', component: AchievementspageComponent },
+  { path: 'achievements/:groupName/:id', component: AchievementspageComponent },
   { path: 'welcome', component: WelcomepageComponent }
 ];
 

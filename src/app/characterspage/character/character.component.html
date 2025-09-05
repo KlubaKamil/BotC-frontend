@@ -20,7 +20,7 @@
                     <input #fileInput type="file" accept="image/*" hidden (change)="addImage($event)"/>
                 </div>
                 <img *ngIf="(!tempCharacter && selectedCharacter?.imageUploaded) || tempCharacter?.imageUploaded"  
-                    [src]="apiUrl + '/character/image/' + imageSize + '/' + selectedCharacter?.name + '?t=' + timestamp" 
+                    [src]="apiUrl + '/character/' + group.id + '/image/' + imageSize + '/' + selectedCharacter?.id + '?t=' + timestamp" 
                     class="ms-3" style="max-width: 100px; max-height: 100px; object-fit: contain;">
             </div>
         </div>
@@ -39,7 +39,7 @@
             <label class="col-5 col-sm-4 fw-bold">Przynależność:</label>
             <div class="col-7 col-sm-8">
                 <label *ngIf="!tempCharacter && selectedCharacter">{{ selectedCharacter.alignment }}</label>
-                <p-select *ngIf="tempCharacter" [options]="alignments" [(ngModel)]="tempCharacter.alignment" [filter]="true"></p-select>     
+                <p-select pCloseOnBack *ngIf="tempCharacter" [options]="alignments" [(ngModel)]="tempCharacter.alignment" [filter]="true" appendTo="body"></p-select>     
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center">

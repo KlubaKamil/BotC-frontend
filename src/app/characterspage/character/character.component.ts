@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
-import { Alignment, Character, DialogType, Game, NotificationMode, NotificationType, ResponseId, Script } from '../../shared/interfaces';
+import { Alignment, Character, DialogType, Game, Group, NotificationMode, NotificationType, ResponseId, Script } from '../../shared/interfaces';
 import { SharedService } from '../../shared/service/shared.service';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpErrorResponse, HttpResponse, HttpStatusCode } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpEvent, HttpEventType, HttpResponse, HttpStatusCode, HttpUploadProgressEvent } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { MatButtonModule } from '@angular/material/button';
 import { Observable } from 'rxjs';
@@ -15,17 +15,20 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../authservice/auth.service';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarRef } from '@angular/material/snack-bar';
+import { ProgressbarComponent } from '../../progressbar/progressbar.component';
+import { SelectBackCloseDirective } from '../../select-back-close-directive/select-back-close.directive';
 
 @Component({
   selector: 'app-character',
   imports: [CommonModule, FormsModule, MatButtonModule, SelectModule, InputNumberModule, TableModule, RouterModule, 
-    TextFieldModule, MatIconModule],
+    TextFieldModule, MatIconModule, SelectBackCloseDirective],
   templateUrl: './character.component.html',
   styleUrl: './character.component.css'
 })
 export class CharacterComponent {
   apiUrl = environment.apiUrl;
+  group: Group = { id: 0, name: 'brak' };
   characters: Character[] = [];
   scripts: Script[] = [];
   games: Game[] = [];
@@ -41,17 +44,15 @@ export class CharacterComponent {
   formData: FormData | null = null;
   isPhotoUploaded: boolean = false;
   timestamp: number = Date.now();
+  snackBarRef!: MatSnackBarRef<ProgressbarComponent>
 
-  constructor(private sharedService: SharedService, private http: HttpClient, private mapper: DtoMapperService, private route: ActivatedRoute,
-    private authService: AuthService, private location: Location, private snackBar: MatSnackBar) {}
+  constructor(private sharedService: SharedService, private mapper: DtoMapperService, private route: ActivatedRoute,
+    private authService: AuthService, private snackBar: MatSnackBar) {}
 
   ngOnInit() {
-    this.route.paramMap.subscribe(params => {
-      let characterId = params.get('id');
-      if(characterId){
-        this.sharedService.fetchCharacterAndSelect(characterId!)
-      }
-    });
+    this.sharedService.group$.subscribe((group) => {
+      this.group = group;
+    })
     this.sharedService.characters$.subscribe((characters) => {
       this.characters = characters!;
     })
@@ -65,17 +66,23 @@ export class CharacterComponent {
       this.cancel();
       this.selectedCharacter = character;
     })
+    this.route.paramMap.subscribe(params => {
+      let characterId = params.get('id');
+      if(characterId){
+        this.sharedService.fetchCharacterAndSelect(characterId!)
+      }
+    });
     window.addEventListener('resize', () => this.imageSize = window.innerWidth >= 992 ? '100': 'orig');
   }
 
   async createNewCharacter() {
-    if(await this.authService.isLoggedIn()){
+    if(await this.authService.isModTokenValid()){
       this.selectedCharacter = null;
       this.tempCharacter = {} as Character;
       this.tempCharacter.maxStartNumber = 1;
       this.isEditing = false;
       this.isCreating = true;
-      this.location.go('/characters');
+      this.sharedService.changeLocation('characters');
     }
   }
 
@@ -83,15 +90,15 @@ export class CharacterComponent {
     if (this.isEditing) {
       if(this.validate(this.tempCharacter!)){
         let dto = this.mapper.mapCharacterToDto(this.tempCharacter!);
-        this.handleResponse(this.http.post<ResponseId>(`${this.apiUrl}/character`, dto, {observe: 'response'}));
+        this.handleHttpEvent(this.sharedService.postEntity(dto, 'character'));
       }
     } else if(this.isCreating) {
       if(this.validate(this.tempCharacter!)){
         let dto = this.mapper.mapCharacterToDto(this.tempCharacter!);
-        this.handleResponse(this.http.put<ResponseId>(`${this.apiUrl}/character`, dto, {observe: 'response'}));
+        this.handleHttpEvent(this.sharedService.putEntity(dto, 'character'));
       }
     } else {
-      if (await this.authService.isLoggedIn()){
+      if (await this.authService.isModTokenValid()){
         this.tempCharacter = JSON.parse(JSON.stringify(this.selectedCharacter));
         this.isEditing = true;
       } 
@@ -109,12 +116,12 @@ export class CharacterComponent {
   }
 
   async deleteCharacter() {
-    if(await this.authService.isLoggedIn()){
+    if(await this.authService.isModTokenValid()){
       const dialogRef = this.sharedService.showDialog(DialogType.CONFIRMATION, "Na pewno chcesz usunąć tę postać?")
 
       dialogRef.afterClosed().subscribe((result) => {
         if(result) {
-          this.handleResponse(this.http.delete<any>(`${this.apiUrl}/character/${this.selectedCharacter!.id}`, {observe: 'response'}));
+          this.handleHttpEvent(this.sharedService.deleteEntity(this.selectedCharacter!.id, 'character'));
         } 
       });
     }
@@ -132,8 +139,8 @@ export class CharacterComponent {
         this.formData = new FormData();
         this.formData.append('image', file);
         this.isPhotoUploaded = true;
-        this.snackBar.open('Przesłano, gotowe do zapisania.', undefined, {
-          duration: 1000,
+        this.snackBar.open('Gotowe do zapisania.', undefined, {
+          duration: 2000,
           horizontalPosition: 'right',
           verticalPosition: 'top',
         });
@@ -158,63 +165,106 @@ export class CharacterComponent {
     return true;
   }
   
-  private handleResponse(httpResponse: Observable<HttpResponse<ResponseId>>, handlePhotoResponse?: boolean){
+  private handleHttpEvent(httpResponse: Observable<HttpEvent<ResponseId>>, handlePhotoResponse?: boolean){
     httpResponse.subscribe({
-      next: (response: HttpResponse<ResponseId>) => {
-        const status = response.status;
-        const id = response.body!.id;
-        if(status === HttpStatusCode.Ok){
-          if(this.isPhotoUploaded){
-            this.isPhotoUploaded = false;
-            this.handleResponse(this.http.post<ResponseId>(`${this.apiUrl}/character/${id}/image`, this.formData, { observe: 'response' }), true)
-            setTimeout(() => {
-              this.timestamp = Date.now();
-              }, 1000);
-          } else {
-            let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończone pomyślnie!")
-            dialogRef.afterClosed().subscribe((notifyDiscord) => {
-              if(notifyDiscord) {
-                this.sharedService.showNotificationDialog(NotificationType.CHARACTER, id, NotificationMode.UPDATE);
-              }
-            this.sharedService.fetchCharacterAndSelect(this.selectedCharacter!.id!)
-            });
-          }
-        } else if(status === HttpStatusCode.Created){
-          if(this.isPhotoUploaded){
-            this.isPhotoUploaded = false;
-            this.handleResponse(this.http.put<ResponseId>(`${this.apiUrl}/character/${id}/image`, this.formData, { observe: 'response' }), true)
-            setTimeout(() => {
-              this.timestamp = Date.now();
-            }, 1000);
-          } else {
-            let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Dodano nową postać!")
-            dialogRef.afterClosed().subscribe((notifyDiscord) => {
-              if(notifyDiscord) {
-                this.sharedService.showNotificationDialog(NotificationType.CHARACTER, id, NotificationMode.NEW);
-              }
-            });
-            this.sharedService.fetchCharacterAndSelect(this.selectedCharacter!.id!)
-          }
-        } else if(status === HttpStatusCode.NoContent){
-          this.sharedService.showDialog(DialogType.INFORMATION, "Usunięcie zakończone pomyślnie!")
-          this.cancel();
-        } else {
-          this.sharedService.showDialog(DialogType.INFORMATION, 'Sukces!');
+      next: (event: HttpEvent<ResponseId>) => {
+        const eventType = event.type;
+        switch(eventType){
+          case HttpEventType.UploadProgress:   
+            this.handleUploadProgress(event);
+            break;
+          case HttpEventType.Response:
+            this.handleResponse(event)
+            break;
         }
-        this.sharedService.fetchCharacterHeaders();
       },
       error: (error: HttpErrorResponse) => {
-        const status = error.status;
-         if(handlePhotoResponse){
-          this.sharedService.showDialog(DialogType.INFORMATION, "Postać zapisana pomyślnie, natomiast przesłanie zdjęcia nie powiodło się!")
-        } else if(status === HttpStatusCode.PreconditionRequired){ 
-          this.sharedService.showDialog(DialogType.INFORMATION, 'Istnieje co najmniej jedna gra lub skrypt, w której ta postac bierze udział!');
-        } else if (status === HttpStatusCode.Conflict){
-          this.sharedService.showDialog(DialogType.INFORMATION, 'Postać z tą nazwą już istnieje!');
-        } else {
-          this.sharedService.showDialog(DialogType.INFORMATION, 'Coś poszło nie tak!');
-        }
+        this.handleErrorResponse(error, handlePhotoResponse);
       }
     })
+  }
+
+  private handleUploadProgress(event: HttpEvent<any>){
+    let uploadEvent = event as HttpUploadProgressEvent;
+    if(uploadEvent.total){
+      let progress = Math.round(100 * uploadEvent.loaded / uploadEvent.total);
+      this.snackBarRef!.instance.progress = progress;
+    }
+  }
+
+  private handleResponse(response: HttpResponse<ResponseId>){
+    const status = response.status;
+    const id = response.body ? response.body?.id : 0;
+    if(status === HttpStatusCode.Ok){
+      if(this.isPhotoUploaded){
+        this.isPhotoUploaded = false;
+        this.openProgressBar();
+        this.handleHttpEvent(this.sharedService.postEntityWithProgress(this.formData, 'character', `${id}/image`), true);
+        setTimeout(() => {
+          this.timestamp = Date.now();
+        }, 1000);
+      } else {
+        let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończone pomyślnie!")
+        dialogRef.afterClosed().subscribe((notifyDiscord) => {
+          if(notifyDiscord) {
+            this.sharedService.showNotificationDialog(NotificationType.CHARACTER, id, NotificationMode.UPDATE);
+          }
+        });
+        if(this.snackBarRef){
+          this.snackBarRef.dismiss();
+        }
+        this.sharedService.fetchCharacterAndSelect(id);
+      }
+    } else if(status === HttpStatusCode.Created){
+      if(this.isPhotoUploaded){
+        this.isPhotoUploaded = false;
+        this.openProgressBar();
+        this.handleHttpEvent(this.sharedService.putEntityWithProgress(this.formData, 'character', `${id}/image`), true);
+        setTimeout(() => {
+          this.timestamp = Date.now();
+        }, 1000);
+      } else {
+        let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Dodano nową postać!")
+        dialogRef.afterClosed().subscribe((notifyDiscord) => {
+          if(notifyDiscord) {
+            this.sharedService.showNotificationDialog(NotificationType.CHARACTER, id, NotificationMode.NEW);
+          }
+        });
+        if(this.snackBarRef){
+          this.snackBarRef.dismiss();
+        }
+        this.sharedService.fetchCharacterAndSelect(id);
+      }
+    } else if(status === HttpStatusCode.NoContent){
+      this.sharedService.showDialog(DialogType.INFORMATION, "Usunięcie zakończone pomyślnie!")
+      this.cancel();
+    } else {
+      this.sharedService.showDialog(DialogType.INFORMATION, 'Sukces!');
+    }
+    this.sharedService.fetchCharacterHeaders();
+  }
+
+  private handleErrorResponse(error: HttpErrorResponse, handlePhotoResponse?: boolean){
+    const status = error.status;
+    if(handlePhotoResponse){
+      this.snackBarRef.dismiss();
+      this.sharedService.showDialog(DialogType.INFORMATION, "Postać zapisana pomyślnie, natomiast przesłanie zdjęcia nie powiodło się!")
+    } else if(status === HttpStatusCode.PreconditionRequired){ 
+      this.sharedService.showDialog(DialogType.INFORMATION, 'Istnieje co najmniej jedna gra lub skrypt, w której ta postac bierze udział!');
+    } else if (status === HttpStatusCode.Conflict){
+      this.sharedService.showDialog(DialogType.INFORMATION, 'Postać z tą nazwą już istnieje!');
+    } else {
+      this.sharedService.showDialog(DialogType.INFORMATION, 'Coś poszło nie tak!');
+    }
+  }
+
+  private openProgressBar(){
+    this.snackBarRef = this.snackBar.openFromComponent(ProgressbarComponent, {
+      horizontalPosition: 'right',
+      verticalPosition: 'top',
+      panelClass: ['upload-snackbar'],
+      data: { progress: 0 },
+      duration: undefined
+    });
   }
 }

@@ -17,7 +17,7 @@ import { Router } from '@angular/router';
 export class CharactersComponent {
   characterHeaders: CharacterHeader[] | null = null;
 
-  constructor(private sharedService: SharedService, private router: Router){}
+  constructor(private sharedService: SharedService){}
 
   ngOnInit() {
     this.sharedService.fetchCharacterHeaders();
@@ -29,7 +29,7 @@ export class CharactersComponent {
   selectCharacter(event: TableRowSelectEvent){
     let characterHeader = event.data;
     let id = characterHeader.id;
-    this.router.navigate(['/characters', id]);
     this.sharedService.toggleView();
+    this.sharedService.navigate('characters', id);
   }
 }

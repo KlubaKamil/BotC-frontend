@@ -91,3 +91,22 @@ p-datepicker > span,
 p-inputnumber {
   width: 100%;
 }
+
+@media (max-width: 768px) {
+  .p-select-overlay {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: white !important;
+      z-index: 2000;
+      overflow-y: auto;
+  }
+
+  .p-select-list-container{
+      width: 100vw !important;
+      height: 100vh !important;
+      max-height: 100vh !important;
+  }
+}

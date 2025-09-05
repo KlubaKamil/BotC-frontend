@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { Character, Game, Script, ScriptHeader } from '../../shared/interfaces'
-import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { environment } from '../../../environments/environment';
 import { SharedService } from '../../shared/service/shared.service';
@@ -21,7 +20,7 @@ export class ScriptsComponent {
   error: string = '';
   apiUrl = environment.apiUrl;
 
-  constructor(private sharedService: SharedService, private router: Router, private route: ActivatedRoute) {}
+  constructor(private sharedService: SharedService, private route: ActivatedRoute) {}
 
   ngOnInit() {
     this.sharedService.fetchScriptHeaders();
@@ -33,7 +32,7 @@ export class ScriptsComponent {
   selectScript(event: TableRowSelectEvent){
     let scriptHeader = event.data;
     let id = scriptHeader.id;
-    this.router.navigate(['/scripts', id])
     this.sharedService.toggleView();
+    this.sharedService.navigate('/scripts', id)
   }
 }

@@ -9,12 +9,13 @@ import { ToggleButtonModule } from 'primeng/togglebutton';
 import { FormsModule } from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle'; 
 import { MatButtonToggleModule } from '@angular/material/button-toggle'
-import { Router } from '@angular/router';
 import { SelectModule } from 'primeng/select';
+import { SelectBackCloseDirective } from '../../select-back-close-directive/select-back-close.directive';
 
 @Component({
   selector: 'app-players',
-  imports: [FormsModule, CommonModule, MatButtonModule, TableModule, MatIconModule, ToggleButtonModule, MatSlideToggleModule, MatButtonToggleModule, SelectModule],
+  imports: [FormsModule, CommonModule, MatButtonModule, TableModule, MatIconModule, ToggleButtonModule, MatSlideToggleModule, 
+    MatButtonToggleModule, SelectModule, SelectBackCloseDirective],
   templateUrl: './players.component.html',
   styleUrl: './players.component.scss'
 })
@@ -28,14 +29,14 @@ export class PlayersComponent {
   filterValue = "Wszyscy"
   availableFilters: Record<string, Record<string, number>> = {
     Gracze: { Wszyscy: 0, Zaawansowani: 15, Eksperci: 40 },
-    Narratorzy: { Wszyscy: 1, Zaawansowani: 10, expEkspercirt: 30 }
+    Narratorzy: { Wszyscy: 1, Zaawansowani: 10, Eksperci: 30 }
   };
   filteredField: Record<string, (p: PlayerHeader) => number> = {
     Gracze: p => p.gamesNumber,
     Narratorzy: p => p.storytellerGamesNumber
   };
 
-  constructor(private sharedService: SharedService, private router: Router) {}
+  constructor(private sharedService: SharedService) {}
 
   ngOnInit(){
     this.sharedService.fetchPlayerHeaders();
@@ -43,15 +44,15 @@ export class PlayersComponent {
     this.sharedService.characters$.subscribe((characters) => this.characters = characters);
     this.sharedService.playerHeaders$.subscribe((playerHeaders) => {
       this.playerHeaders = playerHeaders; 
-      this.filterPlayers(this.filterValue);
+      this.filteredPlayerHeaders = playerHeaders;
     })
   }
 
   selectPlayer(event: TableRowSelectEvent){
     let playerHeader = event.data;
     let id = playerHeader.id;
-    this.router.navigate(['/players', id])
     this.sharedService.toggleView();
+    this.sharedService.navigate('players', id);
   }
 
   getAlignmentGradient(gamesNumber: number, goodPercentage: number): string {

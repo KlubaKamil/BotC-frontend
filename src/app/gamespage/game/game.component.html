@@ -30,10 +30,10 @@
         <div class="row pt-1 pb-1 myborder d-flex align-items-center">
             <label class="col-5 col-sm-4 fw-bold">Skrypt:</label>
             <div class="col-7 col-sm-8">
-                <a *ngIf="!tempGame && selectedGame" [routerLink]="['/scripts', selectedGame!.script!.id]">
+                <a *ngIf="!tempGame && selectedGame" [routerLink]="[`/scripts/${group.name}/${selectedGame.script!.id}`]">
                     <label >{{ selectedGame.script!.name }}</label>
                 </a>
-                <p-select *ngIf="tempGame" [options]="scripts" [(ngModel)]="tempGame.script" [filter]="true" filterBy="name" [showClear]="true">
+                <p-select pCloseOnBack *ngIf="tempGame" [options]="scripts" [(ngModel)]="tempGame.script" [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
                     <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
                     <ng-template let-script #item>{{ script.name }}</ng-template>
                 </p-select>
@@ -42,11 +42,11 @@
         <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
             <label class="col-5 col-sm-4 fw-bold">Narrator:</label>
             <div class="col-7 col-sm-8">
-                <a *ngIf="!tempGame && selectedGame" [routerLink]="['/players', selectedGame!.storyteller!.id]">
+                <a *ngIf="!tempGame && selectedGame" [routerLink]="[`/players/${group.name}/${selectedGame!.storyteller!.id}`]">
                     <label>{{ selectedGame.storyteller!.name }}</label>   
                 </a>
-                <p-select *ngIf="tempGame" [options]="players" [ngModel]="tempGame.storyteller" (ngModelChange)="updateStoryteller($event)"
-                [filter]="true" filterBy="name" [showClear]="true">
+                <p-select pCloseOnBack *ngIf="tempGame" [options]="players" [ngModel]="tempGame.storyteller" (ngModelChange)="updateStoryteller($event)"
+                [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
                     <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
                     <ng-template let-storyteller #item>{{ storyteller.name }}</ng-template>
                 </p-select>          
@@ -55,13 +55,23 @@
         <div class="row pt-1 pb-1 myborder d-flex align-items-center">
             <label class="col-5 col-sm-4 fw-bold">Legenda:</label>
             <div class="col-7 col-sm-8">
-                <a *ngIf="!tempGame && selectedGame" [routerLink]="['/characters', selectedGame!.fabled?.id]">
-                    <label >{{ selectedGame.fabled?.name }}</label>
-                </a>
-                <p-select *ngIf="tempGame" [options]="availableFables" [(ngModel)]="tempGame.fabled" [filter]="true" filterBy="name" [showClear]="true">
-                    <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
-                    <ng-template let-fabled #item>{{ fabled.name }}</ng-template>
-                </p-select>                 
+                <div *ngIf="selectedGame && !tempGame" class="row">
+                    <a *ngFor="let fable of selectedGame!.fables" [routerLink]="[`/characters/${group.name}/${fable.id}`]" class="w-100">
+                        <label >{{ fable.name }}</label>
+                    </a>
+                </div>
+                <div *ngIf="tempGame">
+                    <p-select *ngFor="let fable of tempGame?.fables; let i = index" pCloseOnBack [options]="availableFables" 
+                    [(ngModel)]="tempGame!.fables![i]" (onChange)="updateFable(i, $event)" [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
+                        <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
+                        <ng-template let-fabled #item>{{ fabled.name }}</ng-template>
+                    </p-select>
+                    <p-select pCloseOnBack [options]="availableFables"
+                    (onChange)="addFable($event)" [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
+                        <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
+                        <ng-template let-fabled #item>{{ fabled.name }}</ng-template>
+                    </p-select>
+                </div>
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
@@ -98,30 +108,23 @@
         <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
             <label class="col-5 col-sm-4 fw-bold">Miejsce rozgrywki:</label>
             <div class="col-7 col-sm-8" #dropdownWrapper>
-                <label  #dropdown *ngIf="!tempGame && selectedGame">{{ selectedGame.place?.name }}</label>
-                <p-select #dropdown *ngIf="tempGame" [options]="places" [(ngModel)]="tempGame.place" [filter]="true" filterBy="name" [showClear]="true">
-                    <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
-                    <ng-template let-place #item>{{ place.name }}</ng-template>
-                </p-select>
+                <label *ngIf="!tempGame && selectedGame" class="col-12">{{ selectedGame.place?.name }}</label>
+                <div class="d-flex">
+                    <p-select pCloseOnBack *ngIf="tempGame" [options]="places" [(ngModel)]="tempGame.place" [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
+                        <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
+                        <ng-template let-place #item>{{ place.name }}</ng-template>
+                    </p-select>
+                    <button *ngIf="tempGame && !tempGame?.place" mat-mini-fab color="secondary" class="ms-2" (click)="openPlaceDialog()">
+                        <mat-icon>settings</mat-icon>
+                    </button>
+                </div>
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center">
             <label class="col-5 col-sm-4 fw-bold">Balans:</label>
-            <div *ngIf="!tempGame && selectedGame" class="col-7 col-sm-8">
-                <div *ngIf="selectedGame.balanceMarks?.length! == 0" class="mt-1">Brak ocen do wyświetlenia.</div>
-                <div *ngIf="selectedGame.balanceMarks?.length! > 0" class="mt-1">{{ averageBalanceMark.toFixed(1) }}, {{ selectedGame!.balanceMarks!.length }} ocen.</div>
-                <div class="balance-slider mt-2">
-                    <p-slider 
-                        [disabled]="true"
-                        [(ngModel)]="averageBalanceMark"
-                        [min]="-10"
-                        [max]="10"
-                        [step]="1"
-                        styleClass="custom-disabled-slider"
-                    ></p-slider>
-                    </div>
-            </div>
-            <div *ngIf="tempGame" class="col-7 col-sm-8">
+            <div *ngIf="selectedGame || tempGame" class="col-7 col-sm-8">
+                <div *ngIf="selectedGame?.balanceMarks?.length == 0 || tempGame?.balanceMarks?.length == 0" class="mt-1">Brak ocen do wyświetlenia.</div>
+                <div *ngIf="selectedGame?.balanceMarks?.length! > 0 || tempGame?.balanceMarks?.length! > 0" class="mt-1">Obecne oceny - średnia: {{ averageBalanceMark.toFixed(1) }}, liczba ocen - {{ selectedGame!.balanceMarks!.length }}: {{ getBalanceMarksAsString() }}.</div>
                 <div class="mt-1">Ocena do dodania: {{ balanceSliderValue }}.</div>
                 <div class="balance-slider mt-2">
                     <p-slider 
@@ -130,8 +133,19 @@
                         [max]="10"
                         [step]="1"
                         styleClass="custom-disabled-slider"
+                        [disabled]="!isGroupMember()"
                     ></p-slider>
-                    <button mat-raised-button color="secondary" class="mt-2" style="width: 150px;" (click)="addBalanceMark()">Dodaj ocenę</button>
+                    <div *ngIf="isGroupMember() && !userAlreadyAddedBalanceMark()">
+                        <button mat-raised-button color="secondary" class="mt-2" style="width: 200px;" (click)="addBalanceMark()">Dodaj ocenę</button>
+                    </div>
+                    <div *ngIf="isGroupMember() && userAlreadyAddedBalanceMark()" class="row mt-2">
+                        <div class="col-12 col-sm-6 mt-2">
+                            <button mat-raised-button color="secondary" class="w-100" (click)="updateBalanceMark()">Aktualizuj ocenę</button>
+                        </div>
+                        <div class="col-12 col-sm-6 mt-2">
+                            <button mat-raised-button color="secondary" class="w-100" (click)="removeBalanceMark()">Usuń ocenę</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -147,7 +161,7 @@
                     </div>
                     <div class="col-7 d-flex align-items-center">
                         <div style="width: 35px;">
-                            <img [src]="apiUrl + '/character/image/' + imageSize + '/' + assignment.character?.name" style="max-width: 30px; max-height: 30px;">
+                            <img [src]="apiUrl + '/character/' + group.id + '/image/' + imageSize + '/' + assignment.character?.id" style="max-width: 30px; max-height: 30px;">
                         </div>
                         <a [routerLink]="['/characters', assignment.character!.id]" style="text-decoration: none;">
                             <label class="d-block">{{ assignment.character!.name }}</label>
@@ -162,7 +176,7 @@
                             <div class="col-3">Zmiana:</div>
                             <div class="col-7 d-flex align-items-center">
                                 <div style="width: 35px;">
-                                    <img [src]="apiUrl + '/character/image/' + imageSize + '/' + transformation.character?.name" style="max-width: 30px; max-height: 30px;">            
+                                    <img [src]="apiUrl + '/character/' + group.id + '/image/' + imageSize + '/' + transformation.character?.id" style="max-width: 30px; max-height: 30px;">            
                                 </div>
                                 <a [routerLink]="['/characters', transformation.character!.id]" style="text-decoration: none;">
                                     {{ transformation.character?.name }}
@@ -176,33 +190,33 @@
                 </div>
             </div>
             <div *ngIf="tempGame">
-                <div *ngFor="let character of tempGame?.script?.characters" class="character-item row p-2 border">
+                <div *ngFor="let scriptCharacter of tempGame?.script?.scriptCharacters" class="character-item row p-2 border">
                     <div class="col-5 col-sm-3 d-flex align-items-center">
-                        <label>{{ character.name }}</label>
+                        <label>{{ scriptCharacter.character!.name }}</label>
                     </div>
                     <div class="col-7 col-sm-9">
-                        <div *ngFor="let e of [].constructor(character.maxStartNumber); let i = index" class="row">
+                        <div *ngFor="let e of [].constructor(scriptCharacter.character!.maxStartNumber); let i = index" class="row">
                             <p-divider *ngIf="i > 0"></p-divider>
                             <div class="col-12 col-sm-6 col-xxl-7">
-                                <p-select [options]="players" [ngModel]="getAssignment(character, i)?.player" (ngModelChange)="updateAssignment(character, $event, i)"
-                                [filter]="true" filterBy="name" [showClear]="true">
+                                <p-select pCloseOnBack [options]="players" [ngModel]="getAssignment(scriptCharacter.character!, i)?.player" (ngModelChange)="updateAssignment(scriptCharacter.character!, $event, i)"
+                                [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
                                     <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
                                     <ng-template let-player #item>{{ player.name }}</ng-template>
                                 </p-select>
                             </div>
-                            <div class="col-8 col-sm-4" *ngIf="getAssignment(character, i)">
-                                <p-togglebutton [ngModel]="getAssignment(character, i)?.good" (ngModelChange)="updateAssignmentGood(character, $event, i)" 
+                            <div class="col-8 col-sm-4" *ngIf="getAssignment(scriptCharacter.character!, i)">
+                                <p-togglebutton [ngModel]="getAssignment(scriptCharacter.character!, i)?.good" (ngModelChange)="updateAssignmentGood(scriptCharacter.character!, $event, i)" 
                                 onLabel="Dobro" offLabel="Zło"/>
                             </div>
-                            <div class="col-4 col-sm-2 col-xxl-1" *ngIf="getAssignment(character, i)" style="display: flex; justify-content: flex-end">
-                                <p-button icon="pi pi-plus" rounded="true" severity="secondary" (onClick)="newTransformation(character, i)"/>
+                            <div class="col-4 col-sm-2 col-xxl-1" *ngIf="getAssignment(scriptCharacter.character!, i)" style="display: flex; justify-content: flex-end">
+                                <p-button icon="pi pi-plus" rounded="true" severity="secondary" (onClick)="newTransformation(scriptCharacter.character!, i)"/>
                             </div>
-                            <div *ngFor="let transformation of getAssignment(character, i)?.transformations" class="col-12">
+                            <div *ngFor="let transformation of getAssignment(scriptCharacter.character!, i)?.transformations" class="col-12">
                                 <div class="row">
                                     <label class="col-8 col-sm-2 d-flex align-items-center">Zmiana w:</label>
                                     <div class="col-12 col-sm-5 col-xxl-6">
-                                        <p-select [options]="characters" [(ngModel)]="transformation.character"
-                                        [filter]="true" filterBy="name" [showClear]="true">
+                                        <p-select pCloseOnBack [options]="characters" [(ngModel)]="transformation.character"
+                                        [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
                                             <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
                                             <ng-template let-character #item>{{ character.name }}</ng-template>
                                         </p-select>
@@ -210,9 +224,9 @@
                                     <div class="col-8 col-sm-3">
                                         <p-togglebutton [(ngModel)]="transformation.good" onLabel="Dobro" offLabel="Zło"/>
                                     </div>
-                                    <div class="col-4 col-sm-2 col-xxl-1" *ngIf="getAssignment(character, i)" style="display: flex; justify-content: flex-end">
+                                    <div class="col-4 col-sm-2 col-xxl-1" *ngIf="getAssignment(scriptCharacter.character!, i)" style="display: flex; justify-content: flex-end">
                                         <p-button icon="pi pi-minus" rounded="true" severity="secondary" 
-                                        (onClick)="removeTransformation(getAssignment(character, i), transformation)"/>
+                                        (onClick)="removeTransformation(getAssignment(scriptCharacter.character!, i), transformation)"/>
                                     </div>
                                 </div>
                             </div>
@@ -231,8 +245,8 @@
                     <div *ngFor="let e of [].constructor(character.maxStartNumber); let i = index" class="row">
                         <p-divider *ngIf="i > 0"></p-divider>
                         <div class="col-12 col-sm-6 col-xxl-7">
-                            <p-select [options]="players" [ngModel]="getAssignment(character, i)?.player" (ngModelChange)="updateAssignment(character, $event, i)"
-                            [filter]="true" filterBy="name" [showClear]="true">
+                            <p-select pCloseOnBack [options]="players" [ngModel]="getAssignment(character, i)?.player" (ngModelChange)="updateAssignment(character, $event, i)"
+                            [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
                                 <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
                                 <ng-template let-player #item>{{ player.name }}</ng-template>
                             </p-select>
@@ -248,8 +262,8 @@
                             <div class="row">
                                 <label class="col-8 col-sm-2 d-flex align-items-center">Zmiana w:</label>
                                 <div class="col-12 col-sm-5 col-xxl-6">
-                                    <p-select [options]="characters" [(ngModel)]="transformation.character"
-                                    [filter]="true" filterBy="name" [showClear]="true">
+                                    <p-select pCloseOnBack [options]="characters" [(ngModel)]="transformation.character"
+                                    [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
                                         <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
                                         <ng-template let-character #item>{{ character.name }}</ng-template>
                                     </p-select>

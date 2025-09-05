@@ -17,7 +17,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 export class GamesComponent {
   gameHeaders: GameHeader[] | null = null;
 
-  constructor(private sharedService: SharedService, private router: Router, private route: ActivatedRoute, private cd: ChangeDetectorRef) {}
+  constructor(private sharedService: SharedService, route: ActivatedRoute, private cd: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.sharedService.fetchGameHeaders();
@@ -30,8 +30,8 @@ export class GamesComponent {
   selectGame(event: TableRowSelectEvent){
     let gameHeader = event.data;
     let id = gameHeader.id;
-    this.router.navigate(['/games', id]);
     this.sharedService.toggleView();
+    this.sharedService.navigate('games', id);
   }
      
   customSort(event: SortEvent) {

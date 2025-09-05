@@ -85,7 +85,7 @@
             </p-table>
         </div>
         <div *ngIf="isCreating || isEditing" class="mt-5">
-            <p-select [options]="achievementHeaders!" [ngModel]="null" (onChange)="addAchievement($event)" [filter]="true" filterBy="name" placeholder="Dodaj osiągnięcie">
+            <p-select pCloseOnBack [options]="achievementHeaders!" [ngModel]="null" (onChange)="addAchievement($event)" [filter]="true" filterBy="name" placeholder="Dodaj osiągnięcie" appendTo="body">
                 <ng-template #selectedItem let-selectedOption>Dodaj osiągnięcie</ng-template>
                 <ng-template let-achievement #item>{{ achievement.name }}</ng-template>
             </p-select>     
@@ -175,7 +175,7 @@
                     <tr>
                         <td class="d-flex align-items-center">
                             <div style="width: 40px;">
-                                <img [src]="apiUrl + '/character/image/' + imageSize + '/' + playerCharacterDetails.characterName" style="max-height: 25px; max-width: 30px; display: block; margin: auto;">
+                                <img [src]="apiUrl + '/character/' + group.id + '/image/' + imageSize + '/' + playerCharacterDetails.characterId" style="max-height: 25px; max-width: 30px; display: block; margin: auto;">
                             </div>
                             <a [routerLink]="['/characters', playerCharacterDetails!.id]" style="text-decoration: none;">{{ playerCharacterDetails.characterName }}</a></td>
                         <td>{{ playerCharacterDetails.gamesNumber }}</td>

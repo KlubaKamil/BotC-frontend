@@ -15,7 +15,7 @@ import { TableModule, TableRowSelectEvent } from 'primeng/table';
 export class AchievementsComponent {
   achievementHeaders: AchievementHeader[] | null = null;
 
-  constructor(private sharedService: SharedService, private router: Router, private route: ActivatedRoute) {}
+  constructor(private sharedService: SharedService, private route: ActivatedRoute) {}
 
   ngOnInit(){
     this.sharedService.fetchAchievementHeaders();
@@ -27,7 +27,7 @@ export class AchievementsComponent {
   selectAchievement(event: TableRowSelectEvent){
     let achievementHeader = event.data;
     let id = achievementHeader.id;
-    this.router.navigate(['/achievements', id])
     this.sharedService.toggleView();
+    this.sharedService.navigate('achievements', id)
   }
 }

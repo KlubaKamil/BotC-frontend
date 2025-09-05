@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { GamesComponent } from "../gamespage/games/games.component";
 import { PlayersComponent } from "./players/players.component";
 import { PlayerComponent } from './player/player.component';
 import { MatIconModule } from '@angular/material/icon';

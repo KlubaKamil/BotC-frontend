@@ -51,7 +51,7 @@ export class DiscordDialogComponent {
   }
 
   showHelp(){
-    this.sharedService.showDialog(DialogType.INFORMATION, "Jak to działa?", 
+    this.sharedService.showDialogWithInfoText(DialogType.INFORMATION, "Jak to działa?", 
       "Ukazane są tutaj serwery discordowe, na których Grimlog został zainstalowany.\n" + 
       "Aby kanał był widoczny, muszą zostać spełnione następujące warunki:\n" +
       "- Grimlog musi mieć możliwośc pisania na kanale/w wątku\n" + 
@@ -59,7 +59,7 @@ export class DiscordDialogComponent {
       "  w pozostałych przypadkach wyświetlone zostaną tylko kanały z \"blood\" w nazwie" +
       "- jeśli typ kanału to \"forum\", to analogicznie:\n" +
       "   - jeśli zawiera w nazwie \"blood\", wyświetlone zostaną wszystkie wątki\n" +
-      "   - jeśli nie zawiera, wyświetlone zostaną tylko wątki z \"blood\" w nazwie" +
+      "   - jeśli nie zawiera, wyświetlone zostaną tylko wątki z \"blood\" w nazwie\n" +
       "Powiadomienie może zostac wysłane na jeden kanał/wątek na serwer."
     );
   }

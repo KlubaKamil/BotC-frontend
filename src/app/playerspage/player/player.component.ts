@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Achievement, AchievementHeader, DialogType, NotificationMode, NotificationType, Player, PlayerAchievement, PlayerHeader, ResponseId } from '../../shared/interfaces';
+import { Achievement, AchievementHeader, DialogType, Group, NotificationMode, NotificationType, Player, PlayerAchievement, PlayerHeader, ResponseId } from '../../shared/interfaces';
 import { SharedService } from '../../shared/service/shared.service'
 import { HttpClient, HttpErrorResponse, HttpResponse, HttpStatusCode } from '@angular/common/http';
 import { CommonModule, Location } from '@angular/common';
@@ -14,15 +14,18 @@ import { AuthService } from '../../authservice/auth.service';
 import { MatIconModule } from '@angular/material/icon';
 import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
+import { SelectBackCloseDirective } from '../../select-back-close-directive/select-back-close.directive';
 
 @Component({
   selector: 'app-player',
-  imports: [CommonModule, FormsModule, MatButtonModule, TableModule, RouterModule, MatIconModule, SelectModule, DatePickerModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, TableModule, RouterModule, MatIconModule, SelectModule, 
+    DatePickerModule, SelectBackCloseDirective],
   templateUrl: './player.component.html',
   styleUrl: './player.component.css'
 })
 export class PlayerComponent {
-  apiUrl: string = environment.apiUrl;
+  apiUrl = environment.apiUrl;
+  group: Group = { id: 0, name: 'brak' };
   selectedPlayer: Player | null = null;
   tempPlayer: Player | null = null;
   isEditing: boolean = false;
@@ -30,10 +33,13 @@ export class PlayerComponent {
   achievementHeaders: AchievementHeader[] | null = [];
   imageSize = '100';
 
-  constructor(private sharedService: SharedService, private http: HttpClient, private mapper: DtoMapperService, private route: ActivatedRoute,
-    private authService: AuthService, private location: Location){}
+  constructor(private sharedService: SharedService, private mapper: DtoMapperService, private route: ActivatedRoute,
+    private authService: AuthService){}
 
   ngOnInit() {
+    this.sharedService.group$.subscribe((group) => {
+      this.group = group;
+    })
     this.sharedService.selectedPlayer$.subscribe((selectedPlayer) => {
       this.cancel();
       this.selectedPlayer = selectedPlayer;
@@ -51,13 +57,13 @@ export class PlayerComponent {
   }
 
   async createNewPlayer() {
-    if(await this.authService.isLoggedIn()){
+    if(await this.authService.isModTokenValid()){
       this.selectedPlayer = null;
       this.tempPlayer = {} as Player;
       this.isEditing = false;
       this.isCreating = true;
       this.fetchData();
-      this.location.go('/players');
+      this.sharedService.changeLocation('players');
     }
   }
 
@@ -65,15 +71,15 @@ export class PlayerComponent {
     if (this.isEditing) {
       if(this.validate(this.tempPlayer!)){
         let dto = this.mapper.mapPlayerToDto(this.tempPlayer!);
-        this.handleResponse(this.http.post<ResponseId>(`${this.apiUrl}/player`, dto, { observe: 'response' }));
+        this.handleHttpEvent(this.sharedService.postEntity(dto, 'player'));
       }
     } else if(this.isCreating) {
       if(this.validate(this.tempPlayer!)){
         let dto = this.mapper.mapPlayerToDto(this.tempPlayer!);
-        this.handleResponse(this.http.put<ResponseId>(`${this.apiUrl}/player`, dto, { observe: 'response' }));
+        this.handleHttpEvent(this.sharedService.putEntity(dto, 'player'));
       }
     } else {
-      if(await this.authService.isLoggedIn()){
+      if(await this.authService.isModTokenValid()){
         this.fetchData();
         this.tempPlayer = { ...this.selectedPlayer } as Player;
         this.isEditing = true;
@@ -92,12 +98,12 @@ export class PlayerComponent {
   }
 
   async deletePlayer() {
-    if(await this.authService.isLoggedIn()){
+    if(await this.authService.isModTokenValid()){
       const dialogRef = this.sharedService.showDialog(DialogType.CONFIRMATION, "Na pewno chcesz usunąć tego gracza?")
 
       dialogRef.afterClosed().subscribe((result) => {
         if(result) {
-          this.handleResponse(this.http.delete<ResponseId>(this.apiUrl + '/player/' + this.selectedPlayer?.id, { observe: 'response' }));
+          this.handleHttpEvent(this.sharedService.deleteEntity(this.selectedPlayer?.id, 'player'));
         } 
       });
     }
@@ -130,11 +136,11 @@ export class PlayerComponent {
     return true;
   }
 
-  private handleResponse(httpResponse: Observable<HttpResponse<ResponseId>>){
+  private handleHttpEvent(httpResponse: Observable<HttpResponse<ResponseId>>){
     httpResponse.subscribe({
       next: (response: HttpResponse<ResponseId>) => {
         const status = response.status;
-        const id = response.body!.id;
+        const id = response.body ? response.body?.id : 0;
         if(status === HttpStatusCode.Ok){
           let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończona pomyślnie!")
           dialogRef.afterClosed().subscribe((notifyDiscord) => {

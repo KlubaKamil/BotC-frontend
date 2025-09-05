@@ -2,6 +2,12 @@
 <label mat-dialog-content *ngIf="data.info"  style="white-space: pre-line">{{ data.info }}</label>
 <input *ngIf="data.type === types.PASSWORD" pInputText type="password" class="mx-3" [(ngModel)]="text">
 <input *ngIf="data.type === types.INSERTION" pInputText type="text" class="mx-3" [(ngModel)]="text">
+<div  *ngIf="data.type === types.SELECTION" class="mx-3">
+  <p-select pCloseOnBack [options]="data.options" [(ngModel)]="selectedOption" [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
+    <ng-template #selectedItem let-selected>{{ selected.name }}</ng-template>
+    <ng-template let-option #item>{{ option.name }}</ng-template>
+  </p-select>
+</div>
 <mat-dialog-actions *ngIf="![types.PHOTOGRAPHY].includes(data.type)" style="min-width: 300px; justify-content: flex-end;">
   <div *ngIf="data.type === types.INFORMATION">
     <button mat-raised-button class="m-2" (click)="close()">Ok</button>
@@ -14,8 +20,25 @@
     <button mat-raised-button class="m-2" (click)="confirm()">Tak</button>
     <button mat-raised-button class="m-2" (click)="close()">Anuluj</button>
   </div>
-  <div *ngIf="data.type === types.INSERTION || data.type === types.PASSWORD">
-    <button mat-raised-button class="m-2" (click)="confirmInsert()">Zaloguj</button>
+  <div *ngIf="data.type === types.INSERTION">
+    <button mat-raised-button class="m-2" (click)="confirmInsert()">Potwierdź</button>
+    <button mat-raised-button class="m-2" (click)="close()">Anuluj</button>
+  </div>
+  <div *ngIf="data.type === types.PASSWORD" style="margin-right: 0px;">
+    <div>
+      <button mat-raised-button class="m-2" (click)="confirmInsert()">Zaloguj</button>
+      <button mat-raised-button class="m-2" (click)="close()">Anuluj</button>
+    </div>
+    <div>
+      <a mat-raised-button class="m-2"
+        href="https://discord.com/oauth2/authorize?client_id=1369101839831797811&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A4200%2Fwelcome&scope=identify">
+        <mat-icon iconPositionEnd>discord</mat-icon>
+        Zaloguj z Discord
+      </a>
+    </div>
+  </div>
+  <div *ngIf="data.type === types.SELECTION">
+    <button mat-raised-button class="m-2" (click)="confirmSelection()">Wybierz</button>
     <button mat-raised-button class="m-2" (click)="close()">Anuluj</button>
   </div>
 </mat-dialog-actions>

@@ -46,8 +46,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "1.5MB",
-                  "maximumError": "2MB"
+                  "maximumWarning": "3MB",
+                  "maximumError": "5MB"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -117,6 +117,11 @@
     }
   },
   "cli": {
-    "analytics": "0ac3903e-f251-4a0f-8a2e-dee800eb3863"
+    "analytics": "0ac3903e-f251-4a0f-8a2e-dee800eb3863",
+    "cache": {
+      "enabled": true,
+      "path": ".angular/cache",
+      "environment": "production"
+    }
   }
 }

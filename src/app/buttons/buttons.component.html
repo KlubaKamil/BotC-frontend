@@ -1,9 +1,11 @@
 <div class="d-flex w-100 gap-2" style="overflow-x: auto;">
-    <button mat-raised-button class="navi-button w-100 p-4 mt-2" [routerLink]="['games']">Gry</button>
-    <button mat-raised-button class="navi-button w-100 p-4 mt-2" [routerLink]="['scripts']">Skrypty</button>
-    <button mat-raised-button class="navi-button w-100 p-4 mt-2" [routerLink]="['characters']">Postacie</button>
-    <button mat-raised-button class="navi-button w-100 p-4 mt-2" [routerLink]="['players']">Gracze</button>
-    <button mat-raised-button class="navi-button w-100 p-4 mt-2" [routerLink]="['achievements']">Osiągnięcia</button>
+    <button mat-raised-button class="navi-button w-100 p-4 mt-2" (click)="discord()">1</button>
+    <button mat-raised-button class="navi-button w-100 p-4 mt-2" (click)="discord2()">2</button>
+    <button mat-raised-button class="navi-button w-100 p-4 mt-2" [routerLink]="['/games/' + group.name]">Gry</button>
+    <button mat-raised-button class="navi-button w-100 p-4 mt-2" [routerLink]="['/scripts/' + group.name]">Skrypty</button>
+    <button mat-raised-button class="navi-button w-100 p-4 mt-2" [routerLink]="['/characters/' + group.name]">Postacie</button>
+    <button mat-raised-button class="navi-button w-100 p-4 mt-2" [routerLink]="['/players/' + group.name]">Gracze</button>
+    <button mat-raised-button class="navi-button w-100 p-4 mt-2" [routerLink]="['/achievements/' + group.name]">Osiągnięcia</button>
     <button mat-fab color="secondary" (click)="showSettings()" class="mt-1" style="transform: scale(0.85);">
         <mat-icon>settings</mat-icon>
     </button>
