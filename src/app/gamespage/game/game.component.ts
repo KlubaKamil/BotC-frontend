@@ -60,6 +60,7 @@ export class GameComponent {
   imageSize = 100;
   isMobile = false;
   snackBarRef!: MatSnackBarRef<ProgressbarComponent>;
+  selectedFable: Character | null = null;
 
   constructor(private sharedService: SharedService, private mapper: DtoMapperService, private route: ActivatedRoute, 
     private authService: AuthService, private snackBar: MatSnackBar, private cd: ChangeDetectorRef, private dialog: MatDialog) {
@@ -105,7 +106,6 @@ export class GameComponent {
       this.tempGame.goodWon = true;
       this.tempGame.assignments = [];
       this.tempGame.balanceMarks = [];
-      // this.tempGame.fables = [null as any];
       this.tempGame.fables = [];
       this.isEditing = false;
       this.isCreating = true;
@@ -130,7 +130,6 @@ export class GameComponent {
       if(await this.authService.isModTokenValid()){
         this.fetchData();
         this.tempGame = JSON.parse(JSON.stringify(this.selectedGame));
-        // this.tempGame?.fables?.push(null as any);
         this.isEditing = true;
       }
     }
@@ -197,54 +196,27 @@ export class GameComponent {
     this.tempGame!.storyteller = player;
   }
 
-  // test(){
-  //   console.log(this.tempGame?.fables)
-  // }
-
-  // async updateFables(i: number, event: any){
-  //   let newValue = event.value;
-  //   let fables = this.tempGame!.fables!;
-  //   console.log(newValue)
-  //   if(newValue){
-  //     if(i == fables.length - 1){
-  //       this.tempGame?.fables?.push(null as any)
-  //     }
-  //   }
-  //   //vibe coding
-  //   fables = this.tempGame!.fables!.filter((f, index) => {
-  //     if (!f && i !== index) return true; // keep empty slots
-  //     if (i === index) return !!newValue; // keep the slot only if a new value exists
-  //     if (!newValue) return true; // if newValue is null, keep other items
-  //     return f.name !== newValue.name; // remove duplicates
-  //   });
-  //   //nie wiem kurwa czemu, ale musi być lekutki delay
-  //   await new Promise(f => setTimeout(f, 50));
-  //   this.tempGame!.fables = [...fables];
-  //   this.cd.detectChanges();
-  // }
-
-  // trackByIndex(index: number, _item: any): number {
-  //   return index;
-  // }
-
   updateFable(i: number, event: any){
     let fable = event.value;
     if(!fable){
       this.tempGame!.fables = this.tempGame?.fables?.filter((f, index) => i !== index)
     } else {
-      this.tempGame!.fables = this.tempGame?.fables?.filter((f, index) => i !== index && f !== fable)
+      this.tempGame!.fables = this.tempGame?.fables?.filter((f, index) => i === index || f !== fable)
     }
 
     console.log(this.tempGame?.fables)
   }
 
-  addFable(event: any){
+  async addFable(event: any){
     let fable = event.value;
     let alreadyAdded = this.tempGame?.fables?.some(f => f === fable)
     if(fable && !alreadyAdded){
       this.tempGame?.fables?.push(fable);
     }
-    event.originalEvent.target.blur();
+    //chuj wie czemu event.originalEvent.target.blur() tutaj nie dziala
+    setTimeout(() => {
+      this.selectedFable = null;
+    });
   }
 
   newTransformation(character: Character, index: number){

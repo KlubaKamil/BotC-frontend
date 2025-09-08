@@ -61,13 +61,13 @@
                     </a>
                 </div>
                 <div *ngIf="tempGame">
-                    <p-select *ngFor="let fable of tempGame?.fables; let i = index" pCloseOnBack [options]="availableFables" 
+                    <p-select *ngFor="let fable of tempGame?.fables; let i = index" pCloseOnBack [options]="availableFables" class="mb-2"
                     [(ngModel)]="tempGame!.fables![i]" (onChange)="updateFable(i, $event)" [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
                         <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
                         <ng-template let-fabled #item>{{ fabled.name }}</ng-template>
                     </p-select>
-                    <p-select pCloseOnBack [options]="availableFables"
-                    (onChange)="addFable($event)" [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
+                    <p-select pCloseOnBack [options]="availableFables" (onChange)="addFable($event)" [filter]="true" filterBy="name" appendTo="body"
+                      [(ngModel)]="selectedFable">
                         <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
                         <ng-template let-fabled #item>{{ fabled.name }}</ng-template>
                     </p-select>

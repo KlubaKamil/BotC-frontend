@@ -70,7 +70,8 @@
             </div>
                 
             <div *ngIf="isCreating || isEditing" class="mt-5">
-                <p-select pCloseOnBack *ngIf="tempScript" [options]="availableCharacters" (onChange)="addCharacter($event)" [filter]="true" filterBy="name" placeholder="Dodaj postać" appendTo="body">
+                <p-select pCloseOnBack *ngIf="tempScript" [options]="availableCharacters" (onChange)="addCharacter($event)" [filter]="true" 
+                filterBy="name" placeholder="Dodaj postać" appendTo="body">
                     <ng-template #selectedItem let-selectedOption>Dodaj postać</ng-template>
                     <ng-template let-character #item>{{ character.name }}</ng-template>
                 </p-select>     

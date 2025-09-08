@@ -181,7 +181,7 @@ export class DtoMapperService {
             id: model.id,
             script: this.mapScriptToDto(model.script!),
             storyteller: this.mapPlayerToDto(model.storyteller!),
-            fables: this.mapCharactersToDtos(model.fables!.slice(0, -1)!),
+            fables: this.mapCharactersToDtos(model.fables!),
             assignments: this.mapAssignmentsToDtos(model.assignments!),
             goodWon: model.goodWon!,
             date: model.date,
