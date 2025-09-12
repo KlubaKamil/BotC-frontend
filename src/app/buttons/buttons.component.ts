@@ -9,7 +9,9 @@ import { AuthService } from '../authservice/auth.service';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { SettingsComponent } from '../settings/settings.component';
 import { SharedService } from '../shared/service/shared.service';
-import { Group } from '../shared/interfaces';
+import { DialogType, Group } from '../shared/interfaces';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-buttons',
@@ -20,8 +22,10 @@ import { Group } from '../shared/interfaces';
 })
 export class ButtonsComponent {
    group: Group = { id: 0, name: 'brak' };
+   
+    apiUrl = environment.apiUrl;
 
-  constructor(private router: Router, private auth: AuthService, private dialog: MatDialog, private sharedService: SharedService){
+  constructor(private router: Router, private auth: AuthService, private dialog: MatDialog, private sharedService: SharedService, private httpClient: HttpClient){
     this.group = localStorage.getItem('group') ? JSON.parse(localStorage.getItem('group')!) : { id: 0, name: 'brak' };
   }
 
@@ -45,28 +49,5 @@ export class ButtonsComponent {
     if(element !== null){
       element.classList.toggle('my-app-dark');
     }
-  }
-
-  discord(){
-    // window.location.href =
-    //   'https://discord.com/oauth2/authorize?' + 
-    //     'client_id=1369101839831797811&' + 
-    //     'response_type=code&' +
-    //     'redirect_uri=http%3A%2F%2Flocalhost%3A4200%2Fwelcome&' + 
-    //     'scope=identify';
-      this.sharedService.nextGroupById('1');
-      this.router.navigate(['welcome'])
-  }
-
-  discord2(){
-    // window.location.href =
-    //   'https://discord.com/oauth2/authorize?' + 
-    //     'client_id=1369101839831797811&' + 
-    //     'response_type=code&' +
-    //     'redirect_uri=http%3A%2F%2Flocalhost%3A4200%2Fwelcome&' + 
-    //     'scope=identify';
-      
-      this.sharedService.nextGroupById('2');
-      this.router.navigate(['welcome'])
   }
 }

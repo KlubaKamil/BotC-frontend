@@ -23,10 +23,12 @@ export class ScriptsComponent {
   constructor(private sharedService: SharedService, private route: ActivatedRoute) {}
 
   ngOnInit() {
-    this.sharedService.fetchScriptHeaders();
     this.sharedService.scriptHeaders$.subscribe((scriptHeaders) => {
       this.scriptHeaders = scriptHeaders;
     })
+    this.route.params.subscribe((params) => {
+      this.sharedService.fetchScriptHeaders();
+    });
   }
 
   selectScript(event: TableRowSelectEvent){

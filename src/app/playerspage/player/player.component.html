@@ -70,7 +70,7 @@
                 </ng-template>
                 <ng-template #body let-playerAchievement>
                     <tr>
-                        <td><a [routerLink]="['/achievements', playerAchievement.achievement.id]" style="text-decoration: none;">{{ playerAchievement.achievement.name }}</a></td>
+                        <td><a [routerLink]="[`/achievements/${group.name}/${playerAchievement.achievement.id}`]" style="text-decoration: none;">{{ playerAchievement.achievement.name }}</a></td>
                         <td>
                             <label *ngIf="!tempPlayer">{{ playerAchievement.date }}</label>
                             <p-datepicker *ngIf="tempPlayer" dataType="string" [showIcon]="true" [(ngModel)]="playerAchievement.date" dateFormat="dd/mm/yy" appendTo="body"></p-datepicker>
@@ -128,7 +128,7 @@
                 </ng-template>
                 <ng-template #body let-playerScriptDetails>
                     <tr>
-                        <td><a [routerLink]="['/scripts', playerScriptDetails.id]" style="text-decoration: none;">{{ playerScriptDetails.scriptName }}</a></td>
+                        <td><a [routerLink]="[`/scripts/${group.name}/${playerScriptDetails.scriptId}`]" style="text-decoration: none;">{{ playerScriptDetails.scriptName }}</a></td>
                         <td>{{ playerScriptDetails.gamesNumber }}</td>
                         <td>{{ playerScriptDetails.wonGamesNumber }}</td>
                         <td>{{ playerScriptDetails.winRatio.toFixed(2) }}</td>
@@ -177,7 +177,7 @@
                             <div style="width: 40px;">
                                 <img [src]="apiUrl + '/character/' + group.id + '/image/' + imageSize + '/' + playerCharacterDetails.characterId" style="max-height: 25px; max-width: 30px; display: block; margin: auto;">
                             </div>
-                            <a [routerLink]="['/characters', playerCharacterDetails!.id]" style="text-decoration: none;">{{ playerCharacterDetails.characterName }}</a></td>
+                            <a [routerLink]="[`/characters/${group.name}/${playerCharacterDetails!.characterId}`]" style="text-decoration: none;">{{ playerCharacterDetails.characterName }}</a></td>
                         <td>{{ playerCharacterDetails.gamesNumber }}</td>
                         <td>{{ playerCharacterDetails.wonGamesNumber }}</td>
                         <td>{{ playerCharacterDetails.winRatio.toFixed(2) }}</td>

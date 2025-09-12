@@ -125,7 +125,7 @@
                             <div style="width: 40px;">
                                 <img [src]="apiUrl + '/character/' + group.id + '/image/' + imageSize + '/' + characterDetails.id" style="max-height: 25px; max-width: 30px; display: block; margin: auto;">
                             </div>
-                            <a [routerLink]="['/characters', characterDetails.id]" style="text-decoration: none;">{{ characterDetails.name }}</a>
+                            <a [routerLink]="[`/characters/${group.name}/${characterDetails.id}`]" style="text-decoration: none;">{{ characterDetails.name }}</a>
                         </td>
                         <td>{{ characterDetails.gamesNumber }}</td>
                         <td>{{ characterDetails.occurrencePercentage.toFixed(2) }}</td>

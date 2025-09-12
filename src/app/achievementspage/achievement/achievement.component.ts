@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Achievement, DialogType, NotificationMode, NotificationType, ResponseId } from '../../shared/interfaces';
+import { Achievement, DialogType, Group, NotificationMode, NotificationType, ResponseId } from '../../shared/interfaces';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SharedService } from '../../shared/service/shared.service';
@@ -24,11 +24,15 @@ export class AchievementComponent {
   tempAchievement: Achievement | null = null;
   isEditing: boolean = false;
   isCreating: boolean = false;
+  group: Group = { id: 0, name: 'brak' };
 
   constructor(private sharedService: SharedService, private http: HttpClient, private mapper: DtoMapperService, private route: ActivatedRoute,
     private authService: AuthService){}
 
   ngOnInit(){
+    this.sharedService.group$.subscribe((group) => {
+      this.group = group;
+    })
     this.sharedService.selectedAchievement$.subscribe((selectedAchievement) => {
       this.selectedAchievement = selectedAchievement;
     })

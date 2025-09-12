@@ -21,11 +21,13 @@ import { SelectBackCloseDirective } from '../select-back-close-directive/select-
   styleUrls: ['./dialog.component.css']
 })
 export class DialogComponent {
+  apiUrl = environment.apiUrl;
+  discordOauthUrl = environment.discordOauthUrl;
   types = DialogType;
   text: string = '';
+  password: string = '';
   selectedOption: any;
   timestamp: number = Date.now();
-  apiUrl = environment.apiUrl;
 
   constructor(private dialogRef: MatDialogRef<DialogComponent>, @Inject(MAT_DIALOG_DATA) public data: any) {}
 
@@ -43,5 +45,9 @@ export class DialogComponent {
 
   confirmSelection(){
     this.dialogRef.close(this.selectedOption.name);
+  }
+
+  confirmLogin(){
+    this.dialogRef.close({username: this.text, password: this.password})
   }
 }

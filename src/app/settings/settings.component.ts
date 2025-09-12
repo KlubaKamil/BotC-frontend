@@ -4,27 +4,32 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { SharedService } from '../shared/service/shared.service';
 import { DialogType, Group, Role, User } from '../shared/interfaces';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MatDialogContent, MatDialogRef } from '@angular/material/dialog';
 import { SelectModule } from 'primeng/select';
 import { AuthService } from '../authservice/auth.service';
 import { MatIconModule } from '@angular/material/icon';
 import { TableModule } from 'primeng/table';
 import { SelectBackCloseDirective } from '../select-back-close-directive/select-back-close.directive';
+import { ActivatedRoute, Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-settings',
-  imports: [CommonModule, FormsModule, MatButtonModule, SelectModule, MatIconModule, TableModule, SelectBackCloseDirective],
+  imports: [CommonModule, FormsModule, MatButtonModule, SelectModule, MatIconModule, TableModule, SelectBackCloseDirective, MatDialogContent],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css'
 })
 export class SettingsComponent {
+  discordOauthUrl = environment.discordOauthUrl;
+  discordServerUrl = environment.discordServerUrl;
   username = localStorage.getItem('username')
   token = localStorage.getItem('jwt');
   groups: Group[] = [];
   selectedGroup: Group;
   users: User[] = [];
 
-  constructor(private dialogRef: MatDialogRef<SettingsComponent>, private sharedService: SharedService, private authService: AuthService){
+  constructor(private dialogRef: MatDialogRef<SettingsComponent>, private sharedService: SharedService, private authService: AuthService,
+    private router: Router, private route: ActivatedRoute){
     this.selectedGroup = JSON.parse(localStorage.getItem('group')!);
   }
 
@@ -32,8 +37,14 @@ export class SettingsComponent {
     this.sharedService.groups$.subscribe(groups => {
       this.groups = groups;
     });
+    this.sharedService.users$.subscribe(users => {
+      this.users = users;
+    });
     this.sharedService.fetchAllGroups();
-    this.users = await this.sharedService.getGroupUsers();
+    if(this.authService.isMember() && await this.authService.isMemberTokenValid()){
+      this.sharedService.fetchGroupUsers();
+    }
+
   }
 
   login(){
@@ -49,29 +60,46 @@ export class SettingsComponent {
     this.sharedService.navigate('welcome');
   }
 
-  changeGroup(){
+  async changeGroup() {
     this.sharedService.nextGroup(this.selectedGroup);
-    this.sharedService.navigate('welcome');
-    this.dialogRef.close();
+    if(this.authService.isMember() && await this.authService.isMemberTokenValid()){
+      this.sharedService.fetchGroupUsers();
+    }
+
+    const parts = this.router.url.split('/').filter(Boolean);
+    if (parts.length < 2) {
+      return;
+    }
+    const newParts = [parts[0], this.selectedGroup.name];
+    await this.router.navigate(['/', ...newParts]);
   }
 
   isGroupMember(): boolean{
-    return this.authService.hasGroupRole([Role.ADMIN, Role.MODERATOR, Role.MEMBER]);
+    return this.authService.isMember();
   }
 
   isGroupModerator(): boolean{
-    return this.authService.hasGroupRole([Role.ADMIN, Role.MODERATOR]);
+    return this.authService.isMod();
   }
 
   isGroupAdmin(): boolean{
-    return this.authService.hasGroupRole([Role.ADMIN]);
+    return this.authService.isAdmin();
+  }
+
+  isGlobalAdmin(): boolean{
+    return this.authService.isGlobalAdmin();
   }
 
   async addMember(){
     if(await this.authService.isModTokenValid()){
-      let dialogRef = this.sharedService.showDialog(DialogType.INSERTION, 'Podaj nazwę użytkownika, któremu chcesz nadać prawa członka grupy:');
+      let users = await this.sharedService.getUsersNotInGroup();
+      let dialogRef = this.sharedService.showSelectionDialogWithInfo('Podaj nazwę użytkownika, któremu chcesz nadać prawa członka grupy:', users,
+        'Tutaj możesz wybrać jednego z użytkowników Grimloga, który nie należy do Twojej grupy.\n' + 
+        'Od momentu dodania będzie on mógł widzieć wszystkich użytkowników grupy, a także\n' + 
+        'dodawać oceny balansu gry.'
+      );
       new Promise(() => {
-        dialogRef.afterClosed().subscribe((username) => {
+        dialogRef.afterClosed().subscribe(async (username) => {
           if(username) {
             this.sharedService.memberUser(username);
           }
@@ -83,9 +111,11 @@ export class SettingsComponent {
   async removeMember(){
     if(await this.authService.isModTokenValid()){
       let users = await this.sharedService.getGroupMembers();
-      let dialogRef = this.sharedService.showSelectionDialog('Wybierz użytkownika, któremu chcesz odebrać prawa członka grupy:', users);
+      let dialogRef = this.sharedService.showSelectionDialogWithInfo('Wybierz użytkownika, któremu chcesz odebrać prawa członka grupy:', users,
+        'Tutaj możesz wybrać jednego z członków Twojej grupy, którego chcesz z niej wyrzucić'
+      );
       new Promise(() => {
-        dialogRef.afterClosed().subscribe((username) => {
+        dialogRef.afterClosed().subscribe(async (username) => {
           if(username) {
             this.sharedService.unmemberUser(username);
           }
@@ -95,10 +125,15 @@ export class SettingsComponent {
   }
 
   async addModerator(){
-    if(await this.authService.isModTokenValid()){
-      let dialogRef = this.sharedService.showDialog(DialogType.INSERTION, 'Podaj nazwę użytkownika, któremu chcesz nadać prawa moderatora:');
+    if(await this.authService.isAdminTokenValid()){
+      let users = await this.sharedService.getGroupMembers();
+      let dialogRef = this.sharedService.showSelectionDialogWithInfo('Podaj nazwę użytkownika, któremu chcesz nadać prawa moderatora:', users,
+        'Tutaj możesz wybrać jednego z członków Twojej grupy, którego awansujesz na moderatora.\n' + 
+        'Od momentu awansu będzie on mógł tworzyć wpisy we wszystkich kategoriach, a także\n' + 
+        'dodawać nowych członków grupy.'
+      );
       new Promise(() => {
-        dialogRef.afterClosed().subscribe((username) => {
+        dialogRef.afterClosed().subscribe(async (username) => {
           if(username) {
             this.sharedService.modUser(username);
           }
@@ -108,15 +143,65 @@ export class SettingsComponent {
   }
 
   async removeModerator(){
-    if(await this.authService.isModTokenValid()){
+    if(await this.authService.isAdminTokenValid()){
       let users = await this.sharedService.getGroupModerators();
-      let dialogRef = this.sharedService.showSelectionDialog('Wybierz użytkownika, któremu chcesz odebrać prawa moderatora:', users);
+      let dialogRef = this.sharedService.showSelectionDialogWithInfo('Wybierz użytkownika, któremu chcesz odebrać prawa moderatora:', users,
+        'Tutaj możesz wybrać jednego z członków Twojej grupy, któremu chcesz odebrać prawa\n' + 
+        'moderatora. Zostanie on zdegradowany do roli członka grupy.'
+      );
       new Promise(() => {
-        dialogRef.afterClosed().subscribe((username) => {
+        dialogRef.afterClosed().subscribe(async (username) => {
           if(username) {
             this.sharedService.unmodUser(username);
           }
         })
+      })
+    }
+  }
+
+  async addAdmin(){
+    if(await this.authService.isGlobalAdminTokenValid()){
+      let allUsers = await this.sharedService.getGroupUsers();
+      let users = allUsers.filter(u => !u.groupRoles.some(gr => gr.role == Role.GROUP_ADMIN && gr.group.id == this.selectedGroup.id))
+      let dialogRef = this.sharedService.showSelectionDialogWithInfo('Podaj nazwę użytkownika, któremu chcesz nadać prawa administratora:', users,
+        'Tutaj możesz wybrać jednego z członków i moderatorów grupy i awansować go na\n' + 
+        'jej administratora. Od momentu awansu będzie on mógł widzieć wszystkich dodawać\n' + 
+        'i usuwać jej moderatorów, a także tworzyć wpisy we wszystkich kategoriach.'
+      );
+      new Promise(() => {
+        dialogRef.afterClosed().subscribe(async (username) => {
+          if(username) {
+            this.sharedService.adminUser(username);
+          }
+        })
+      })
+    } 
+  }
+
+  async removeAdmin(){
+    if(await this.authService.isGlobalAdminTokenValid()){
+      let users = await this.sharedService.getGroupAdmins();
+      let dialogRef = this.sharedService.showSelectionDialogWithInfo('Wybierz użytkownika, któremu chcesz odebrać prawa administratora:', users,
+        'Tutaj możesz wybrać jednego z członków Twojej grupy, któremu chcesz odebrać prawa\n' + 
+        'administratora. Zostanie on zdegradowany do roli członka grupy.'
+      );
+      new Promise(() => {
+        dialogRef.afterClosed().subscribe(async (username) => {
+          if(username) {
+            this.sharedService.unadminUser(username);
+          }
+        })
+      })
+    }
+  }
+
+  async createNewGroup(){
+    if(await this.authService.isGlobalAdminTokenValid()){
+      let dialogRef = this.sharedService.showDialog(DialogType.INSERTION, "Podaj nazwę nowej grupy");
+      dialogRef.afterClosed().subscribe((name) => {
+        if(name){
+          this.sharedService.createNewGroup(name);
+        }
       })
     }
   }
@@ -133,10 +218,13 @@ export class SettingsComponent {
       "Aby móc dodawać wpisy należy się zalogować. W aplikacji dostępne jest jedynie logowanie Discordem.\n" +
       "Pozwola nam to na łatwiejszą komunikację, a także określenie tożsamości danego użytkownika. Po zalogowaniu w ten sposób,\n" +
       "(jeśli nie wykonano tego wcześniej) zostanie utworzone konto z nickiem z Discorda. Od tego momentu można poprosić administratora\n" +
-      "danej grupy o nadanie praw moderatora." +
+      "danej grupy o nadanie praw moderatora, lub moderatora o dodanie do grupy." +
       "\n" +
       "Wszystkie tworzone wpisy są przypisane do danej grupy graczy. Jeśli chcesz założyć nową grupę, zapraszam do zalogowania się,\n" +
       "a następnie na Grimlogowego discorda, do którego odnośnik znajduje się w zakładce Ustawienia.\n" +
+      "Po założeniu grupy, dany użytkownik zostanie oznaczony jako Admin nowej grupy. Oprócz tej, istnieją jeszcze dwie role:\n" + 
+      "Moderator i Użytkownik. Moderator może tworzyć nowe wpisy i dodawać nowych użytkowników, natomiast użytkownik może\n" + 
+      "jedynie dodawać oceny balansu gry. Jeśli chcesz dodac kolejnego admina swojej grupy, skontaktuj się na Discordzie Grimlogowym.\n" +
       "\n" +
       "Możesz przeglądać wpisy różnych grup graczy, ale nie możesz ich edytować ani usuwać.\n" + 
       "Widok danej grupy także możesz zmienić w zakładce Ustawienia.\n" +
@@ -153,7 +241,8 @@ export class SettingsComponent {
       "Dodatkowo dla każdego typu encji obliczane są statystyki, które mogą pomóc w analizie rozgrywek, a także rywalizacji\n" +
       "\"kto jest lepszy\".\n" +
       "\n" +
-      "Aplikacja pozwala także na wysyłanie powiadomień na swój serwer discordowy w momencie dodania/edycji wpisu.\n" +
+      "Aplikacja pozwala także na wysyłanie powiadomień na swój serwer discordowy w momencie dodania/edycji wpisu,\n"+ 
+      "choć zostało to wyłączone w wersji v1.5.0 i zostanie przywrócone prawdopodobnie w wersji v1.6.0.\n" +
       "W tym celu administrator grupy musi zainstalować na swoim serwerze discordowego bota Grimloga, który będzie wysyłał powiadomienia.\n" +
       "Odnośnik do tego znajduje się w zakładce Ustawienia.\n" +
       "\n" +
@@ -164,7 +253,20 @@ export class SettingsComponent {
 
   showChangeLog(){
     this.sharedService.showDialogWithInfoText(DialogType.INFORMATION, "Change log",
-      "v1.5.0 - ??/09/2025 - grupy, discord, poprawa UI na małych ekranach\n" + 
+      "v1.5.0 - 11/09/2025 - grupy, discord, poprawa UI na małych ekranach\n" + 
+      "- dodano system grup\n" + 
+      "- dodano logowanie discordem\n" +
+      "- dodano możliwość nadawania użytkownikom ról\n" + 
+      "- naprawiono kolejność w skryptach\n" +
+      "- poprawiono UI dropdownów na małych ekranach\n" + 
+      "- dodano formę zarządzania miejscami rozgrywek\n" + 
+      "- dodano progress bar podczas uploadu zdjęć\n" + 
+      "- naprawiono dodawanie skryptu z JSONa\n" + 
+      "- dodano change log\n" + 
+      "- dodano otwieranie strony bezpośrednio na dany wpis, jeśli link zawierał id\n" +
+      "- zmieniono system ocen balansu - każdy zalogowany użytkownik może teraz dodawać oceny\n" + 
+      "- dodano możliwośc dodania więcej niż jednego Fable do rozgrywki\n" +
+      "- naprawiono błąd podczas obliczania statystyk przynależności nie uwzględniający transformacji\n" +
       "\n" + 
       "v1.4.1 - 12/06/2025 - małe poprawki UI\n" + 
       "- ustawianie dat dla achievementów\n" +

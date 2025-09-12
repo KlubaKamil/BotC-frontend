@@ -22,6 +22,9 @@ export class AchievementsComponent {
     this.sharedService.achievementHeaders$.subscribe((achievementHeaders) => {
       this.achievementHeaders = achievementHeaders;
     })
+    this.route.params.subscribe((params) => {
+      this.sharedService.fetchAchievementHeaders();
+    });
   }
 
   selectAchievement(event: TableRowSelectEvent){

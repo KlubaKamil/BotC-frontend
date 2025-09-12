@@ -3,13 +3,14 @@ import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
 import { Character, CharacterDto, DialogType, Game, GameDto, Player, PlayerDto, Script, ScriptDto, Place, PlaceDto, GameHeader, ScriptHeader, CharacterHeader, PlayerHeader, Achievement, AchievementHeader, AchievementDto, NotificationType, NotificationMode, DiscordNotification, DiscordRoot, DiscordRootDto, ResponseId, BotcJwtPayload, Group, User } from '../interfaces'
 import { MatDialog } from '@angular/material/dialog';
 import { DialogComponent } from '../../dialog/dialog.component';
-import { HttpClient, HttpEvent, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpResponse, HttpStatusCode } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { DtoMapperService } from './dtoMapper.service';
 import { DiscordDialogComponent } from '../../discord-dialog/discord-dialog.component';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { response } from 'express';
+import { AuthService } from '../../authservice/auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -20,6 +21,7 @@ export class SharedService {
   private detailsView = new BehaviorSubject<boolean>(this.viewValue);
   private group = new BehaviorSubject<Group>(JSON.parse(localStorage.getItem('group')!));
 
+  private users = new BehaviorSubject<User[]>([]);
   private groups = new BehaviorSubject<Group[]>([]);
   private gameHeaders = new BehaviorSubject<GameHeader[]>([]);
   private scriptHeaders = new BehaviorSubject<ScriptHeader[]>([]);
@@ -49,6 +51,7 @@ export class SharedService {
   detailsView$ = this.detailsView.asObservable();
   group$ = this.group.asObservable();
 
+  users$ = this.users.asObservable();
   groups$ = this.groups.asObservable();
   gameHeaders$ = this.gameHeaders.asObservable();
   scriptHeaders$ = this.scriptHeaders.asObservable();
@@ -78,9 +81,10 @@ export class SharedService {
   apiUrl = environment.apiUrl;
   
 
-  constructor(private dialog: MatDialog, private http: HttpClient, private mapper: DtoMapperService, private router: Router, private location: Location){
+  constructor(private dialog: MatDialog, private http: HttpClient, private mapper: DtoMapperService, private router: Router, 
+    private location: Location){
     this.groupValue = localStorage.getItem('group') ? JSON.parse(localStorage.getItem('group')!) : {id: 1, name: 'Sosnowiec'};
-    this.group.next(this.groupValue);
+    this.nextGroup(this.groupValue);
     this.group$.subscribe((group) => {
       localStorage.setItem('group', JSON.stringify(group))
       this.groupValue = group;
@@ -92,14 +96,31 @@ export class SharedService {
     this.detailsView.next(this.viewValue);
   }
 
+  createNewGroup(name: string){
+    this.http.put(`${this.apiUrl}/group/${name}`, null).subscribe({
+      next: (result) => {
+        this.showDialog(DialogType.INFORMATION, "Pomyślnie utworzono grupę: " + name);
+        this.fetchAllGroups();
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, "Coś poszło nie tak podczas tworzenia grupy.")
+      }
+    });
+  }
+
   nextGroup(group: Group){
+    this.selectedGame.next(null);
+    this.selectedScript.next(null);
+    this.selectedCharacter.next(null);
+    this.selectedPlayer.next(null);
+    this.selectedAchievement.next(null);
     this.group.next(group)
   }
 
   async nextGroupByName(groupName: string | null){
     let group = this.groups.getValue().find(g => g.name === groupName);
     if(group){
-      this.group.next(group);
+      this.nextGroup(group);
     } else {
       // this.router.navigate(['/error']);
     }
@@ -112,7 +133,7 @@ export class SharedService {
     let groups = this.groups.getValue();
     let group = groups.find(g => g.id + '' === groupId);
     if(group){
-      this.group.next(group);
+      this.nextGroup(group);
     } else {
       // this.router.navigate(['/error']);
     }
@@ -138,9 +159,10 @@ export class SharedService {
     this.http.post<ResponseId>(`${this.apiUrl}/user/member/${this.groupValue.id}/${username}`, null).subscribe({
       next: (result) => {
         this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został dodany do grona użytkowników grupy ${this.groupValue.name}.`);
+        this.fetchGroupUsers();
       },
       error: (error) => {
-        this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas dodawania użytkownika ${username} do grona użytkowników grupy ${this.groupValue.name}`);
+        this.showDialog(DialogType.INFORMATION, error.error);
       }
     })
   }
@@ -148,7 +170,8 @@ export class SharedService {
   unmemberUser(username: string){
     this.http.post<ResponseId>(`${this.apiUrl}/user/unmember/${this.groupValue.id}/${username}`, null).subscribe({
       next: (result) => {
-        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został usunięty z grona użytkowników grupy ${this.groupValue.name}.`);
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został usunięty z grona członków grupy ${this.groupValue.name}.`);
+        this.fetchGroupUsers();
       },
       error: (error) => {
         this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas usuwania użytkownika ${username} z grona użytkowników grupy ${this.groupValue.name}`);
@@ -160,9 +183,10 @@ export class SharedService {
     this.http.post<ResponseId>(`${this.apiUrl}/user/mod/${this.groupValue.id}/${username}`, null).subscribe({
       next: (result) => {
         this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został dodany do grona moderatorów grupy ${this.groupValue.name}.`);
+        this.fetchGroupUsers();
       },
-      error: (error) => {
-        this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas dodawania użytkownika ${username} do moderatorów grupy ${this.groupValue.name}`);
+      error: (error) => {        
+        this.showDialog(DialogType.INFORMATION, error.error);
       }
     })
   }
@@ -170,12 +194,45 @@ export class SharedService {
   unmodUser(username: string){
     this.http.post<ResponseId>(`${this.apiUrl}/user/unmod/${this.groupValue.id}/${username}`, null).subscribe({
       next: (result) => {
-        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został zdegradowany z moderatora do użytkownika grupy ${this.groupValue.name}.`);
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został zdegradowany z moderatora do członka grupy ${this.groupValue.name}.`);
+        this.fetchGroupUsers();
       },
       error: (error) => {
         this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas usuwania użytkownika ${username} z moderatorów grupy ${this.groupValue.name}`);
       }
     })
+  }
+
+  adminUser(username: string){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/admin/${this.groupValue.id}/${username}`, null).subscribe({
+      next: (result) => {
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został dodany do grona administratorów grupy ${this.groupValue.name}.`);
+        this.fetchGroupUsers();
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, error.error);
+      }
+    })
+  }
+
+  unadminUser(username: string){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/unadmin/${this.groupValue.id}/${username}`, null).subscribe({
+      next: (result) => {
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został zdegradowany z administratora do członka grupy ${this.groupValue.name}.`);
+        this.fetchGroupUsers();
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas usuwania użytkownika ${username} z administratorów grupy ${this.groupValue.name}`);
+      }
+    })
+  }
+
+  getUsersNotInGroup(): Promise<User[]>{
+    return firstValueFrom(this.http.get<User[]>(`${this.apiUrl}/user/notgroup/${this.groupValue.id}`));
+  }
+  
+  getGroupUsers(): Promise<User[]>{
+    return firstValueFrom(this.http.get<User[]>(`${this.apiUrl}/user/group/${this.groupValue.id}`));
   }
   
   getGroupMembers(): Promise<User[]>{
@@ -185,9 +242,9 @@ export class SharedService {
   getGroupModerators(): Promise<User[]>{
     return firstValueFrom(this.http.get<User[]>(`${this.apiUrl}/user/group/${this.groupValue.id}/MODERATOR`));
   }
-  
-  getGroupUsers(): Promise<User[]>{
-    return firstValueFrom(this.http.get<User[]>(`${this.apiUrl}/user/group/${this.groupValue.id}`));
+
+  getGroupAdmins(): Promise<User[]>{
+    return firstValueFrom(this.http.get<User[]>(`${this.apiUrl}/user/group/${this.groupValue.id}/GROUP_ADMIN`));
   }
 
   postEntity(dto: any, type: string, path?: string): Observable<HttpResponse<ResponseId>>{
@@ -346,6 +403,16 @@ export class SharedService {
     this.selectedAchievementHeader.next(achievementHeader);
   }
 
+  fetchGroupUsers(){
+    this.http.get<User[]>(`${this.apiUrl}/user/group/${this.groupValue.id}`).subscribe({
+      next: (users: User[]) => {
+        this.users.next(users);
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania użytkowników.');
+      }
+    });
+  }
   
   fetchAllGroups(){
     this.http.get<Group[]>(`${this.apiUrl}/group/all`).subscribe({
@@ -571,6 +638,17 @@ export class SharedService {
         type: DialogType.SELECTION,
         message: message,
         options: options
+      }
+    })
+  }
+
+  showSelectionDialogWithInfo(message: String, options: any[], info: string){
+    return this.dialog.open(DialogComponent, {
+      data: {
+        type: DialogType.SELECTION,
+        message: message,
+        options: options,
+        info: info
       }
     })
   }

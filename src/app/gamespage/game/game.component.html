@@ -133,12 +133,11 @@
                         [max]="10"
                         [step]="1"
                         styleClass="custom-disabled-slider"
-                        [disabled]="!isGroupMember()"
                     ></p-slider>
-                    <div *ngIf="isGroupMember() && !userAlreadyAddedBalanceMark()">
+                    <div *ngIf="!userAlreadyAddedBalanceMark()">
                         <button mat-raised-button color="secondary" class="mt-2" style="width: 200px;" (click)="addBalanceMark()">Dodaj ocenę</button>
                     </div>
-                    <div *ngIf="isGroupMember() && userAlreadyAddedBalanceMark()" class="row mt-2">
+                    <div *ngIf="userAlreadyAddedBalanceMark()" class="row mt-2">
                         <div class="col-12 col-sm-6 mt-2">
                             <button mat-raised-button color="secondary" class="w-100" (click)="updateBalanceMark()">Aktualizuj ocenę</button>
                         </div>
@@ -155,7 +154,7 @@
                 <div class="character-item d-flex align-items-center p-2 border row"
                     *ngFor="let assignment of selectedGame?.assignments">
                     <div class="col-3 col-sm-4">
-                        <a [routerLink]="['/players', assignment.player!.id]" style="text-decoration: none;">
+                        <a [routerLink]="[`/players/${group.name}/${assignment.player!.id}`]" style="text-decoration: none;">
                             <label class="d-block">{{ assignment.player!.name }}</label>
                         </a>
                     </div>
@@ -163,7 +162,7 @@
                         <div style="width: 35px;">
                             <img [src]="apiUrl + '/character/' + group.id + '/image/' + imageSize + '/' + assignment.character?.id" style="max-width: 30px; max-height: 30px;">
                         </div>
-                        <a [routerLink]="['/characters', assignment.character!.id]" style="text-decoration: none;">
+                        <a [routerLink]="[`/characters/${group.name}/${assignment.character!.id}`]" style="text-decoration: none;">
                             <label class="d-block">{{ assignment.character!.name }}</label>
                         </a>
                     </div>
@@ -178,7 +177,7 @@
                                 <div style="width: 35px;">
                                     <img [src]="apiUrl + '/character/' + group.id + '/image/' + imageSize + '/' + transformation.character?.id" style="max-width: 30px; max-height: 30px;">            
                                 </div>
-                                <a [routerLink]="['/characters', transformation.character!.id]" style="text-decoration: none;">
+                                <a [routerLink]="[`/characters/${group.name}/${transformation.character!.id}`]" style="text-decoration: none;">
                                     {{ transformation.character?.name }}
                                 </a>
                             </div>

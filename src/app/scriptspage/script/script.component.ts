@@ -167,7 +167,7 @@ export class ScriptComponent {
   copyJson(){
     let author = this.selectedScript?.author ? this.selectedScript.author : 'Gal Anonim';
     let json = `[{"id":"_meta","author":"${author}","name":"${this.selectedScript!.name}"}`;
-    this.selectedScript?.scriptCharacters?.forEach(sc => json += `,"${sc.character!.name}"`);
+    this.selectedScript?.scriptCharacters?.forEach(sc => json += `,{"id":"${sc.character!.name?.toLowerCase()}"}`);
     json += "]";
     this.clipboard.copy(json);
     this.snackBar.open('Skopiowano', undefined, {
@@ -195,7 +195,7 @@ export class ScriptComponent {
           this.tempScript!.author = value
         } else if(key == 'name'){
           this.tempScript!.name = value
-        } else {
+        } else if(key == 'id'){
           let char = this.availableCharacters.find(c => c.name.toLowerCase().replace(/\s+/g, '') == value.toLowerCase().replace(/\s+/g, ''));
           if(char && !this.tempScript!.scriptCharacters!.map(sc => sc.character!).find(c => c == char)){
             this.tempScript?.scriptCharacters?.push({ character: char, characterOrder: this.tempScript!.scriptCharacters!.length });

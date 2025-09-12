@@ -398,13 +398,19 @@ export interface Group {
 }
 
 export enum Role {
-  MEMBER = "Member",
+  MEMBER = "Członek",
   MODERATOR = "Moderator",
-  ADMIN = "Admin"
+  GROUP_ADMIN = "Admin",
+  GLOBAL_ADMIN = "Admin globalny"
 }
 
 export interface User {
   id: number,
   name: string,
   groupRoles: GroupRole[]
+}
+
+export interface JwtRequest {
+  username: string,
+  password: string
 }

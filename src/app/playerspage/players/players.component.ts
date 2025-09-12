@@ -11,6 +11,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonToggleModule } from '@angular/material/button-toggle'
 import { SelectModule } from 'primeng/select';
 import { SelectBackCloseDirective } from '../../select-back-close-directive/select-back-close.directive';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-players',
@@ -36,16 +37,18 @@ export class PlayersComponent {
     Narratorzy: p => p.storytellerGamesNumber
   };
 
-  constructor(private sharedService: SharedService) {}
+  constructor(private sharedService: SharedService, private route: ActivatedRoute) {}
 
   ngOnInit(){
-    this.sharedService.fetchPlayerHeaders();
     this.sharedService.games$.subscribe((games) => this.games = games);
     this.sharedService.characters$.subscribe((characters) => this.characters = characters);
     this.sharedService.playerHeaders$.subscribe((playerHeaders) => {
       this.playerHeaders = playerHeaders; 
       this.filteredPlayerHeaders = playerHeaders;
     })
+    this.route.params.subscribe((params) => {
+      this.sharedService.fetchPlayerHeaders();
+    });
   }
 
   selectPlayer(event: TableRowSelectEvent){

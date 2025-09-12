@@ -55,12 +55,11 @@
                 </ng-template>
                 <ng-template #body let-playerAchievementDetails>
                     <tr>
-                        <td><a [routerLink]="['/players', playerAchievementDetails.id]" style="text-decoration: none;">{{ playerAchievementDetails.name }}</a></td>
+                        <td><a [routerLink]="[`/players/${group.name}/${playerAchievementDetails.id}`]" style="text-decoration: none;">{{ playerAchievementDetails.name }}</a></td>
                         <td>{{ playerAchievementDetails.date }}</td>
                     </tr>
                 </ng-template>
             </p-table> 
         </div>
-        <label class="mat-headline-5 mt-5">Chwilowo nie wiem co tu dodać, ale zobaczymy jak mechanika osiągnięć będzie hulać w praktyce, to się pomyśli.</label>
     </div>
 </div>

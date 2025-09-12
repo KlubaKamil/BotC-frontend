@@ -17,14 +17,16 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 export class GamesComponent {
   gameHeaders: GameHeader[] | null = null;
 
-  constructor(private sharedService: SharedService, route: ActivatedRoute, private cd: ChangeDetectorRef) {}
+  constructor(private sharedService: SharedService, private route: ActivatedRoute, private cd: ChangeDetectorRef) {}
 
   ngOnInit() {
-    this.sharedService.fetchGameHeaders();
     this.sharedService.gameHeaders$.subscribe((gameHeaders) => {
       this.gameHeaders = gameHeaders;
       this.cd.detectChanges();
     })
+    this.route.params.subscribe((params) => {
+      this.sharedService.fetchGameHeaders();
+    });
   }
 
   selectGame(event: TableRowSelectEvent){

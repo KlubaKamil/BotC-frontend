@@ -1,19 +1,20 @@
 <label mat-dialog-title class="mat-headline-5">{{ data.message }}</label>
 <label mat-dialog-content *ngIf="data.info"  style="white-space: pre-line">{{ data.info }}</label>
-<input *ngIf="data.type === types.PASSWORD" pInputText type="password" class="mx-3" [(ngModel)]="text">
-<input *ngIf="data.type === types.INSERTION" pInputText type="text" class="mx-3" [(ngModel)]="text">
+<input *ngIf="[types.INSERTION].includes(data.type)" pInputText type="text" class="mx-3" [(ngModel)]="text">
+<!-- <input *ngIf="[types.INSERTION, types.PASSWORD].includes(data.type)" pInputText type="text" class="mx-3" [(ngModel)]="text"> -->
+<!-- <input *ngIf="data.type === types.PASSWORD" pInputText type="password" class="mx-3 mt-2" [(ngModel)]="password"> -->
 <div  *ngIf="data.type === types.SELECTION" class="mx-3">
   <p-select pCloseOnBack [options]="data.options" [(ngModel)]="selectedOption" [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
     <ng-template #selectedItem let-selected>{{ selected.name }}</ng-template>
     <ng-template let-option #item>{{ option.name }}</ng-template>
   </p-select>
 </div>
-<mat-dialog-actions *ngIf="![types.PHOTOGRAPHY].includes(data.type)" style="min-width: 300px; justify-content: flex-end;">
+<mat-dialog-actions *ngIf="![types.PHOTOGRAPHY, types.PASSWORD].includes(data.type)" style="min-width: 300px; justify-content: flex-end;">
   <div *ngIf="data.type === types.INFORMATION">
     <button mat-raised-button class="m-2" (click)="close()">Ok</button>
   </div>
   <div *ngIf="data.type === types.INFORMATION_DISCORD">
-    <button mat-raised-button class="m-2" (click)="confirm()">Powiadom Discorda</button>
+    <!-- <button mat-raised-button class="m-2" (click)="confirm()">Powiadom Discorda</button> -->
     <button mat-raised-button class="m-2" (click)="close()">Ok</button>
   </div>
   <div *ngIf="data.type === types.CONFIRMATION">
@@ -24,24 +25,28 @@
     <button mat-raised-button class="m-2" (click)="confirmInsert()">Potwierdź</button>
     <button mat-raised-button class="m-2" (click)="close()">Anuluj</button>
   </div>
-  <div *ngIf="data.type === types.PASSWORD" style="margin-right: 0px;">
-    <div>
-      <button mat-raised-button class="m-2" (click)="confirmInsert()">Zaloguj</button>
-      <button mat-raised-button class="m-2" (click)="close()">Anuluj</button>
-    </div>
-    <div>
-      <a mat-raised-button class="m-2"
-        href="https://discord.com/oauth2/authorize?client_id=1369101839831797811&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A4200%2Fwelcome&scope=identify">
-        <mat-icon iconPositionEnd>discord</mat-icon>
-        Zaloguj z Discord
-      </a>
-    </div>
-  </div>
   <div *ngIf="data.type === types.SELECTION">
     <button mat-raised-button class="m-2" (click)="confirmSelection()">Wybierz</button>
     <button mat-raised-button class="m-2" (click)="close()">Anuluj</button>
   </div>
 </mat-dialog-actions>
+<div *ngIf="data.type === types.PASSWORD" class="row mb-4 mb-md-2 mt-3">
+    <div class="col-12 col-md-6">
+      <div class="ms-4 me-4 me-md-0 mb-3">
+        <a mat-raised-button class="w-100"
+          [href]="discordOauthUrl">
+          <mat-icon iconPositionEnd>discord</mat-icon>
+          Zaloguj z Discord
+        </a>
+      </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="ms-4 ms-md-0 me-4">
+      <!-- <button mat-raised-button class="m-2" (click)="confirmLogin()">Zaloguj</button> -->
+      <button mat-raised-button class="w-100" (click)="close()">Anuluj</button>
+      </div>
+    </div>
+</div>
 <div *ngIf="data.type === types.PHOTOGRAPHY" style="text-align: center; padding: 1rem;">
   <img [src]="data.url + '?t=' + timestamp" alt="Uploaded image" style="max-width: 100%; max-height: 80vh;">
 </div>

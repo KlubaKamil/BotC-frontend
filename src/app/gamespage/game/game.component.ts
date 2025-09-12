@@ -203,8 +203,6 @@ export class GameComponent {
     } else {
       this.tempGame!.fables = this.tempGame?.fables?.filter((f, index) => i === index || f !== fable)
     }
-
-    console.log(this.tempGame?.fables)
   }
 
   async addFable(event: any){

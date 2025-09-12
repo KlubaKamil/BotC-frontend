@@ -130,7 +130,7 @@
                 </ng-template>
                 <ng-template #body let-scriptDetails>
                     <tr>
-                        <td><a [routerLink]="['/scripts', scriptDetails.id]" style="text-decoration: none;">{{ scriptDetails.scriptName }}</a></td>
+                        <td><a [routerLink]="[`/scripts/${group.name}/${scriptDetails.id}`]" style="text-decoration: none;">{{ scriptDetails.scriptName }}</a></td>
                         <td>{{ scriptDetails.gamesNumber }}</td>
                         <td>{{ scriptDetails.wonGamesNumber }}</td>
                         <td>{{ scriptDetails.winRatio.toFixed(2) }}</td>
