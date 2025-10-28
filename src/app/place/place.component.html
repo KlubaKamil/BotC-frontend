@@ -1,0 +1,38 @@
+<div class="card">
+    <div class="card-body">
+        <label class="mat-headline-6">Dodaj nowe miejsce:</label>
+        <div class="d-flex">
+            <input type="text" class="form-control" [(ngModel)]="tempPlace.name">
+            <div *ngIf="isCreating">
+                <button mat-raised-button color="secondary" class="ms-3" (click)="addPlace()">Dodaj</button>
+            </div>
+            <div *ngIf="!isCreating" class="d-flex">
+                <button mat-raised-button color="secondary" class="ms-3" (click)="(tempPlace)">Zapisz</button>
+                <button mat-raised-button color="secondary" class="ms-3" (click)="cancel()">Anuluj</button>
+            </div>
+        </div>
+        <div class="mt-4">
+            <label class="mat-headline-6" >Obecne miejsca:</label>
+            <p-table [value]="places" stripedRows >
+                <ng-template pTemplate="header">
+                    <th>Nazwa</th>
+                    <tr>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-place>
+                    <tr>
+                    <td>{{ place.name }}</td>
+                    <td style="text-align: right;">
+                        <button  mat-mini-fab color="secondary" (click)="toggleEdit(place)">
+                            <mat-icon>edit</mat-icon>
+                        </button>
+                        <button mat-mini-fab color="warn" class="ms-3" (click)="deletePlace(place)">
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                    </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+</div>

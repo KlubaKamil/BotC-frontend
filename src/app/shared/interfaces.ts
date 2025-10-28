@@ -51,14 +51,19 @@ export interface GameDto {
   id?: number;
   script: ScriptDto;
   storyteller: PlayerDto;
-  fabled?: CharacterDto;
+  fables: CharacterDto[];
   assignments: AssignmentDto[];
   goodWon: boolean;
   date?: Date;
   notes?: string;
   place?: PlaceDto;
   imageUploaded?: boolean;
-  balanceMarks?: number[];
+  balanceMarks?: BalanceMarkDto[];
+}
+
+export interface BalanceMarkDto {
+  mark: number;
+  username: string;
 }
 
 export interface AssignmentDto {
@@ -74,8 +79,13 @@ export interface ScriptDto{
   name: String;
   author?: String;
   notes?: String;
-  characters: CharacterDto[];
+  scriptCharacters?: ScriptCharacterDto[];
   scriptDetails?: ScriptDetails;
+}
+
+export interface ScriptCharacterDto {
+  character?: CharacterDto;
+  characterOrder?: number;
 }
 
 export interface ScriptDetails{
@@ -192,14 +202,19 @@ export class Game {
   id?: number;
   script?: Script;
   storyteller?: Player;
-  fabled?: Character | undefined | null;
+  fables?: Character[];
   assignments?: Assignment[];
   goodWon?: boolean;
   date?: Date;
   notes?: string;
   place?: Place;
   imageUploaded?: boolean;
-  balanceMarks?: number[];
+  balanceMarks?: BalanceMark[];
+}
+
+export class BalanceMark {
+  mark?: number;
+  username?: string;
 }
 
 export class Script {
@@ -207,8 +222,13 @@ export class Script {
   name?: String;
   author?: String;
   notes?: String;
-  characters?: Character[];
+  scriptCharacters?: ScriptCharacter[];
   scriptDetails?: ScriptDetails
+}
+
+export class ScriptCharacter {
+  character?: Character;
+  characterOrder?: number;
 }
 
 export class Character {
@@ -278,7 +298,8 @@ export enum DialogType {
   INFORMATION_DISCORD,
   INSERTION,
   PASSWORD,
-  PHOTOGRAPHY
+  PHOTOGRAPHY,
+  SELECTION
 }
 
 export enum NotificationType {
@@ -359,4 +380,37 @@ export interface DiscordThread {
   id: string,
   name: string
   channelType: DiscordChannelType;
+}
+
+export interface BotcJwtPayload extends JwtPayload {
+  sub: string;
+  groupRoles: GroupRole[];
+}
+
+export interface GroupRole {
+  group: Group;
+  role: Role;
+}
+
+export interface Group {
+  id: number;
+  name: string;
+}
+
+export enum Role {
+  MEMBER = "Członek",
+  MODERATOR = "Moderator",
+  GROUP_ADMIN = "Admin",
+  GLOBAL_ADMIN = "Admin globalny"
+}
+
+export interface User {
+  id: number,
+  name: string,
+  groupRoles: GroupRole[]
+}
+
+export interface JwtRequest {
+  username: string,
+  password: string
 }

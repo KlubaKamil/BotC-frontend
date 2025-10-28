@@ -15,19 +15,22 @@ import { TableModule, TableRowSelectEvent } from 'primeng/table';
 export class AchievementsComponent {
   achievementHeaders: AchievementHeader[] | null = null;
 
-  constructor(private sharedService: SharedService, private router: Router, private route: ActivatedRoute) {}
+  constructor(private sharedService: SharedService, private route: ActivatedRoute) {}
 
   ngOnInit(){
     this.sharedService.fetchAchievementHeaders();
     this.sharedService.achievementHeaders$.subscribe((achievementHeaders) => {
       this.achievementHeaders = achievementHeaders;
     })
+    this.route.params.subscribe((params) => {
+      this.sharedService.fetchAchievementHeaders();
+    });
   }
 
   selectAchievement(event: TableRowSelectEvent){
     let achievementHeader = event.data;
     let id = achievementHeader.id;
-    this.router.navigate(['/achievements', id])
     this.sharedService.toggleView();
+    this.sharedService.navigate('achievements', id)
   }
 }

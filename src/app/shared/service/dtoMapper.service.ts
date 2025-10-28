@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { Achievement, AchievementDto, Assignment, AssignmentDto, Character, CharacterDto, DiscordChannel, DiscordChannelDto, DiscordRoot, DiscordRootDto, DiscordServer, DiscordServerDto, DiscordThread, DiscordThreadDto, Game, GameDto, Place, PlaceDto, Player, PlayerAchievement, PlayerAchievementDto, PlayerDto, Script, ScriptDto, Transformation, TransformationDto } from "../interfaces";
+import { Achievement, AchievementDto, Assignment, AssignmentDto, BalanceMark, BalanceMarkDto, Character, CharacterDto, DiscordChannel, DiscordChannelDto, DiscordRoot, DiscordRootDto, DiscordServer, DiscordServerDto, DiscordThread, DiscordThreadDto, Game, GameDto, Place, PlaceDto, Player, PlayerAchievement, PlayerAchievementDto, PlayerDto, Script, ScriptCharacter, ScriptCharacterDto, ScriptDto, Transformation, TransformationDto } from "../interfaces";
 import { dt } from "@primeng/themes";
 
 @Injectable({
@@ -48,7 +48,7 @@ export class DtoMapperService {
             name: model.name!,
             author: model.author,
             notes: model.notes,
-            characters: this.mapCharactersToDtos(model.characters!)
+            scriptCharacters: model.scriptCharacters ? this.mapScriptCharactersToDtos(model.scriptCharacters) : []
         };
     }
 
@@ -62,11 +62,33 @@ export class DtoMapperService {
             name: dto.name,
             author: dto.author,
             notes: dto.notes,
-            characters: this.mapDtosToCharacters(dto.characters),
+            scriptCharacters: this.mapDtosToScriptCharacters(dto.scriptCharacters!),
             scriptDetails: dto.scriptDetails
         };
     }
-    
+
+    mapScriptCharacterToDto(model: ScriptCharacter): ScriptCharacterDto {
+        return {
+            character: this.mapCharacterToDto(model.character!),
+            characterOrder: model.characterOrder
+        };
+    }
+
+    mapScriptCharactersToDtos(models: ScriptCharacter[]): ScriptCharacterDto[] {
+        return models.map(model => this.mapScriptCharacterToDto(model));
+    }
+
+    mapDtoToScriptCharacter(dto: ScriptCharacterDto): ScriptCharacter {
+        return {
+            character: this.mapDtoToCharacter(dto.character!),
+            characterOrder: dto.characterOrder
+        };
+    }
+
+    mapDtosToScriptCharacters(dtos: ScriptCharacterDto[]): ScriptCharacter[] {
+        return dtos.map(dto => this.mapDtoToScriptCharacter(dto));
+    }
+
     mapDtosToScripts(dtos: ScriptDto[]): Script[] {
         return dtos.map(dto => this.mapDtoToScript(dto));
     }
@@ -159,14 +181,14 @@ export class DtoMapperService {
             id: model.id,
             script: this.mapScriptToDto(model.script!),
             storyteller: this.mapPlayerToDto(model.storyteller!),
-            fabled: model.fabled ? this.mapCharacterToDto(model.fabled!) : undefined,
+            fables: this.mapCharactersToDtos(model.fables!),
             assignments: this.mapAssignmentsToDtos(model.assignments!),
             goodWon: model.goodWon!,
             date: model.date,
             notes: model.notes,
             place: model.place ? this.mapPlaceToDto(model.place) : undefined,
             imageUploaded: model.imageUploaded,
-            balanceMarks: model.balanceMarks
+            balanceMarks: this.mapBalanceMarksToDtos(model.balanceMarks!)
         };
     }
     
@@ -179,7 +201,7 @@ export class DtoMapperService {
             id: dto.id,
             script: this.mapDtoToScript(dto.script),
             storyteller: this.mapDtoToPlayer(dto.storyteller),
-            fabled: dto.fabled ? this.mapDtoToCharacter(dto.fabled) : null,
+            fables: this.mapDtosToCharacters(dto.fables),
             assignments: this.mapDtoToAssignments(dto.assignments),
             goodWon: dto.goodWon,
             date: dto.date,
@@ -194,7 +216,27 @@ export class DtoMapperService {
         return dtos.map(dto => this.mapDtoToGame(dto));
     }
 
-    
+    mapBalanceMarksToDtos(models: BalanceMark[]): BalanceMarkDto[] {
+        return models.map(model => this.mapBalanceMarkToDto(model));
+    }
+
+    mapDtoToBalanceMark(dto: BalanceMarkDto): BalanceMark {
+        return {
+            mark: dto.mark,
+            username: dto.username
+        };
+    }
+
+    mapDtosToBalanceMarks(dtos: BalanceMarkDto[]): BalanceMark[] {
+        return dtos.map(dto => this.mapDtoToBalanceMark(dto));
+    }
+
+    mapBalanceMarkToDto(model: BalanceMark): BalanceMarkDto {
+        return {
+            mark: model.mark!,
+            username: model.username!
+        };
+    }
 
     mapTransformationToDto(model: Transformation): TransformationDto {
         return {

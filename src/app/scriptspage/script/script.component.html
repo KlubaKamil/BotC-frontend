@@ -56,21 +56,22 @@
         <div *ngIf="tempScript" class="card-body">
             <div class="character-list" cdkDropList (cdkDropListDropped)="drop($event)">
                 <div class="character-item d-flex justify-content-between align-items-center p-2 border"
-                    *ngFor="let character of tempScript?.characters" cdkDrag>
+                    *ngFor="let scriptCharacter of tempScript?.scriptCharacters" cdkDrag>
                     <div class="d-flex align-items-center">
                         <div style="width: 40px;">
-                            <img [src]="apiUrl + '/character/image/' + imageSize + '/' + character.name" style="max-height: 25px; max-width: 30px; display: block; margin: auto;">
+                            <img [src]="apiUrl + '/character/' + group.id + '/image/' + imageSize + '/' + scriptCharacter.character!.id" style="max-height: 25px; max-width: 30px; display: block; margin: auto;">
                         </div>
-                        <span>{{ character.name }} ({{ character.alignment }})</span>
+                        <span>{{ scriptCharacter.character!.name }} ({{ scriptCharacter.character!.alignment }})</span>
                     </div>
-                    <button  mat-mini-fab color="warn" (click)="removeCharacter(character)">
+                    <button  mat-mini-fab color="warn" (click)="removeCharacter(scriptCharacter.character!)">
                     <mat-icon>delete</mat-icon>
                     </button>
                 </div>
             </div>
                 
             <div *ngIf="isCreating || isEditing" class="mt-5">
-                <p-select *ngIf="tempScript" [options]="availableCharacters" [ngModel]="null" (onChange)="addCharacter($event)" [filter]="true" filterBy="name" placeholder="Dodaj postać">
+                <p-select pCloseOnBack *ngIf="tempScript" [options]="availableCharacters" (onChange)="addCharacter($event)" [filter]="true" 
+                filterBy="name" placeholder="Dodaj postać" appendTo="body">
                     <ng-template #selectedItem let-selectedOption>Dodaj postać</ng-template>
                     <ng-template let-character #item>{{ character.name }}</ng-template>
                 </p-select>     
@@ -122,9 +123,9 @@
                     <tr>
                         <td class="d-flex align-items-center">
                             <div style="width: 40px;">
-                                <img [src]="apiUrl + '/character/image/' + imageSize + '/' + characterDetails.name" style="max-height: 25px; max-width: 30px; display: block; margin: auto;">
+                                <img [src]="apiUrl + '/character/' + group.id + '/image/' + imageSize + '/' + characterDetails.id" style="max-height: 25px; max-width: 30px; display: block; margin: auto;">
                             </div>
-                            <a [routerLink]="['/characters', characterDetails.id]" style="text-decoration: none;">{{ characterDetails.name }}</a>
+                            <a [routerLink]="[`/characters/${group.name}/${characterDetails.id}`]" style="text-decoration: none;">{{ characterDetails.name }}</a>
                         </td>
                         <td>{{ characterDetails.gamesNumber }}</td>
                         <td>{{ characterDetails.occurrencePercentage.toFixed(2) }}</td>

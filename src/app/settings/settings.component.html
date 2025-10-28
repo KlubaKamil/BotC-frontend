@@ -1,13 +1,82 @@
-<div class="card">
-    <div class="card-body">
-        <label mat-dialog-title class="mat-headline-5">Tutaj kiedyś będą fajne rzeczy, ale jeszcze nie teraz.</label>
-        <div>
-            <a href="https://docs.google.com/spreadsheets/d/1rEzY_2qaqRN79fOFwrhjm1XlmxAPtND_CzzwJqUw17Q/edit?gid=0#gid=0" class="mt-5" target="_blank" rel="noopener noreferrer">
-                Link do google docsa ze statystykami.
-            </a>
-        </div>
-        <div *ngIf="token" style="display: flex; justify-content: flex-end;">
-            <button mat-raised-button color="secondary" (click)="logout()">Wyloguj</button>
-        </div>
+
+<mat-dialog-content style="max-height: 90vh">
+  <div class="d-flex justify-content-between align-items-center mb-5">
+    <label mat-dialog-title *ngIf="username" class="mat-headline-5 m-0">Zalogowano jako {{ username }}</label>
+    <label mat-dialog-title *ngIf="!username" class="mat-headline-5 m-0">Użytkownik niezalogowany</label>
+  </div>
+
+  <div class="mb-3">
+    Wybierz grupę, której statystyki chcesz widzieć:
+    <p-select pCloseOnBack [options]="groups" [(ngModel)]="selectedGroup" (onChange)="changeGroup()" appendTo="body">
+      <ng-template #selectedItem let-selectedOption>{{ selectedOption.id }} - {{ selectedOption.name }}</ng-template>
+      <ng-template let-group #item>{{ group.id }} - {{ group.name }}</ng-template>
+    </p-select>
+  </div>
+
+  <div *ngIf="isGroupMember()" class="row mb-2">
+    <div class="col-12 col-md-6 ms-auto d-flex mb-4">
+      <p-table [value]="users" class="fill-width">
+          <ng-template #header>
+              <tr>
+                  <th>Członkowie:</th>
+                  <th>Rola:</th>
+              </tr>
+          </ng-template>
+          <ng-template #body let-user>
+              <tr>
+                  <td>{{ user.name }}</td>
+                  <td>{{ getRole(user) }}</td>
+              </tr>
+          </ng-template>
+      </p-table>
     </div>
-</div>
+    <div class="col-12 col-md-6 ms-auto d-flex justify-content-md-end justify-content-center">
+      <div class="d-flex flex-column row m-0 w-100">
+        <ng-container *ngIf="isGroupModerator()">
+          <button mat-raised-button class="w-100 mb-2" color="secondary" (click)="addMember()">Dodaj członka grupy</button>
+          <button mat-raised-button class="w-100 mb-2" color="secondary" (click)="removeMember()">Usuń członka grupy</button>
+        </ng-container>
+        <ng-container *ngIf="isGroupAdmin()">
+          <button mat-raised-button class="w-100 mb-2 mt-3" color="secondary" (click)="addModerator()">Dodaj moderatora grupy</button>
+          <button mat-raised-button class="w-100 mb-2" color="secondary" (click)="removeModerator()">Usuń moderatora grupy</button>
+        </ng-container>
+        <ng-container *ngIf="isGlobalAdmin()">
+          <button mat-raised-button class="w-100 mb-2 mt-3" color="secondary" (click)="addAdmin()">Dodaj administratora grupy</button>
+          <button mat-raised-button class="w-100" color="secondary" (click)="removeAdmin()">Usuń administratora grupy</button>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="isGlobalAdmin()" class="mt-4">
+    <button mat-raised-button class="w-100" (click)="createNewGroup()">Utwórz nową grupę</button>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-12 col-md-6 order-1 order-md-2 d-flex justify-content-md-end justify-content-center mb-2 mb-md-0">
+      <div *ngIf="!token" class="d-flex flex-column gap-2 w-100 w-md-auto">
+        <!-- <button mat-raised-button color="secondary" (click)="login()">Zaloguj</button> -->
+        <a mat-raised-button class="discord-button text-center"
+          [href]="discordOauthUrl">
+          <mat-icon iconPositionEnd>discord</mat-icon>
+          Zaloguj
+        </a>
+      </div>
+      <div *ngIf="token" class="d-flex justify-content-md-end justify-content-center w-100 w-md-auto">
+        <button mat-raised-button class="w-100" color="secondary" (click)="logout()">Wyloguj</button>
+      </div>
+    </div>
+    <div class="col-12 col-md-6 order-2 order-md-1 d-flex flex-column justify-content-end align-items-md-start align-items-center mt-5 mt-md-0">
+      <a mat-raised-button [href]="discordServerUrl"
+        class="discord-button text-center w-100 mt-auto">
+        <mat-icon iconPositionEnd>discord</mat-icon>
+        Odwiedź serwer discord
+      </a>
+      <button mat-raised-button class="w-100 mt-2" color="secondary" (click)="showHelp()">
+        <mat-icon iconPositionEnd>question_mark</mat-icon>
+        Pomoc
+      </button>
+      <button mat-raised-button class="w-100 mt-2" color="secondary" (click)="showChangeLog()">Change log</button>
+    </div>
+  </div>
+</mat-dialog-content>

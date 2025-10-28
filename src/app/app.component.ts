@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonsComponent } from './buttons/buttons.component';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+import { SharedService } from './shared/service/shared.service';
 
 @Component({
   selector: 'app-root',
@@ -10,4 +11,13 @@ import { RouterModule } from '@angular/router';
   imports: [CommonModule, ButtonsComponent, RouterModule]
 })
 export class AppComponent {
+  constructor(private sharedService: SharedService, private router: Router) {}
+
+  ngOnInit() {
+    const url = window.location.pathname;
+    const parts = url.split('/').filter(Boolean);
+    if (parts.length > 2) {
+      this.sharedService.toggleView();
+    }
+  }
 }

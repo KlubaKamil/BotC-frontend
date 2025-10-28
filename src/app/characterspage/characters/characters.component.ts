@@ -4,7 +4,7 @@ import { CharacterHeader } from '../../shared/interfaces';
 import { SharedService } from '../../shared/service/shared.service';
 import { MatButtonModule } from '@angular/material/button';
 import { TableModule, TableRowSelectEvent } from 'primeng/table';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 
 @Component({
@@ -17,19 +17,21 @@ import { Router } from '@angular/router';
 export class CharactersComponent {
   characterHeaders: CharacterHeader[] | null = null;
 
-  constructor(private sharedService: SharedService, private router: Router){}
+  constructor(private sharedService: SharedService, private route: ActivatedRoute){}
 
   ngOnInit() {
-    this.sharedService.fetchCharacterHeaders();
     this.sharedService.characterHeaders$.subscribe((characterHeaders) => {
       this.characterHeaders = characterHeaders;
+    });
+    this.route.params.subscribe((params) => {
+      this.sharedService.fetchCharacterHeaders();
     });
   }
 
   selectCharacter(event: TableRowSelectEvent){
     let characterHeader = event.data;
     let id = characterHeader.id;
-    this.router.navigate(['/characters', id]);
     this.sharedService.toggleView();
+    this.sharedService.navigate('characters', id);
   }
 }

@@ -1,38 +1,46 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { Character, CharacterDto, DialogType, Game, GameDto, Player, PlayerDto, Script, ScriptDto, Place, PlaceDto, GameHeader, ScriptHeader, CharacterHeader, PlayerHeader, Achievement, AchievementHeader, AchievementDto, NotificationType, NotificationMode, DiscordNotification, DiscordRoot, DiscordRootDto } from '../interfaces'
+import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
+import { Character, CharacterDto, DialogType, Game, GameDto, Player, PlayerDto, Script, ScriptDto, Place, PlaceDto, GameHeader, ScriptHeader, CharacterHeader, PlayerHeader, Achievement, AchievementHeader, AchievementDto, NotificationType, NotificationMode, DiscordNotification, DiscordRoot, DiscordRootDto, ResponseId, BotcJwtPayload, Group, User } from '../interfaces'
 import { MatDialog } from '@angular/material/dialog';
 import { DialogComponent } from '../../dialog/dialog.component';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpResponse, HttpStatusCode } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { DtoMapperService } from './dtoMapper.service';
 import { DiscordDialogComponent } from '../../discord-dialog/discord-dialog.component';
+import { Router } from '@angular/router';
+import { Location } from '@angular/common';
+import { response } from 'express';
+import { AuthService } from '../../authservice/auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SharedService {
-  private view : boolean = false;
-  private detailsView = new BehaviorSubject<boolean>(this.view);
-  
-  private gameHeaders = new BehaviorSubject<GameHeader[] | null>(null);
-  private scriptHeaders = new BehaviorSubject<ScriptHeader[] | null>(null);
-  private characterHeaders = new BehaviorSubject<CharacterHeader[] | null>(null);
-  private playerHeaders = new BehaviorSubject<PlayerHeader[] | null>(null);
-  private achievementHeaders = new BehaviorSubject<AchievementHeader[] | null>(null);
-  
+  private viewValue : boolean = false;
+  private groupValue;
+  private detailsView = new BehaviorSubject<boolean>(this.viewValue);
+  private group = new BehaviorSubject<Group>(JSON.parse(localStorage.getItem('group')!));
+
+  private users = new BehaviorSubject<User[]>([]);
+  private groups = new BehaviorSubject<Group[]>([]);
+  private gameHeaders = new BehaviorSubject<GameHeader[]>([]);
+  private scriptHeaders = new BehaviorSubject<ScriptHeader[]>([]);
+  private characterHeaders = new BehaviorSubject<CharacterHeader[]>([]);
+  private playerHeaders = new BehaviorSubject<PlayerHeader[]>([]);
+  private achievementHeaders = new BehaviorSubject<AchievementHeader[]>([]);
+
   private selectedGameHeader = new BehaviorSubject<GameHeader | null>(null);
   private selectedScriptHeader = new BehaviorSubject<ScriptHeader | null>(null);
   private selectedCharacterHeader = new BehaviorSubject<CharacterHeader | null>(null);
   private selectedPlayerHeader = new BehaviorSubject<PlayerHeader | null>(null);
   private selectedAchievementHeader = new BehaviorSubject<AchievementHeader | null>(null);
 
-  private games = new BehaviorSubject<Game[] | null>(null);
-  private scripts = new BehaviorSubject<Script[] | null>(null);
-  private characters = new BehaviorSubject<Character[] | null>(null);
-  private players = new BehaviorSubject<Player[] | null>(null);
-  private places = new BehaviorSubject<Place[] | null>(null);
-  private achievements = new BehaviorSubject<Achievement[] | null>(null);
+  private games = new BehaviorSubject<Game[]>([]);
+  private scripts = new BehaviorSubject<Script[]>([]);
+  private characters = new BehaviorSubject<Character[]>([]);
+  private players = new BehaviorSubject<Player[]>([]);
+  private places = new BehaviorSubject<Place[]>([]);
+  private achievements = new BehaviorSubject<Achievement[]>([]);
   
   private selectedGame = new BehaviorSubject<Game | null>(null);
   private selectedScript = new BehaviorSubject<Script | null>(null);
@@ -41,7 +49,10 @@ export class SharedService {
   private selectedAchievement = new BehaviorSubject<Achievement | null>(null);
 
   detailsView$ = this.detailsView.asObservable();
+  group$ = this.group.asObservable();
 
+  users$ = this.users.asObservable();
+  groups$ = this.groups.asObservable();
   gameHeaders$ = this.gameHeaders.asObservable();
   scriptHeaders$ = this.scriptHeaders.asObservable();
   characterHeaders$ = this.characterHeaders.asObservable();
@@ -70,12 +81,204 @@ export class SharedService {
   apiUrl = environment.apiUrl;
   
 
-  constructor(private dialog: MatDialog, private http: HttpClient, private mapper: DtoMapperService){
+  constructor(private dialog: MatDialog, private http: HttpClient, private mapper: DtoMapperService, private router: Router, 
+    private location: Location){
+    this.groupValue = localStorage.getItem('group') ? JSON.parse(localStorage.getItem('group')!) : {id: 1, name: 'Sosnowiec'};
+    this.nextGroup(this.groupValue);
+    this.group$.subscribe((group) => {
+      localStorage.setItem('group', JSON.stringify(group))
+      this.groupValue = group;
+    })
   }
   
   toggleView(){
-    this.view = !this.view
-    this.detailsView.next(this.view);
+    this.viewValue = !this.viewValue
+    this.detailsView.next(this.viewValue);
+  }
+
+  createNewGroup(name: string){
+    this.http.put(`${this.apiUrl}/group/${name}`, null).subscribe({
+      next: (result) => {
+        this.showDialog(DialogType.INFORMATION, "Pomyślnie utworzono grupę: " + name);
+        this.fetchAllGroups();
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, "Coś poszło nie tak podczas tworzenia grupy.")
+      }
+    });
+  }
+
+  nextGroup(group: Group){
+    this.selectedGame.next(null);
+    this.selectedScript.next(null);
+    this.selectedCharacter.next(null);
+    this.selectedPlayer.next(null);
+    this.selectedAchievement.next(null);
+    this.group.next(group)
+  }
+
+  async nextGroupByName(groupName: string | null){
+    let group = this.groups.getValue().find(g => g.name === groupName);
+    if(group){
+      this.nextGroup(group);
+    } else {
+      // this.router.navigate(['/error']);
+    }
+  }
+
+  nextGroupById(groupId: string){
+    if(this.groups.getValue().length === 0){
+      this.fetchAllGroups();
+    }
+    let groups = this.groups.getValue();
+    let group = groups.find(g => g.id + '' === groupId);
+    if(group){
+      this.nextGroup(group);
+    } else {
+      // this.router.navigate(['/error']);
+    }
+  }
+
+  navigate(tab: string, id?: any){
+    let idToAppend = '';
+    let groupToAppend = '';
+    if(id){
+      idToAppend = `/${id}`;
+    }
+    if(tab !== 'welcome'){
+      groupToAppend = `/${this.groupValue.name}`;
+    }
+    this.router.navigate([`${tab}${groupToAppend}${idToAppend}`]);
+  }
+
+  changeLocation(tab: string){
+    this.location.go(`/${tab}/${this.groupValue.name}`)
+  }
+
+  memberUser(username: string){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/member/${this.groupValue.id}/${username}`, null).subscribe({
+      next: (result) => {
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został dodany do grona użytkowników grupy ${this.groupValue.name}.`);
+        this.fetchGroupUsers();
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, error.error);
+      }
+    })
+  }
+
+  unmemberUser(username: string){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/unmember/${this.groupValue.id}/${username}`, null).subscribe({
+      next: (result) => {
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został usunięty z grona członków grupy ${this.groupValue.name}.`);
+        this.fetchGroupUsers();
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas usuwania użytkownika ${username} z grona użytkowników grupy ${this.groupValue.name}`);
+      }
+    })
+  }
+
+  modUser(username: string){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/mod/${this.groupValue.id}/${username}`, null).subscribe({
+      next: (result) => {
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został dodany do grona moderatorów grupy ${this.groupValue.name}.`);
+        this.fetchGroupUsers();
+      },
+      error: (error) => {        
+        this.showDialog(DialogType.INFORMATION, error.error);
+      }
+    })
+  }
+
+  unmodUser(username: string){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/unmod/${this.groupValue.id}/${username}`, null).subscribe({
+      next: (result) => {
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został zdegradowany z moderatora do członka grupy ${this.groupValue.name}.`);
+        this.fetchGroupUsers();
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas usuwania użytkownika ${username} z moderatorów grupy ${this.groupValue.name}`);
+      }
+    })
+  }
+
+  adminUser(username: string){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/admin/${this.groupValue.id}/${username}`, null).subscribe({
+      next: (result) => {
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został dodany do grona administratorów grupy ${this.groupValue.name}.`);
+        this.fetchGroupUsers();
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, error.error);
+      }
+    })
+  }
+
+  unadminUser(username: string){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/unadmin/${this.groupValue.id}/${username}`, null).subscribe({
+      next: (result) => {
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został zdegradowany z administratora do członka grupy ${this.groupValue.name}.`);
+        this.fetchGroupUsers();
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas usuwania użytkownika ${username} z administratorów grupy ${this.groupValue.name}`);
+      }
+    })
+  }
+
+  getUsersNotInGroup(): Promise<User[]>{
+    return firstValueFrom(this.http.get<User[]>(`${this.apiUrl}/user/notgroup/${this.groupValue.id}`));
+  }
+  
+  getGroupUsers(): Promise<User[]>{
+    return firstValueFrom(this.http.get<User[]>(`${this.apiUrl}/user/group/${this.groupValue.id}`));
+  }
+  
+  getGroupMembers(): Promise<User[]>{
+    return firstValueFrom(this.http.get<User[]>(`${this.apiUrl}/user/group/${this.groupValue.id}/MEMBER`));
+  }
+  
+  getGroupModerators(): Promise<User[]>{
+    return firstValueFrom(this.http.get<User[]>(`${this.apiUrl}/user/group/${this.groupValue.id}/MODERATOR`));
+  }
+
+  getGroupAdmins(): Promise<User[]>{
+    return firstValueFrom(this.http.get<User[]>(`${this.apiUrl}/user/group/${this.groupValue.id}/GROUP_ADMIN`));
+  }
+
+  postEntity(dto: any, type: string, path?: string): Observable<HttpResponse<ResponseId>>{
+    let pathToAppend = path ? `/${path}` : ''
+    return this.http.post<ResponseId>(`${this.apiUrl}/${type}/${this.groupValue.id}${pathToAppend}`, dto, { observe: 'response', reportProgress: true });
+  }
+  
+  postEntityWithProgress(dto: any, type: string, path?: string): Observable<HttpEvent<ResponseId>>{
+    let pathToAppend = path ? `/${path}` : ''
+    return this.http.post<ResponseId>(`${this.apiUrl}/${type}/${this.groupValue.id}${pathToAppend}`, dto, 
+      { observe: 'events', reportProgress: true });
+  }
+
+  putEntity(dto: any, type: string, path?: string): Observable<HttpResponse<ResponseId>>{
+    let pathToAppend = path ? `/${path}` : ''
+    return this.http.put<ResponseId>(`${this.apiUrl}/${type}/${this.groupValue.id}${pathToAppend}`, dto, { observe: 'response' });
+  }
+  
+  putEntityWithProgress(dto: any, type: string, path?: string): Observable<HttpEvent<ResponseId>>{
+    let pathToAppend = path ? `/${path}` : ''
+    return this.http.put<ResponseId>(`${this.apiUrl}/${type}/${this.groupValue.id}${pathToAppend}`, dto, 
+      { observe: 'events', reportProgress: true });
+  }
+
+  deleteEntity(id: any, type: string): Observable<HttpResponse<ResponseId>>{
+    return this.http.delete<any>(`${this.apiUrl}/${type}/${this.groupValue.id}/${id}`, { observe: 'response' });
+  }
+
+  getGroup(): Group{
+    return this.groupValue!;
+  }
+
+  getGroupId(): number{
+    return this.groupValue!.id;
   }
 
   fetchAll(){
@@ -200,8 +403,32 @@ export class SharedService {
     this.selectedAchievementHeader.next(achievementHeader);
   }
 
+  fetchGroupUsers(){
+    this.http.get<User[]>(`${this.apiUrl}/user/group/${this.groupValue.id}`).subscribe({
+      next: (users: User[]) => {
+        this.users.next(users);
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania użytkowników.');
+      }
+    });
+  }
+  
+  fetchAllGroups(){
+    this.http.get<Group[]>(`${this.apiUrl}/group/all`).subscribe({
+      next: (groups: Group[]) => {
+        this.groups.next(groups);
+      },
+      error: (error) => {
+        this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania grup.');
+      }
+    });
+
+    return [];
+  }
+
   fetchAllCharacters() {
-    this.http.get<CharacterDto[]>(this.apiUrl + '/character/all').subscribe({
+    this.http.get<CharacterDto[]>(`${this.apiUrl}/character/${this.groupValue.id}/all`).subscribe({
       next: (characterDtos: CharacterDto[]) => {
         this.setCharacters(this.mapper.mapDtosToCharacters(characterDtos));
       },
@@ -212,7 +439,7 @@ export class SharedService {
   }
 
   fetchAllPlayers() {
-    this.http.get<PlayerDto[]>(this.apiUrl + '/player/all').subscribe({
+    this.http.get<PlayerDto[]>(`${this.apiUrl}/player/${this.groupValue.id}/all`).subscribe({
       next: (playerDtos: PlayerDto[]) => {
         this.setPlayers(this.mapper.mapDtosToPlayers(playerDtos));
       },
@@ -223,7 +450,7 @@ export class SharedService {
   }
 
   fetchAllPlaces() {
-    this.http.get<PlaceDto[]>(this.apiUrl + '/place/all').subscribe({
+    this.http.get<PlaceDto[]>(`${this.apiUrl}/place/${this.groupValue.id}/all`).subscribe({
       next: (placeDtos: PlaceDto[]) => {
         this.setPlaces(this.mapper.mapDtosToPlaces(placeDtos));
       },
@@ -234,7 +461,7 @@ export class SharedService {
   }
 
   fetchAllGames() {
-    this.http.get<GameDto[]>(this.apiUrl + '/game/all').subscribe({
+    this.http.get<GameDto[]>(`${this.apiUrl}/game/${this.groupValue.id}/all`).subscribe({
       next: (gameDtos: GameDto[]) => {
         this.setGames(this.mapper.mapDtosToGames(gameDtos));
       },
@@ -245,7 +472,7 @@ export class SharedService {
   }
 
   fetchAllScripts(){
-    this.http.get<ScriptDto[]>(this.apiUrl + '/script/all').subscribe({
+    this.http.get<ScriptDto[]>(`${this.apiUrl}/script/${this.groupValue.id}/all`).subscribe({
       next: (scriptDtos: ScriptDto[]) => {
         this.setScripts(this.mapper.mapDtosToScripts(scriptDtos));
       },
@@ -256,7 +483,7 @@ export class SharedService {
   }
 
   fetchAllAchievements(){
-    this.http.get<AchievementDto[]>(this.apiUrl + '/achievement/all').subscribe({
+    this.http.get<AchievementDto[]>(`${this.apiUrl}/achievement/${this.groupValue.id}/all`).subscribe({
       next: (achievementDtos: AchievementDto[]) => {
         this.setAchievements(this.mapper.mapDtosToAchievements(achievementDtos));
       },
@@ -267,7 +494,7 @@ export class SharedService {
   }
 
   fetchGameHeaders(){
-    this.http.get<GameHeader[]>(this.apiUrl + '/game/headers').subscribe({
+    this.http.get<GameHeader[]>(`${this.apiUrl}/game/${this.groupValue.id}/headers`).subscribe({
       next: (gameHeaders: GameHeader[]) => {
         this.setGameHeaders(gameHeaders);
       },
@@ -278,7 +505,7 @@ export class SharedService {
   }
 
   fetchScriptHeaders(){
-    this.http.get<ScriptHeader[]>(this.apiUrl + '/script/headers').subscribe({
+    this.http.get<ScriptHeader[]>(`${this.apiUrl}/script/${this.groupValue.id}/headers`).subscribe({
       next: (scriptHeaders: ScriptHeader[]) => {
         this.setScriptHeaders(scriptHeaders);
       },
@@ -289,7 +516,7 @@ export class SharedService {
   }
 
   fetchCharacterHeaders(){
-    this.http.get<CharacterHeader[]>(this.apiUrl + '/character/headers').subscribe({
+    this.http.get<CharacterHeader[]>(`${this.apiUrl}/character/${this.groupValue.id}/headers`).subscribe({
       next: (characterHeaders: CharacterHeader[]) => {
         this.setCharacterHeaders(characterHeaders);
       },
@@ -300,7 +527,7 @@ export class SharedService {
   }
 
   fetchPlayerHeaders(){
-    this.http.get<PlayerHeader[]>(this.apiUrl + '/player/headers').subscribe({
+    this.http.get<PlayerHeader[]>(`${this.apiUrl}/player/${this.groupValue.id}/headers`).subscribe({
       next: (playerHeaders: PlayerHeader[]) => {
         this.setPlayerHeaders(playerHeaders);
       },
@@ -311,7 +538,7 @@ export class SharedService {
   }
   
   fetchAchievementHeaders(){
-    this.http.get<AchievementHeader[]>(this.apiUrl + '/achievement/headers').subscribe({
+    this.http.get<AchievementHeader[]>(`${this.apiUrl}/achievement/${this.groupValue.id}/headers`).subscribe({
       next: (achievementHeader: AchievementHeader[]) => {
         this.setAchievementHeaders(achievementHeader);
       },
@@ -322,7 +549,7 @@ export class SharedService {
   }
 
   fetchGameAndSelect(id: string | number){
-    this.http.get<GameDto>(this.apiUrl + '/game/' + id).subscribe({
+    this.http.get<GameDto>(`${this.apiUrl}/game/${this.groupValue.id}/${id}`).subscribe({
       next: (gameDto: GameDto) => {
         this.setSelectedGame(this.mapper.mapDtoToGame(gameDto));
       },
@@ -333,7 +560,7 @@ export class SharedService {
   }
 
   fetchScriptAndSelect(id: string | number){
-    this.http.get<ScriptDto>(this.apiUrl + '/script/' + id).subscribe({
+    this.http.get<ScriptDto>(`${this.apiUrl}/script/${this.groupValue.id}/${id}`).subscribe({
       next: (scriptDto: ScriptDto) => {
         this.setSelectedScript(this.mapper.mapDtoToScript(scriptDto));
       },
@@ -344,7 +571,7 @@ export class SharedService {
   }
 
   fetchCharacterAndSelect(id: string | number){
-    this.http.get<CharacterDto>(this.apiUrl + '/character/' + id).subscribe({
+    this.http.get<CharacterDto>(`${this.apiUrl}/character/${this.groupValue.id}/${id}`).subscribe({
       next: (characterDto: CharacterDto) => {
         this.setSelectedCharacter(this.mapper.mapDtoToCharacter(characterDto));
       },
@@ -355,7 +582,7 @@ export class SharedService {
   }
 
   fetchPlayerAndSelect(id: string | number){
-    this.http.get<PlayerDto>(this.apiUrl + '/player/' + id).subscribe({
+    this.http.get<PlayerDto>(`${this.apiUrl}/player/${this.groupValue.id}/${id}`).subscribe({
       next: (playerDto: PlayerDto) => {
         this.setSelectedPlayer(this.mapper.mapDtoToPlayer(playerDto));
       },
@@ -366,7 +593,7 @@ export class SharedService {
   }
 
   fetchAchievementAndSelect(id: string | number){
-    this.http.get<AchievementDto>(this.apiUrl + '/achievement/' + id).subscribe({
+    this.http.get<AchievementDto>(`${this.apiUrl}/achievement/${this.groupValue.id}/${id}`).subscribe({
       next: (achievementDto: AchievementDto) => {
         this.setSelectedAchievement(this.mapper.mapDtoToAchievement(achievementDto));
       },
@@ -376,12 +603,11 @@ export class SharedService {
     });
   }
 
-  showDialog(type: DialogType, message: String, info?: String){
+  showDialog(type: DialogType, message: String){
       return this.dialog.open(DialogComponent, {
         data: {
           type: type,
           message: message,
-          info: info
         }
     })
   }
@@ -402,6 +628,27 @@ export class SharedService {
         type: type,
         message: message,
         url: url
+      }
+    })
+  }
+
+  showSelectionDialog(message: String, options: any[]){
+    return this.dialog.open(DialogComponent, {
+      data: {
+        type: DialogType.SELECTION,
+        message: message,
+        options: options
+      }
+    })
+  }
+
+  showSelectionDialogWithInfo(message: String, options: any[], info: string){
+    return this.dialog.open(DialogComponent, {
+      data: {
+        type: DialogType.SELECTION,
+        message: message,
+        options: options,
+        info: info
       }
     })
   }

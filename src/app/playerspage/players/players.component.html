@@ -6,13 +6,13 @@
             </div>
             <div class="col-8 row">
                 <div class="col-12 col-md-6">
-                    <p-select [options]="['Gracze', 'Narratorzy']" (onChange)="changeTableCard($event.value)">
+                    <p-select pCloseOnBack [options]="['Gracze', 'Narratorzy']" (onChange)="changeTableCard($event.value)" appendTo="body">
                         <ng-template #selectedItem let-group>{{ group }}</ng-template>
                         <ng-template let-group #item>{{ group }}</ng-template>
                     </p-select>      
                 </div>
                 <div class="col-12 col-md-6">
-                    <p-select [options]="['Wszyscy', 'Zaawansowani', 'Eksperci']"  (onChange)="filterPlayers($event.value)">
+                    <p-select pCloseOnBack [options]="['Wszyscy', 'Zaawansowani', 'Eksperci']"  (onChange)="filterPlayers($event.value)" appendTo="body">
                         <ng-template #selectedItem let-group>{{ group }}</ng-template>
                         <ng-template let-group #item>{{ group }}</ng-template>
                     </p-select>   

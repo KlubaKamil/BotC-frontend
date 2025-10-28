@@ -1,0 +1,17 @@
+button[mat-raised-button], a[mat-raised-button] {
+  padding: 12px 16px;         /* More space for text */
+  white-space: normal;        /* Allow text to wrap */
+  overflow: visible;          /* Prevent clipping */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+button[mat-raised-button] mat-icon,
+a[mat-raised-button] mat-icon {
+  overflow: visible;
+}
+
+.fill-width {
+  width: 100%;
+}
