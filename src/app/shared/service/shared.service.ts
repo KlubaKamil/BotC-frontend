@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
+import { BehaviorSubject, catchError, firstValueFrom, map, Observable, of } from 'rxjs';
 import { Character, CharacterDto, DialogType, Game, GameDto, Player, PlayerDto, Script, ScriptDto, Place, PlaceDto, GameHeader, ScriptHeader, CharacterHeader, PlayerHeader, Achievement, AchievementHeader, AchievementDto, NotificationType, NotificationMode, DiscordNotification, DiscordRoot, DiscordRootDto, ResponseId, BotcJwtPayload, Group, User } from '../interfaces'
 import { MatDialog } from '@angular/material/dialog';
 import { DialogComponent } from '../../dialog/dialog.component';
@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { response } from 'express';
 import { AuthService } from '../../authservice/auth.service';
+import { PhotoDialogComponent } from '../../photo-dialog/photo-dialog.component';
 
 @Injectable({
   providedIn: 'root'
@@ -269,6 +270,23 @@ export class SharedService {
       { observe: 'events', reportProgress: true });
   }
 
+  postGameImages(formData: FormData, imagesToDelete: string[], gameId: string): Observable<HttpEvent<ResponseId>> {
+    // Convert each name to a small text file (binary) and append
+    imagesToDelete.forEach(name => {
+      const blob = new Blob([name], { type: 'text/plain' });
+      const fakeFile = new File([blob], `${name}`, { type: 'text/plain' });
+      formData.append('imagesToDelete', fakeFile);
+    });
+
+    // Send as multipart/form-data
+    return this.http.post<ResponseId>(
+      `${this.apiUrl}/game/${this.groupValue.id}/${gameId}/image`,
+      formData,
+      { observe: 'events', reportProgress: true }
+    );
+  }
+
+
   deleteEntity(id: any, type: string): Observable<HttpResponse<ResponseId>>{
     return this.http.delete<any>(`${this.apiUrl}/${type}/${this.groupValue.id}/${id}`, { observe: 'response' });
   }
@@ -279,6 +297,12 @@ export class SharedService {
 
   getGroupId(): number{
     return this.groupValue!.id;
+  }
+
+  getGameImages(gameId: string): Promise<string[]> {
+    return firstValueFrom(
+      this.http.get<string[]>(`${this.apiUrl}/game/${this.groupValue.id}/${gameId}/images`)
+    );
   }
 
   fetchAll(){
@@ -447,6 +471,16 @@ export class SharedService {
         this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania graczy.');
       }
     })
+  }
+
+  getAllPlayers(): Observable<Player[]> {
+    return this.http.get<PlayerDto[]>(`${this.apiUrl}/player/${this.groupValue.id}/all`).pipe(
+      map((playerDtos: PlayerDto[]) => this.mapper.mapDtosToPlayers(playerDtos)),
+      catchError((error) => {
+        this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania graczy.');
+        return of([]); // return empty array on error
+      })
+    );
   }
 
   fetchAllPlaces() {
@@ -622,16 +656,6 @@ export class SharedService {
     })
   }
 
-  showPhotoDialog(type: DialogType, message: String, url: String){
-    return this.dialog.open(DialogComponent, {
-      data: {
-        type: type,
-        message: message,
-        url: url
-      }
-    })
-  }
-
   showSelectionDialog(message: String, options: any[]){
     return this.dialog.open(DialogComponent, {
       data: {
@@ -662,6 +686,25 @@ export class SharedService {
       }
     })
   }
+
+  showPhotoDialog(game: Game, formData?: FormData){
+    return this.dialog.open(PhotoDialogComponent, {
+      data: {
+        game: game,
+        formData: formData
+      }
+    })
+  }
+
+  // showPhotoDialog(type: DialogType, message: String, url: String){
+  //   return this.dialog.open(DialogComponent, {
+  //     data: {
+  //       game: game
+  //       message: message,
+  //       url: url
+  //     }
+  //   })
+  // }
 
   sendNotification(discordNotification: DiscordNotification){
     this.http.post(this.apiUrl + `/notification`, discordNotification).subscribe({

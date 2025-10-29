@@ -22,4 +22,6 @@ export class DropdownBackService {
 
   register(s: Select)   { this.selects.add(s); }
   unregister(s: Select) { this.selects.delete(s); }
+
+  unregisterDialog(d: any){}
 }
