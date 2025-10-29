@@ -1,6 +1,8 @@
-<div class="container-fluid vh-100">
-    <div class="row flex-shrink-0">
+<div class="container-fluid" style="display: flex; flex-direction: column; height: 100dvh;">
+    <div class="row" style="flex: 0 0 auto;">
         <app-buttons></app-buttons>
     </div>
-    <router-outlet></router-outlet>
+    <div class="row" style="flex: 1 1 auto; overflow: hidden;">
+        <router-outlet></router-outlet>
+    </div>
 </div>

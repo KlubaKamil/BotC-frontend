@@ -7,6 +7,7 @@ import { environment } from '../../environments/environment';
 import { SharedService } from '../shared/service/shared.service';
 import { DialogType } from '../shared/interfaces';
 import { AuthService } from '../authservice/auth.service';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-welcomepage',
@@ -20,6 +21,7 @@ export class WelcomepageComponent {
   constructor(private route: ActivatedRoute, private sharedService: SharedService, private authService: AuthService) {}
 
   ngOnInit() {
+    console.log('halo')
     let hasVisited = localStorage.getItem('hasVisited');
     if(!hasVisited){
       this.sharedService.showDialogWithInfoText(DialogType.INFORMATION, "Witaj w Grimlogu po raz pierwszy!", 
@@ -29,10 +31,13 @@ export class WelcomepageComponent {
       localStorage.clear();
       localStorage.setItem('hasVisited', 'true');
     }
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(take(1)).subscribe(params => {
       const code = params['code'];
       if (code) {
-        this.authService.loginWithDiscord(code);
+        let jwt = localStorage.getItem('jwt');
+        if(!jwt){
+          this.authService.loginWithDiscord(code);
+        }
       }
     });
   }

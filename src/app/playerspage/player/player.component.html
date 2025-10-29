@@ -4,7 +4,7 @@
     <button *ngIf="selectedPlayer" mat-raised-button class="flex-fill m-1" (click)="deletePlayer()">Usuń</button>
     <button *ngIf="selectedPlayer || tempPlayer" mat-raised-button class="flex-fill m-1" (click)="cancel()">Anuluj</button>
 </div>
-<div *ngIf="selectedPlayer || tempPlayer" class="card" style="min-height: 90vh; max-height: 90vh; overflow-y: auto;">
+<div *ngIf="selectedPlayer || tempPlayer" class="card" style="min-height: 91vh; max-height: 91vh; overflow-y: auto;">
     <div class="card-body">
         <label class="mat-headline-5">Szczegóły gracza:</label>
         <div class="row pt-1 pb-1 myborder bg-stripped">

@@ -19,9 +19,9 @@
                 </div>
             </div>
         </div>
-        <div *ngIf="playerHeaders" style="height: 88vh;">
+        <div *ngIf="playerHeaders" style="height: 87vh;">
             <p-table [value]="filteredPlayerHeaders!" stripedRows sortField="gamesNumber" [sortOrder]="-1" selectionMode="single" 
-            (onRowSelect)="selectPlayer($event)" [scrollable]="true" scrollHeight="88vh">
+            (onRowSelect)="selectPlayer($event)" [scrollable]="true" scrollHeight="87vh">
                 <ng-template #header>
                     <tr>
                         <th pSortableColumn="id">

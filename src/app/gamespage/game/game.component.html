@@ -5,7 +5,7 @@
     <button *ngIf="selectedGame"  mat-raised-button class="flex-fill m-1" (click)="deleteGame()">Usuń</button>
     <button *ngIf="selectedGame || tempGame" mat-raised-button class="flex-fill m-1" (click)="cancel()">Anuluj</button>
 </div>
-<div *ngIf="selectedGame || tempGame" class="card" style="min-height: 90vh; max-height: 90vh; overflow-y: auto;" #scrollContainer>
+<div *ngIf="selectedGame || tempGame" class="card" style="min-height: 91vh; max-height: 91vh; overflow-y: auto;" #scrollContainer>
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center">
             <label class="mat-headline-5">Szczegóły rozgrywki:</label>
@@ -305,7 +305,7 @@
         <div class="m-5"></div>
     </div>
 </div>
-<!-- <div *ngIf="!(tempGame || selectedGame)" class="card" style="min-height: 90vh; max-height: 90vh; overflow-y: auto;">
+<!-- <div *ngIf="!(tempGame || selectedGame)" class="card" style="min-height: 91vh; max-height: 91vh; overflow-y: auto;">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center">
             <label class="mat-headline-5">Globalne statystyki gier:</label>
