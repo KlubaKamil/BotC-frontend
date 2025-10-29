@@ -33,7 +33,8 @@ export class GamesComponent {
     let gameHeader = event.data;
     let id = gameHeader.id;
     this.sharedService.toggleView();
-    this.sharedService.navigate('games', id);
+    this.sharedService.changeLocation('games', id);
+    this.sharedService.fetchGameAndSelect(id);
   }
      
   customSort(event: SortEvent) {

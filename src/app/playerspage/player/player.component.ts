@@ -72,13 +72,13 @@ export class PlayerComponent {
     if (this.isEditing) {
       if(this.playerService.validate(this.tempPlayer!)){
         let dto = this.mapper.mapPlayerToDto(this.tempPlayer!);
-        this.playerService.handleHttpEvent(this.sharedService.postEntity(dto, 'player'));
+        this.playerService.handleHttpEvent(this.sharedService.postEntity(dto, 'player')).subscribe();
         this.sharedService.fetchPlayerAndSelect(this.selectedPlayer!.id!)
       }
     } else if(this.isCreating) {
       if(this.playerService.validate(this.tempPlayer!)){
         let dto = this.mapper.mapPlayerToDto(this.tempPlayer!);
-        this.playerService.handleHttpEvent(this.sharedService.putEntity(dto, 'player'));
+        this.playerService.handleHttpEvent(this.sharedService.putEntity(dto, 'player')).subscribe();
         this.cancel();
       }
     } else {
@@ -106,7 +106,7 @@ export class PlayerComponent {
 
       dialogRef.afterClosed().subscribe((result) => {
         if(result) {
-          this.playerService.handleHttpEvent(this.sharedService.deleteEntity(this.selectedPlayer?.id, 'player'));
+          this.playerService.handleHttpEvent(this.sharedService.deleteEntity(this.selectedPlayer?.id, 'player')).subscribe();
           this.cancel();
         } 
       });

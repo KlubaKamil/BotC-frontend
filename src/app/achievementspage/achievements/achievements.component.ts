@@ -31,6 +31,7 @@ export class AchievementsComponent {
     let achievementHeader = event.data;
     let id = achievementHeader.id;
     this.sharedService.toggleView();
-    this.sharedService.navigate('achievements', id)
+    this.sharedService.changeLocation('achievements', id);
+    this.sharedService.fetchAchievementAndSelect(id);
   }
 }

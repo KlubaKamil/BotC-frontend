@@ -55,7 +55,8 @@ export class PlayersComponent {
     let playerHeader = event.data;
     let id = playerHeader.id;
     this.sharedService.toggleView();
-    this.sharedService.navigate('players', id);
+    this.sharedService.changeLocation('players', id);
+    this.sharedService.fetchPlayerAndSelect(id);
   }
 
   getAlignmentGradient(gamesNumber: number, goodPercentage: number): string {

@@ -152,8 +152,9 @@ export class SharedService {
     this.router.navigate([`${tab}${groupToAppend}${idToAppend}`]);
   }
 
-  changeLocation(tab: string){
-    this.location.go(`/${tab}/${this.groupValue.name}`)
+  changeLocation(tab: string, id?: string){
+    const idToAppend = id ? `/${id}` : '';
+    this.location.go(`/${tab}/${this.groupValue.name}${idToAppend}`)
   }
 
   memberUser(username: string){
