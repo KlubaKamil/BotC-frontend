@@ -29,6 +29,10 @@ export class PlayerService {
           this.sharedService.fetchPlayerAndSelect(id);
         } else if (response.status === HttpStatusCode.Created) {
           this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Dodano nowego gracza!");
+        } else if(response.status === HttpStatusCode.NoContent){
+          this.sharedService.showDialog(DialogType.INFORMATION, "Usunięcie zakończone pomyślnie!")
+        } else {
+          this.sharedService.showDialog(DialogType.INFORMATION, 'Sukces!');
         }
         this.sharedService.fetchPlayerHeaders();
 

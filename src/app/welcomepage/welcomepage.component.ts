@@ -40,5 +40,16 @@ export class WelcomepageComponent {
         }
       }
     });
+    
+    const storedVersion = localStorage.getItem('appVersion');
+    const currentVersion = environment.appVersion;
+    if (storedVersion !== currentVersion) {
+      sessionStorage.clear(); 
+      caches.keys().then(keys => {
+        keys.forEach(key => caches.delete(key));
+      });
+
+      localStorage.setItem('appVersion', currentVersion);
+    }
   }
 }
