@@ -242,7 +242,7 @@ export class SettingsComponent {
       "\"kto jest lepszy\".\n" +
       "\n" +
       "Aplikacja pozwala także na wysyłanie powiadomień na swój serwer discordowy w momencie dodania/edycji wpisu,\n"+ 
-      "choć zostało to wyłączone w wersji v1.5.0 i zostanie przywrócone prawdopodobnie w wersji v1.6.0.\n" +
+      "choć zostało to wyłączone w wersji v1.5.0 i zostanie przywrócone prawdopodobnie w wersji v1.7.0.\n" +
       "W tym celu administrator grupy musi zainstalować na swoim serwerze discordowego bota Grimloga, który będzie wysyłał powiadomienia.\n" +
       "Odnośnik do tego znajduje się w zakładce Ustawienia.\n" +
       "\n" +
@@ -253,6 +253,15 @@ export class SettingsComponent {
 
   showChangeLog(){
     this.sharedService.showDialogWithInfoText(DialogType.INFORMATION, "Change log",
+      "v1.6.0 - 22/10/2025 - wiele zdjęć i narratorów, typy transformacji, logo\n" + 
+      "- dodano możliwość przydzielenia wielu narratorów do rozgrywki\n" + 
+      "- dodano możliwość dodania wielu zdjęć do rozgrywki\n" + 
+      "- dodano typy transformacji postaci\n" + 
+      "- dodano przycisk duplikowania rozgrywki (tworzy szkielet nowej rozgrywki z danymi z obecnej)\n" + 
+      "- dodano możliwość utworzenia gracza z poziomu gry\n" + 
+      "- poprawiono zachowanie dropdownów na małych ekranach\n" + 
+      "- zmieniono logo\n" + 
+      "\n" +
       "v1.5.0 - 11/09/2025 - grupy, discord, poprawa UI na małych ekranach\n" + 
       "- dodano system grup\n" + 
       "- dodano logowanie discordem\n" +

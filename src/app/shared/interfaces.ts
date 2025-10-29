@@ -50,7 +50,7 @@ export interface AchievementHeader{
 export interface GameDto {
   id?: number;
   script: ScriptDto;
-  storyteller: PlayerDto;
+  storytellers: PlayerDto[];
   fables: CharacterDto[];
   assignments: AssignmentDto[];
   goodWon: boolean;
@@ -171,6 +171,7 @@ export interface PlaceDto{
 export interface TransformationDto{
   character: CharacterDto;
   good: boolean;
+  type: TransformationType;
 }
 
 export interface PlayerAchievementDto {
@@ -201,7 +202,7 @@ export interface AchievementPlayerDetails{
 export class Game {
   id?: number;
   script?: Script;
-  storyteller?: Player;
+  storytellers?: Player[];
   fables?: Character[];
   assignments?: Assignment[];
   goodWon?: boolean;
@@ -267,6 +268,13 @@ export class Assignment {
 export class Transformation {
   character?: Character;
   good?: boolean;
+  type?: TransformationType;
+}
+
+export enum TransformationType {
+  BECOME = "Stał się",
+  GOT_ABILITY = "Zdobył zdolność",
+  THOUGHT_THAT_WAS = "Myślał, że był"
 }
 
 export class Achievement {

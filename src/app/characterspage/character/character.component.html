@@ -1,8 +1,8 @@
 <div class="d-flex w-100">
-    <button mat-raised-button class="flex-fill m-2" (click)="createNewCharacter()">Nowa</button>
-    <button *ngIf="selectedCharacter || tempCharacter" mat-raised-button class="flex-fill m-2" (click)="toggleEdit()">{{ isEditing || isCreating ? 'Zapisz' : 'Edytuj' }}</button>
-    <button *ngIf="selectedCharacter" mat-raised-button class="flex-fill m-2" (click)="deleteCharacter()">Usuń</button>
-    <button *ngIf="selectedCharacter || tempCharacter" mat-raised-button class="flex-fill m-2" (click)="cancel()">Anuluj</button>
+    <button mat-raised-button class="flex-fill m-1" (click)="createNewCharacter()">Nowa</button>
+    <button *ngIf="selectedCharacter || tempCharacter" mat-raised-button class="flex-fill m-1" (click)="toggleEdit()">{{ isEditing || isCreating ? 'Zapisz' : 'Edytuj' }}</button>
+    <button *ngIf="selectedCharacter" mat-raised-button class="flex-fill m-1" (click)="deleteCharacter()">Usuń</button>
+    <button *ngIf="selectedCharacter || tempCharacter" mat-raised-button class="flex-fill m-1" (click)="cancel()">Anuluj</button>
 </div>
 <div *ngIf="selectedCharacter || tempCharacter" class="card" style="min-height: 90vh; max-height: 90vh; overflow-y: auto;">
     <div class="card-body">
@@ -25,41 +25,41 @@
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder bg-stripped">
-            <label class="col-5 col-sm-4 fw-bold">Id:</label>
-            <label *ngIf="selectedCharacter" class="col-7 col-sm-8">{{ selectedCharacter.id }}</label>
+            <label class="col-4 fw-bold">Id:</label>
+            <label *ngIf="selectedCharacter" class="col-8">{{ selectedCharacter.id }}</label>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center">
-            <label class="col-5 col-sm-4 fw-bold">Nazwa:</label>
-            <div class="col-7 col-sm-8">
+            <label class="col-4 fw-bold">Nazwa:</label>
+            <div class="col-8">
                 <label *ngIf="!tempCharacter && selectedCharacter">{{ selectedCharacter.name }}</label>
                 <input *ngIf="tempCharacter" type="text" class="form-control" [(ngModel)]="tempCharacter.name">
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
-            <label class="col-5 col-sm-4 fw-bold">Przynależność:</label>
-            <div class="col-7 col-sm-8">
+            <label class="col-4 fw-bold">Przynależność:</label>
+            <div class="col-8">
                 <label *ngIf="!tempCharacter && selectedCharacter">{{ selectedCharacter.alignment }}</label>
                 <p-select pCloseOnBack *ngIf="tempCharacter" [options]="alignments" [(ngModel)]="tempCharacter.alignment" [filter]="true" appendTo="body"></p-select>     
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center">
-            <label class="col-5 col-sm-4 fw-bold">Max liczba wystąpień na start:</label>
-            <div class="col-7 col-sm-8">
+            <label class="col-4 fw-bold">Max liczba wystąpień na start:</label>
+            <div class="col-8">
                 <label *ngIf="!tempCharacter && selectedCharacter">{{ selectedCharacter.maxStartNumber }}</label>
                 <p-inputnumber *ngIf="tempCharacter" [(ngModel)]="tempCharacter.maxStartNumber" [min]="1" [max]="10" inputId="integeronly"/>
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
-            <label class="col-5 col-sm-4 fw-bold">Opis:</label>
-            <div class="col-7 col-sm-8">
+            <label class="col-4 fw-bold">Opis:</label>
+            <div class="col-8">
                 <label *ngIf="!tempCharacter && selectedCharacter">{{ selectedCharacter.description }}</label>
                 <textarea *ngIf="tempCharacter" class="form-control" [(ngModel)]="tempCharacter.description" cdkTextareaAutosize
                 #autosize="cdkTextareaAutosize" style="max-height: min(250px, 40vh); overflow-y: auto;"></textarea>
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center">
-            <label class="col-5 col-sm-4 fw-bold">Wiki:</label>
-            <div class="col-7 col-sm-8">
+            <label class="col-4 fw-bold">Wiki:</label>
+            <div class="col-8">
                 <a *ngIf="!tempCharacter && selectedCharacter" [href]="selectedCharacter!.linkToWiki" target="_blank" rel="noopener noreferrer">
                     <label style="max-width: 100%;">{{ selectedCharacter.linkToWiki }}</label>
                 </a>
@@ -67,8 +67,8 @@
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
-            <label class="col-5 col-sm-4 fw-bold">Wskazówki:</label>
-            <div class="col-7 col-sm-8">
+            <label class="col-4 fw-bold">Wskazówki:</label>
+            <div class="col-8">
                 <label *ngIf="!tempCharacter && selectedCharacter" style="white-space: pre-wrap;  width: 100%; max-height: min(250px, 40vh); overflow-y: auto;">{{ selectedCharacter.tips }}</label>
                 <textarea *ngIf="tempCharacter" class="form-control" [(ngModel)]="tempCharacter.tips" cdkTextareaAutosize
                 #autosize="cdkTextareaAutosize" style="max-height: min(250px, 40vh); overflow-y: auto;"></textarea>
@@ -77,20 +77,20 @@
         <label *ngIf="selectedCharacter && !tempCharacter" class="mat-headline-5 mt-5">Statystyki postaci:</label>
         <div *ngIf="selectedCharacter && !tempCharacter && selectedCharacter.characterDetails">
             <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
-                <label class="col-5 col-sm-4 fw-bold">Liczba rozgrywek:</label>
-                <div class="col-7 col-sm-8">
+                <label class="col-4 fw-bold">Liczba rozgrywek:</label>
+                <div class="col-8">
                     <label>{{ selectedCharacter.characterDetails.gamesNumber }}</label>
                 </div>
             </div>
             <div class="row pt-1 pb-1 myborder d-flex align-items-center">
-                <label class="col-5 col-sm-4 fw-bold">Liczba wygranych:</label>
-                <div class="col-7 col-sm-8">
+                <label class="col-4 fw-bold">Liczba wygranych:</label>
+                <div class="col-8">
                     <label>{{ selectedCharacter.characterDetails.wonGamesNumber }}</label>
                 </div>
             </div>
             <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
-                <label class="col-5 col-sm-4 fw-bold">% wygranych:</label>
-                <div class="col-7 col-sm-8">
+                <label class="col-4 fw-bold">% wygranych:</label>
+                <div class="col-8">
                     <label>{{ selectedCharacter.characterDetails.winRatio.toFixed(2) }}</label>
                 </div>
             </div>

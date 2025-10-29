@@ -1,14 +1,15 @@
 <div class="d-flex w-100">
-    <button mat-raised-button class="flex-fill m-2" (click)="createNewGame()">Nowa</button>
-    <button *ngIf="selectedGame || tempGame" mat-raised-button class="flex-fill m-2" (click)="toggleEdit()">{{ isEditing || isCreating ? 'Zapisz' : 'Edytuj' }}</button>
-    <button *ngIf="selectedGame"  mat-raised-button class="flex-fill m-2" (click)="deleteGame()">Usuń</button>
-    <button *ngIf="selectedGame || tempGame" mat-raised-button class="flex-fill m-2" (click)="cancel()">Anuluj</button>
+    <button mat-raised-button class="flex-fill m-1" (click)="createNewGame()">Nowa</button>
+    <button *ngIf="selectedGame || tempGame" mat-raised-button class="flex-fill m-1" (click)="toggleEdit()">{{ isEditing || isCreating ? 'Zapisz' : 'Edytuj' }}</button>
+    <button *ngIf="selectedGame && !tempGame" mat-raised-button class="flex-fill m-1" (click)="duplicate()">Duplikuj</button>
+    <button *ngIf="selectedGame"  mat-raised-button class="flex-fill m-1" (click)="deleteGame()">Usuń</button>
+    <button *ngIf="selectedGame || tempGame" mat-raised-button class="flex-fill m-1" (click)="cancel()">Anuluj</button>
 </div>
 <div *ngIf="selectedGame || tempGame" class="card" style="min-height: 90vh; max-height: 90vh; overflow-y: auto;" #scrollContainer>
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center">
             <label class="mat-headline-5">Szczegóły rozgrywki:</label>
-            <button *ngIf="!tempGame && selectedGame && selectedGame.imageUploaded" mat-fab color="secondary" class="col-7 col-sm-8" 
+            <button *ngIf="!tempGame && selectedGame && selectedGame.imageUploaded" mat-fab color="secondary" class="col-8" 
                 style="transform: scale(0.75); transform-origin: top right;" (click)="showImage()">
                 <mat-icon>image</mat-icon>
             </button>
@@ -24,12 +25,12 @@
             <input #fileInput type="file" accept="image/*" hidden (change)="addImage($event)"/>
         </div>
         <div class="row pt-1 pb-1 myborder bg-stripped">
-            <label class="col-5 col-sm-4 fw-bold">Id:</label>
-            <label *ngIf="selectedGame" class="col-7 col-sm-8">{{ selectedGame.id }}</label>
+            <label class="col-4 fw-bold">Id:</label>
+            <label *ngIf="selectedGame" class="col-8">{{ selectedGame.id }}</label>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center">
-            <label class="col-5 col-sm-4 fw-bold">Skrypt:</label>
-            <div class="col-7 col-sm-8">
+            <label class="col-4 fw-bold">Skrypt:</label>
+            <div class="col-8">
                 <a *ngIf="!tempGame && selectedGame" [routerLink]="[`/scripts/${group.name}/${selectedGame.script!.id}`]">
                     <label >{{ selectedGame.script!.name }}</label>
                 </a>
@@ -40,21 +41,35 @@
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
-            <label class="col-5 col-sm-4 fw-bold">Narrator:</label>
-            <div class="col-7 col-sm-8">
-                <a *ngIf="!tempGame && selectedGame" [routerLink]="[`/players/${group.name}/${selectedGame!.storyteller!.id}`]">
-                    <label>{{ selectedGame.storyteller!.name }}</label>   
-                </a>
-                <p-select pCloseOnBack *ngIf="tempGame" [options]="players" [ngModel]="tempGame.storyteller" (ngModelChange)="updateStoryteller($event)"
+            <label class="col-4 fw-bold">Narrator:</label>
+            <div class="col-8">
+                <div *ngIf="selectedGame && !tempGame" class="row">
+                    <a *ngFor="let storyteller of selectedGame!.storytellers" [routerLink]="[`/players/${group.name}/${storyteller.id}`]" class="w-100">
+                        <label >{{ storyteller.name }}</label>
+                    </a>
+                </div>
+                 <div *ngIf="tempGame">
+                    <p-select *ngFor="let storyteller of tempGame?.storytellers; let i = index" pCloseOnBack [options]="players" class="mb-2"
+                    [(ngModel)]="tempGame!.storytellers![i]" (onChange)="updateStoryteller(i, $event)" [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
+                        <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
+                        <ng-template let-storyteller #item>{{ storyteller.name }}</ng-template>
+                    </p-select>
+                    <p-select pCloseOnBack [options]="players" (onChange)="addStoryteller($event)" [filter]="true" filterBy="name" appendTo="body"
+                      [(ngModel)]="selectedStoryteller">
+                        <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
+                        <ng-template let-storyteller #item>{{ storyteller.name }}</ng-template>
+                    </p-select>
+                </div>
+                <!-- <p-select pCloseOnBack *ngIf="tempGame" [options]="players" [ngModel]="tempGame.storyteller" (ngModelChange)="updateStoryteller($event)"
                 [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
                     <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
                     <ng-template let-storyteller #item>{{ storyteller.name }}</ng-template>
-                </p-select>          
+                </p-select>           -->
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center">
-            <label class="col-5 col-sm-4 fw-bold">Legenda:</label>
-            <div class="col-7 col-sm-8">
+            <label class="col-4 fw-bold">Legenda:</label>
+            <div class="col-8">
                 <div *ngIf="selectedGame && !tempGame" class="row">
                     <a *ngFor="let fable of selectedGame!.fables" [routerLink]="[`/characters/${group.name}/${fable.id}`]" class="w-100">
                         <label >{{ fable.name }}</label>
@@ -75,8 +90,8 @@
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
-            <label class="col-5 col-sm-4 fw-bold">Zwyciezcy:</label>
-            <div class="col-7 col-sm-8">
+            <label class="col-4 fw-bold">Zwyciezcy:</label>
+            <div class="col-8">
                 <div *ngIf="!tempGame && selectedGame" >
                     <i class="pi pi-circle-fill" [ngStyle]="{'color': selectedGame.goodWon ? 'var(--blue)' : 'var(--red)'}" style="margin-right: 5px;"></i>
                     <span> {{ selectedGame.goodWon ? 'DOBRO' : 'ZŁO' }}</span>
@@ -85,29 +100,29 @@
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-fWlex align-items-center">
-            <label class="col-5 col-sm-4 fw-bold">Liczba graczy:</label>
-            <div class="col-7 col-sm-8">
+            <label class="col-4 fw-bold">Liczba graczy:</label>
+            <div class="col-8">
                 <label *ngIf="selectedGame">{{ selectedGame.assignments?.length }}</label>
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
-            <label class="col-5 col-sm-4 fw-bold">Data:</label>
-            <div class="col-7 col-sm-8">
+            <label class="col-4 fw-bold">Data:</label>
+            <div class="col-8">
                 <label *ngIf="!tempGame && selectedGame">{{ selectedGame.date }}</label>
                 <p-datepicker *ngIf="tempGame" dataType="string" [showIcon]="true" [(ngModel)]="tempGame.date" dateFormat="dd/mm/yy"></p-datepicker>
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center">
-            <label class="col-5 col-sm-4 fw-bold">Notatki:</label>
-            <div class="col-7 col-sm-8">
+            <label class="col-4 fw-bold">Notatki:</label>
+            <div class="col-8">
                 <label *ngIf="!tempGame && selectedGame" style="white-space: pre-wrap;  width: 100%; max-height: min(250px, 40vh); overflow-y: auto;">{{ selectedGame.notes }}</label>
                 <textarea *ngIf="tempGame" class="form-control" [(ngModel)]="tempGame.notes" cdkTextareaAutosize
                 #autosize="cdkTextareaAutosize" style="max-height: min(250px, 40vh); overflow-y: auto;"></textarea>
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
-            <label class="col-5 col-sm-4 fw-bold">Miejsce rozgrywki:</label>
-            <div class="col-7 col-sm-8" #dropdownWrapper>
+            <label class="col-4 fw-bold">Miejsce rozgrywki:</label>
+            <div class="col-8" #dropdownWrapper>
                 <label *ngIf="!tempGame && selectedGame" class="col-12">{{ selectedGame.place?.name }}</label>
                 <div class="d-flex">
                     <p-select pCloseOnBack *ngIf="tempGame" [options]="places" [(ngModel)]="tempGame.place" [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
@@ -121,8 +136,8 @@
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center">
-            <label class="col-5 col-sm-4 fw-bold">Balans:</label>
-            <div *ngIf="selectedGame || tempGame" class="col-7 col-sm-8">
+            <label class="col-4 fw-bold">Balans:</label>
+            <div *ngIf="selectedGame || tempGame" class="col-8">
                 <div *ngIf="selectedGame?.balanceMarks?.length == 0 || tempGame?.balanceMarks?.length == 0" class="mt-1">Brak ocen do wyświetlenia.</div>
                 <div *ngIf="selectedGame?.balanceMarks?.length! > 0 || tempGame?.balanceMarks?.length! > 0" class="mt-1">Obecne oceny - średnia: {{ averageBalanceMark.toFixed(1) }}, liczba ocen - {{ selectedGame!.balanceMarks!.length }}: {{ getBalanceMarksAsString() }}.</div>
                 <div class="mt-1">Ocena do dodania: {{ balanceSliderValue }}.</div>
@@ -153,12 +168,12 @@
             <div *ngIf="!tempGame && selectedGame">
                 <div class="character-item d-flex align-items-center p-2 border row"
                     *ngFor="let assignment of selectedGame?.assignments">
-                    <div class="col-3 col-sm-4">
+                    <div class="col-4 col-sm-4">
                         <a [routerLink]="[`/players/${group.name}/${assignment.player!.id}`]" style="text-decoration: none;">
                             <label class="d-block">{{ assignment.player!.name }}</label>
                         </a>
                     </div>
-                    <div class="col-7 d-flex align-items-center">
+                    <div class="col-6 col-sm-7 d-flex align-items-center">
                         <div style="width: 35px;">
                             <img [src]="apiUrl + '/character/' + group.id + '/image/' + imageSize + '/' + assignment.character?.id" style="max-width: 30px; max-height: 30px;">
                         </div>
@@ -171,9 +186,13 @@
                     </div>
                     <div *ngFor="let transformation of assignment.transformations" class="col-12">
                         <div class="row">
-                            <div class="col-0 col-sm-1"></div>
-                            <div class="col-3">Zmiana:</div>
-                            <div class="col-7 d-flex align-items-center">
+                            
+                            <div class="row col-12">
+                                <div class="col-2"></div>
+                                <hr class="col-10 my-1" style="height: 1px; border: none; background-color: #aaa;">
+                            </div>
+                            <div class="col-4 d-flex align-items-center justify-content-end text-end">{{ transformation.type }}</div>
+                            <div class="col-6 col-sm-7 d-flex align-items-center">
                                 <div style="width: 35px;">
                                     <img [src]="apiUrl + '/character/' + group.id + '/image/' + imageSize + '/' + transformation.character?.id" style="max-width: 30px; max-height: 30px;">            
                                 </div>
@@ -181,7 +200,7 @@
                                     {{ transformation.character?.name }}
                                 </a>
                             </div>
-                            <div class="col-2 col-sm-1">
+                            <div class="col-2 col-sm-1 d-flex align-items-center">
                                 <mat-icon [class.blue]="transformation.good" [class.red]="!transformation.good">circle</mat-icon>
                             </div>
                         </div>
@@ -190,10 +209,10 @@
             </div>
             <div *ngIf="tempGame">
                 <div *ngFor="let scriptCharacter of tempGame?.script?.scriptCharacters" class="character-item row p-2 border">
-                    <div class="col-5 col-sm-3 d-flex align-items-center">
+                    <div class="col-4 col-sm-3 d-flex align-items-center">
                         <label>{{ scriptCharacter.character!.name }}</label>
                     </div>
-                    <div class="col-7 col-sm-9">
+                    <div class="col-8 col-sm-9">
                         <div *ngFor="let e of [].constructor(scriptCharacter.character!.maxStartNumber); let i = index" class="row">
                             <p-divider *ngIf="i > 0"></p-divider>
                             <div class="col-12 col-sm-6 col-xxl-7">
@@ -211,9 +230,14 @@
                                 <p-button icon="pi pi-plus" rounded="true" severity="secondary" (onClick)="newTransformation(scriptCharacter.character!, i)"/>
                             </div>
                             <div *ngFor="let transformation of getAssignment(scriptCharacter.character!, i)?.transformations" class="col-12">
-                                <div class="row">
-                                    <label class="col-8 col-sm-2 d-flex align-items-center">Zmiana w:</label>
-                                    <div class="col-12 col-sm-5 col-xxl-6">
+                                    <hr class="flex-grow-1 my-2" style="height: 2px; border: none; background-color: #000;">
+                                    <div class="row">
+                                        <div class="col-12 col-sm-3">
+                                        <p-select pCloseOnBack [options]="transformationTypes" [(ngModel)]="transformation.type"
+                                        filterBy="name" appendTo="body">
+                                        </p-select>
+                                    </div>
+                                    <div class="col-12 col-sm-4 col-xxl-5">
                                         <p-select pCloseOnBack [options]="characters" [(ngModel)]="transformation.character"
                                         [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
                                             <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
@@ -237,10 +261,10 @@
         <label *ngIf="tempGame?.script" class="mat-headline-6" >Podróżnicy: </label>
         <div *ngIf="tempGame?.script">
             <div *ngFor="let character of availableTravellers" class="character-item row p-2 border" cdkDrag>
-                <div class="col-5 col-sm-3 d-flex align-items-center">
+                <div class="col-4 col-sm-3 d-flex align-items-center">
                     <label>{{ character.name }}</label>
                 </div>
-                <div class="col-7 col-sm-9">
+                <div class="col-8 col-sm-9">
                     <div *ngFor="let e of [].constructor(character.maxStartNumber); let i = index" class="row">
                         <p-divider *ngIf="i > 0"></p-divider>
                         <div class="col-12 col-sm-6 col-xxl-7">
@@ -259,8 +283,12 @@
                         </div>
                         <div *ngFor="let transformation of getAssignment(character, i)?.transformations" class="col-12">
                             <div class="row">
-                                <label class="col-8 col-sm-2 d-flex align-items-center">Zmiana w:</label>
-                                <div class="col-12 col-sm-5 col-xxl-6">
+                                <div class="col-12 col-sm-3">
+                                    <p-select pCloseOnBack [options]="transformationTypes" [(ngModel)]="transformation.type"
+                                    filterBy="name" appendTo="body">
+                                    </p-select>
+                                </div>
+                                <div class="col-12 col-sm-4 col-xxl-5">
                                     <p-select pCloseOnBack [options]="characters" [(ngModel)]="transformation.character"
                                     [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
                                         <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>

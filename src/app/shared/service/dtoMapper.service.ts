@@ -180,7 +180,7 @@ export class DtoMapperService {
         return {
             id: model.id,
             script: this.mapScriptToDto(model.script!),
-            storyteller: this.mapPlayerToDto(model.storyteller!),
+            storytellers: this.mapPlayersToDtos(model.storytellers!),
             fables: this.mapCharactersToDtos(model.fables!),
             assignments: this.mapAssignmentsToDtos(model.assignments!),
             goodWon: model.goodWon!,
@@ -200,7 +200,7 @@ export class DtoMapperService {
         return {
             id: dto.id,
             script: this.mapDtoToScript(dto.script),
-            storyteller: this.mapDtoToPlayer(dto.storyteller),
+            storytellers: this.mapDtosToPlayers(dto.storytellers),
             fables: this.mapDtosToCharacters(dto.fables),
             assignments: this.mapDtoToAssignments(dto.assignments),
             goodWon: dto.goodWon,
@@ -241,7 +241,8 @@ export class DtoMapperService {
     mapTransformationToDto(model: Transformation): TransformationDto {
         return {
             character: this.mapCharacterToDto(model.character!),
-            good: model.good!
+            good: model.good!,
+            type: model.type!
         };
     }
     
@@ -252,7 +253,8 @@ export class DtoMapperService {
     mapDtoToTransformation(dto: TransformationDto): Transformation {
         return {
             character: this.mapDtoToCharacter(dto.character),
-            good: dto.good
+            good: dto.good,
+            type: dto.type
         };
     }
     

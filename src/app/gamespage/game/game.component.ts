@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, ElementRef, ViewChild } from '@angular/core';
-import { Alignment, Assignment, Character, DialogType, Game, Group, NotificationMode, NotificationType, Place, Player, ResponseId, Script, Transformation } from '../../shared/interfaces'
+import { Alignment, Assignment, Character, DialogType, Game, Group, NotificationMode, NotificationType, Place, Player, ResponseId, Script, Transformation, TransformationType } from '../../shared/interfaces'
 import { CommonModule } from '@angular/common';
 import { environment } from '../../../environments/environment';
 import { SharedService } from '../../shared/service/shared.service';
@@ -61,6 +61,8 @@ export class GameComponent {
   isMobile = false;
   snackBarRef!: MatSnackBarRef<ProgressbarComponent>;
   selectedFable: Character | null = null;
+  selectedStoryteller: Player | null = null;
+  transformationTypes = Object.values(TransformationType);
 
   constructor(private sharedService: SharedService, private mapper: DtoMapperService, private route: ActivatedRoute, 
     private authService: AuthService, private snackBar: MatSnackBar, private cd: ChangeDetectorRef, private dialog: MatDialog) {
@@ -106,11 +108,24 @@ export class GameComponent {
       this.tempGame.goodWon = true;
       this.tempGame.assignments = [];
       this.tempGame.balanceMarks = [];
+      this.tempGame.storytellers = [];
       this.tempGame.fables = [];
       this.isEditing = false;
       this.isCreating = true;
       this.fetchData();
       this.sharedService.changeLocation('games');
+    }
+  }
+
+  async duplicate(){
+    if(await this.authService.isModTokenValid()){
+      this.fetchData();
+      this.tempGame = JSON.parse(JSON.stringify(this.selectedGame));
+      this.selectedGame = null;
+      this.tempGame!.id = undefined;
+      this.tempGame!.assignments = [];
+      this.tempGame!.notes = "";
+      this.isCreating = true;
     }
   }
 
@@ -174,9 +189,7 @@ export class GameComponent {
       a.player!.id !== player.id
     );
     //usuniecie storytellera jesli gracz zostal przypisany gdzie indziej
-    if(this.tempGame?.storyteller?.id == player.id){
-      this.tempGame!.storyteller = undefined;
-    }
+    this.tempGame!.storytellers = this.tempGame?.storytellers?.filter(s => s.id != player.id);
     let existingAssignment = this.getAssignment(character, index);
     if (existingAssignment) {
       existingAssignment.player = player;
@@ -191,9 +204,27 @@ export class GameComponent {
     existingAssignment!.good = good;
   }
 
-  updateStoryteller(player: Player){
-    this.tempGame!.assignments = this.tempGame!.assignments!.filter(a => a.player!.id != player.id);
-    this.tempGame!.storyteller = player;
+  updateStoryteller(i: number, event: any){
+    let storyteller = event.value;
+    if(!storyteller){
+      this.tempGame!.storytellers = this.tempGame?.storytellers?.filter((s, index) => i !== index)
+    } else {
+      this.tempGame!.storytellers = this.tempGame?.storytellers?.filter((s, index) => i === index || s !== storyteller)
+      this.tempGame!.assignments = this.tempGame?.assignments?.filter(a => a.player?.id != storyteller.id)
+    }
+  }
+  
+  async addStoryteller(event: any){
+    let storyteller = event.value;
+    let alreadyAdded = this.tempGame?.storytellers?.some(s => s === storyteller)
+    if(storyteller && !alreadyAdded){
+      this.tempGame?.storytellers?.push(storyteller);
+      this.tempGame!.assignments = this.tempGame?.assignments?.filter(a => a.player?.id != storyteller.id)
+    }
+    //chuj wie czemu event.originalEvent.target.blur() tutaj nie dziala
+    setTimeout(() => {
+      this.selectedStoryteller = null;
+    });
   }
 
   updateFable(i: number, event: any){
@@ -222,7 +253,7 @@ export class GameComponent {
     if(!assignment!.transformations){
       assignment!.transformations = [];
     }
-    assignment!.transformations?.push({});
+    assignment!.transformations?.push({type: TransformationType.BECOME});
   }
 
   removeTransformation(assignment: Assignment | undefined, transformation: Transformation){
@@ -348,7 +379,7 @@ export class GameComponent {
     if(!game.script){
       this.sharedService.showDialog(DialogType.INFORMATION, "Skrypt jest wymagany!");
       return false;
-    } else if(!game.storyteller) {
+    } else if(game.storytellers!.length == 0) {
       this.sharedService.showDialog(DialogType.INFORMATION, "Narrator jest wymagany!");
       return false;
     } else if(game.goodWon === undefined){
