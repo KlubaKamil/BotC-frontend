@@ -35,14 +35,14 @@
             <div class="col-8">
                 <div *ngIf="selectedGame && !tempGame" class="row">
                     <a *ngFor="let storyteller of selectedGame!.storytellers" [routerLink]="[`/players/${group.name}/${storyteller.id}`]" class="w-100">
-                        <label >{{ storyteller.name }}</label>
+                        <label >{{ storyteller.name }}{{ storyteller.discordName ? ' (' + storyteller.discordName + ')' : '' }}</label>
                     </a>
                 </div>
                  <div *ngIf="tempGame">
                     <p-select *ngFor="let storyteller of tempGame?.storytellers; let i = index" pCloseOnBack [options]="players" class="mb-2"
                     [(ngModel)]="tempGame!.storytellers![i]" (onChange)="updateStoryteller(i, $event)" [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
-                        <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
-                        <ng-template let-storyteller #item>{{ storyteller.name }}</ng-template>
+                        <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}{{ selectedOption.discordName ? ' (' + selectedOption.discordName + ')' : '' }}</ng-template>
+                        <ng-template let-storyteller #item>{{ storyteller.name }}{{ storyteller.discordName ? ' (' + storyteller.discordName + ')' : '' }}</ng-template>
                     </p-select>
                     <p-select pCloseOnBack [options]="players" (onChange)="addStoryteller($event)" [filter]="true" filterBy="name" appendTo="body"
                       [(ngModel)]="selectedStoryteller">
@@ -160,7 +160,7 @@
                     *ngFor="let assignment of selectedGame?.assignments">
                     <div class="col-4 col-sm-4">
                         <a [routerLink]="[`/players/${group.name}/${assignment.player!.id}`]" style="text-decoration: none;">
-                            <label class="d-block">{{ assignment.player!.name }}</label>
+                            <label class="d-block">{{ assignment.player!.name }}{{ assignment.player!.discordName ? ' (' + assignment.player!.discordName + ')' : '' }}</label>
                         </a>
                     </div>
                     <div class="col-6 col-sm-7 d-flex align-items-center">
@@ -207,8 +207,8 @@
                             <div class="col-12 col-sm-6 col-xxl-7">
                                 <p-select #playerSelect pCloseOnBack [options]="players" [ngModel]="getAssignment(scriptCharacter.character!, i)?.player" (ngModelChange)="updateAssignment(scriptCharacter.character!, $event, i)"
                                 [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
-                                    <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
-                                    <ng-template let-player #item>{{ player.name }}</ng-template>
+                                    <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}{{ selectedOption.discordName ? ' (' + selectedOption.discordName + ')' : '' }}</ng-template>
+                                    <ng-template let-player #item>{{ player.name }}{{ player.discordName ? ' (' + player.discordName + ')' : '' }}</ng-template>
                                     <ng-template pTemplate="footer">
                                         <div style="height: 60px;">
                                             <button mat-raised-button style="width: 100%" (click)="addNewPlayer(playerSelect, scriptCharacter, i)">➕ Dodaj nowego gracza</button>
@@ -265,7 +265,7 @@
                             <p-select pCloseOnBack [options]="players" [ngModel]="getAssignment(character, i)?.player" (ngModelChange)="updateAssignment(character, $event, i)"
                             [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
                                 <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
-                                <ng-template let-player #item>{{ player.name }}</ng-template>
+                                <ng-template let-player #item>{{ player.name }}{{ player.discordName ? ' (' + player.discordName + ')' : '' }}</ng-template>
                             </p-select>
                         </div>
                         <div class="col-8 col-sm-4" *ngIf="getAssignment(character, i)">
