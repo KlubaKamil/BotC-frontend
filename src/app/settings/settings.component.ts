@@ -12,6 +12,7 @@ import { TableModule } from 'primeng/table';
 import { SelectBackCloseDirective } from '../select-back-close-directive/select-back-close.directive';
 import { ActivatedRoute, Router } from '@angular/router';
 import { environment } from '../../environments/environment';
+import { ConfigService } from '../config/config.service';
 
 @Component({
   selector: 'app-settings',
@@ -20,8 +21,8 @@ import { environment } from '../../environments/environment';
   styleUrl: './settings.component.css'
 })
 export class SettingsComponent {
-  discordOauthUrl = environment.discordOauthUrl;
-  discordServerUrl = environment.discordServerUrl;
+  discordOauthUrl;
+  discordServerUrl;
   username = localStorage.getItem('username')
   token = localStorage.getItem('jwt');
   groups: Group[] = [];
@@ -29,8 +30,10 @@ export class SettingsComponent {
   users: User[] = [];
 
   constructor(private dialogRef: MatDialogRef<SettingsComponent>, private sharedService: SharedService, private authService: AuthService,
-    private router: Router, private route: ActivatedRoute){
+    private router: Router, private route: ActivatedRoute, private config: ConfigService){
     this.selectedGroup = JSON.parse(localStorage.getItem('group')!);
+    this.discordOauthUrl = this.config.discordOauthUrl;
+    this.discordServerUrl = this.config.discordServerUrl;
   }
 
   async ngOnInit(){
@@ -44,7 +47,6 @@ export class SettingsComponent {
     if(this.authService.isMember() && await this.authService.isMemberTokenValid()){
       this.sharedService.fetchGroupUsers();
     }
-
   }
 
   login(){
@@ -99,9 +101,9 @@ export class SettingsComponent {
         'dodawać oceny balansu gry.'
       );
       new Promise(() => {
-        dialogRef.afterClosed().subscribe(async (username) => {
-          if(username) {
-            this.sharedService.memberUser(username);
+        dialogRef.afterClosed().subscribe(async (user) => {
+          if(user && user.id) {
+            this.sharedService.memberUser(user);
           }
         })
       })
@@ -115,9 +117,9 @@ export class SettingsComponent {
         'Tutaj możesz wybrać jednego z członków Twojej grupy, którego chcesz z niej wyrzucić'
       );
       new Promise(() => {
-        dialogRef.afterClosed().subscribe(async (username) => {
-          if(username) {
-            this.sharedService.unmemberUser(username);
+        dialogRef.afterClosed().subscribe(async (user) => {
+          if(user && user.id) {
+            this.sharedService.unmemberUser(user);
           }
         })
       })
@@ -133,9 +135,9 @@ export class SettingsComponent {
         'dodawać nowych członków grupy.'
       );
       new Promise(() => {
-        dialogRef.afterClosed().subscribe(async (username) => {
-          if(username) {
-            this.sharedService.modUser(username);
+        dialogRef.afterClosed().subscribe(async (user) => {
+          if(user && user.id) {
+            this.sharedService.modUser(user);
           }
         })
       })
@@ -150,9 +152,9 @@ export class SettingsComponent {
         'moderatora. Zostanie on zdegradowany do roli członka grupy.'
       );
       new Promise(() => {
-        dialogRef.afterClosed().subscribe(async (username) => {
-          if(username) {
-            this.sharedService.unmodUser(username);
+        dialogRef.afterClosed().subscribe(async (user) => {
+          if(user && user.id) {
+            this.sharedService.unmodUser(user);
           }
         })
       })
@@ -169,9 +171,9 @@ export class SettingsComponent {
         'i usuwać jej moderatorów, a także tworzyć wpisy we wszystkich kategoriach.'
       );
       new Promise(() => {
-        dialogRef.afterClosed().subscribe(async (username) => {
-          if(username) {
-            this.sharedService.adminUser(username);
+        dialogRef.afterClosed().subscribe(async (user) => {
+          if(user && user.id) {
+            this.sharedService.adminUser(user);
           }
         })
       })
@@ -186,9 +188,9 @@ export class SettingsComponent {
         'administratora. Zostanie on zdegradowany do roli członka grupy.'
       );
       new Promise(() => {
-        dialogRef.afterClosed().subscribe(async (username) => {
-          if(username) {
-            this.sharedService.unadminUser(username);
+        dialogRef.afterClosed().subscribe(async (user) => {
+          if(user && user.id) {
+            this.sharedService.unadminUser(user);
           }
         })
       })

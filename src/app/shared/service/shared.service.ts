@@ -157,10 +157,10 @@ export class SharedService {
     this.location.go(`/${tab}/${this.groupValue.name}${idToAppend}`)
   }
 
-  memberUser(username: string){
-    this.http.post<ResponseId>(`${this.apiUrl}/user/member/${this.groupValue.id}/${username}`, null).subscribe({
+  memberUser(user: User){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/member/${this.groupValue.id}/${user.id}`, null).subscribe({
       next: (result) => {
-        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został dodany do grona użytkowników grupy ${this.groupValue.name}.`);
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${user.name} został dodany do grona użytkowników grupy ${this.groupValue.name}.`);
         this.fetchGroupUsers();
       },
       error: (error) => {
@@ -169,22 +169,22 @@ export class SharedService {
     })
   }
 
-  unmemberUser(username: string){
-    this.http.post<ResponseId>(`${this.apiUrl}/user/unmember/${this.groupValue.id}/${username}`, null).subscribe({
+  unmemberUser(user: User){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/unmember/${this.groupValue.id}/${user.id}`, null).subscribe({
       next: (result) => {
-        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został usunięty z grona członków grupy ${this.groupValue.name}.`);
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${user.name} został usunięty z grona członków grupy ${this.groupValue.name}.`);
         this.fetchGroupUsers();
       },
       error: (error) => {
-        this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas usuwania użytkownika ${username} z grona użytkowników grupy ${this.groupValue.name}`);
+        this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas usuwania użytkownika ${user.name} z grona użytkowników grupy ${this.groupValue.name}`);
       }
     })
   }
 
-  modUser(username: string){
-    this.http.post<ResponseId>(`${this.apiUrl}/user/mod/${this.groupValue.id}/${username}`, null).subscribe({
+  modUser(user: User){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/mod/${this.groupValue.id}/${user.id}`, null).subscribe({
       next: (result) => {
-        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został dodany do grona moderatorów grupy ${this.groupValue.name}.`);
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${user.name} został dodany do grona moderatorów grupy ${this.groupValue.name}.`);
         this.fetchGroupUsers();
       },
       error: (error) => {        
@@ -193,22 +193,22 @@ export class SharedService {
     })
   }
 
-  unmodUser(username: string){
-    this.http.post<ResponseId>(`${this.apiUrl}/user/unmod/${this.groupValue.id}/${username}`, null).subscribe({
+  unmodUser(user: User){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/unmod/${this.groupValue.id}/${user.id}`, null).subscribe({
       next: (result) => {
-        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został zdegradowany z moderatora do członka grupy ${this.groupValue.name}.`);
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${user.name} został zdegradowany z moderatora do członka grupy ${this.groupValue.name}.`);
         this.fetchGroupUsers();
       },
       error: (error) => {
-        this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas usuwania użytkownika ${username} z moderatorów grupy ${this.groupValue.name}`);
+        this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas usuwania użytkownika ${user.name} z moderatorów grupy ${this.groupValue.name}`);
       }
     })
   }
 
-  adminUser(username: string){
-    this.http.post<ResponseId>(`${this.apiUrl}/user/admin/${this.groupValue.id}/${username}`, null).subscribe({
+  adminUser(user: User){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/admin/${this.groupValue.id}/${user.id}`, null).subscribe({
       next: (result) => {
-        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został dodany do grona administratorów grupy ${this.groupValue.name}.`);
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${user.name} został dodany do grona administratorów grupy ${this.groupValue.name}.`);
         this.fetchGroupUsers();
       },
       error: (error) => {
@@ -217,14 +217,14 @@ export class SharedService {
     })
   }
 
-  unadminUser(username: string){
-    this.http.post<ResponseId>(`${this.apiUrl}/user/unadmin/${this.groupValue.id}/${username}`, null).subscribe({
+  unadminUser(user: User){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/unadmin/${this.groupValue.id}/${user.id}`, null).subscribe({
       next: (result) => {
-        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został zdegradowany z administratora do członka grupy ${this.groupValue.name}.`);
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${user.name} został zdegradowany z administratora do członka grupy ${this.groupValue.name}.`);
         this.fetchGroupUsers();
       },
       error: (error) => {
-        this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas usuwania użytkownika ${username} z administratorów grupy ${this.groupValue.name}`);
+        this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas usuwania użytkownika ${user.name} z administratorów grupy ${this.groupValue.name}`);
       }
     })
   }

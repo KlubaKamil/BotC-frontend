@@ -11,6 +11,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { SelectModule } from 'primeng/select';
 import { SelectBackCloseDirective } from '../select-back-close-directive/select-back-close.directive';
+import { ConfigService } from '../config/config.service';
 
 @Component({
   selector: 'app-dialog',
@@ -22,14 +23,16 @@ import { SelectBackCloseDirective } from '../select-back-close-directive/select-
 })
 export class DialogComponent {
   apiUrl = environment.apiUrl;
-  discordOauthUrl = environment.discordOauthUrl;
+  discordOauthUrl;
   types = DialogType;
   text: string = '';
   password: string = '';
   selectedOption: any;
   timestamp: number = Date.now();
 
-  constructor(private dialogRef: MatDialogRef<DialogComponent>, @Inject(MAT_DIALOG_DATA) public data: any) {}
+  constructor(private dialogRef: MatDialogRef<DialogComponent>, @Inject(MAT_DIALOG_DATA) public data: any, private config: ConfigService) {
+    this.discordOauthUrl = this.config.discordOauthUrl;
+  }
 
   close() {
     this.dialogRef.close(false);
@@ -44,7 +47,7 @@ export class DialogComponent {
   }
 
   confirmSelection(){
-    this.dialogRef.close(this.selectedOption.name);
+    this.dialogRef.close(this.selectedOption);
   }
 
   confirmLogin(){

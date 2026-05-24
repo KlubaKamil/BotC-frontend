@@ -21,7 +21,6 @@ export class WelcomepageComponent {
   constructor(private route: ActivatedRoute, private sharedService: SharedService, private authService: AuthService) {}
 
   ngOnInit() {
-    console.log('halo')
     let hasVisited = localStorage.getItem('hasVisited');
     if(!hasVisited){
       this.sharedService.showDialogWithInfoText(DialogType.INFORMATION, "Witaj w Grimlogu po raz pierwszy!", 
@@ -45,9 +44,11 @@ export class WelcomepageComponent {
     const currentVersion = environment.appVersion;
     if (storedVersion !== currentVersion) {
       sessionStorage.clear(); 
-      caches.keys().then(keys => {
-        keys.forEach(key => caches.delete(key));
-      });
+      if(typeof caches !== 'undefined'){
+        caches.keys().then(keys => {
+          keys.forEach(key => caches.delete(key));
+        });
+      }
 
       localStorage.setItem('appVersion', currentVersion);
     }
