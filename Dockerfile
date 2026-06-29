@@ -1,4 +1,4 @@
-#docker buildx build --platform linux/arm64 -t 192.168.1.19:30500/botc-frontend:latest --push  .
+#docker buildx build --platform linux/arm64 -t 192.168.1.19:30500/botc-frontend:1.7.0 --push  .
 
 FROM node:24 AS build
 WORKDIR /app

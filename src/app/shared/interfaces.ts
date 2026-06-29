@@ -319,6 +319,7 @@ export enum NotificationType {
 }
 
 export enum NotificationMode {
+  EDIT_CHANNELS = "EDIT_CHANNELS",
   NEW = "NEW",
   UPDATE = "UPDATE"
 }
@@ -333,12 +334,7 @@ export class DiscordNotification{
   id?: number;
   notificationType?: NotificationType;
   notificationMode?: NotificationMode
-  channelsToNotify?: DiscordNotifiedChannel[];
-}
-
-export class DiscordNotifiedChannel {
-  id ?: string;
-  channelType ?: DiscordChannelType;
+  discordRootDto?: DiscordRootDto;
 }
 
 export interface DiscordRootDto {
@@ -346,22 +342,24 @@ export interface DiscordRootDto {
 }
 
 export interface DiscordServerDto {
-  id: string;
+  discordGuildId: string;
   name: string;
   channels: DiscordChannelDto[];
 }
 
 export interface DiscordChannelDto {
-  id: string;
+  discordChannelId: string;
   name: string;
   channelType: DiscordChannelType;
   threads: DiscordThreadDto[];
+  allowed: boolean;
 }
 
 export interface DiscordThreadDto {
-  id: string;
+  discordThreadId: string;
   name: string;
   channelType: DiscordChannelType;
+  allowed: boolean;
 }
 
 export interface DiscordRoot {
@@ -370,24 +368,25 @@ export interface DiscordRoot {
 }
 
 export interface DiscordServer {
-  id: string,
+  discordGuildId: string,
   name: string,
   channels: DiscordChannel[]
   expandedChannels: { [key: string]: boolean }
-  selectedRow: any;
 }
 
 export interface DiscordChannel {
-  id: string,
+  discordChannelId: string,
   name: string
   channelType: DiscordChannelType,
-  threads: DiscordThread[]
+  threads: DiscordThread[],
+  allowed: boolean
 }
 
 export interface DiscordThread {
-  id: string,
+  discordThreadId: string,
   name: string
   channelType: DiscordChannelType;
+  allowed: boolean
 }
 
 export interface BotcJwtPayload extends JwtPayload {

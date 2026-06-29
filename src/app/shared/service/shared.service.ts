@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, catchError, firstValueFrom, map, Observable, of } from 'rxjs';
-import { Character, CharacterDto, DialogType, Game, GameDto, Player, PlayerDto, Script, ScriptDto, Place, PlaceDto, GameHeader, ScriptHeader, CharacterHeader, PlayerHeader, Achievement, AchievementHeader, AchievementDto, NotificationType, NotificationMode, DiscordNotification, DiscordRoot, DiscordRootDto, ResponseId, BotcJwtPayload, Group, User } from '../interfaces'
+import { Character, CharacterDto, DialogType, Game, GameDto, Player, PlayerDto, Script, ScriptDto, Place, PlaceDto, GameHeader, ScriptHeader, CharacterHeader, PlayerHeader, Achievement, AchievementHeader, AchievementDto, NotificationType, NotificationMode, DiscordRoot, DiscordRootDto, ResponseId, Group, User, DiscordNotification } from '../interfaces'
 import { MatDialog } from '@angular/material/dialog';
 import { DialogComponent } from '../../dialog/dialog.component';
 import { HttpClient, HttpEvent, HttpResponse, HttpStatusCode } from '@angular/common/http';
@@ -678,12 +678,12 @@ export class SharedService {
     })
   }
 
-  showNotificationDialog(notificationType: NotificationType, id: number, notificationMode: NotificationMode){
+  showDiscordDialog(notificationMode: NotificationMode, notificationType?: NotificationType, id?: number){
     return this.dialog.open(DiscordDialogComponent, {
       data: {
+        notificationMode: notificationMode,
         id: id,
-        notificationType: notificationType, 
-        notificationMode: notificationMode
+        notificationType: notificationType
       }
     })
   }
@@ -707,8 +707,21 @@ export class SharedService {
   //   })
   // }
 
-  sendNotification(discordNotification: DiscordNotification){
-    this.http.post(this.apiUrl + `/notification`, discordNotification).subscribe({
+  
+  saveDiscordChannels(discordRoot: DiscordRoot){
+    let discordRootDto = this.mapper.mapDiscordRootToDto(discordRoot);
+    this.http.post(`${this.apiUrl}/discord/${this.groupValue.id}/channels`, discordRootDto).subscribe({
+      next: () => {
+        this.showDialog(DialogType.INFORMATION, "Kanały zapisane.")
+      },
+      error: () => {
+        this.showDialog(DialogType.INFORMATION, "Coś poszło nie tak podczas zapisywania kanałów.")
+      }
+    });
+  }
+
+  sendDiscordNotification(discordNotification: DiscordNotification){
+    this.http.post(`${this.apiUrl}/discord/notifications/${this.groupValue.id}`, discordNotification).subscribe({
       next: () => {
         this.showDialog(DialogType.INFORMATION, "Powiadomienie wysłane.")
       },
@@ -718,17 +731,17 @@ export class SharedService {
     });
   }
 
-  fetchDiscordServers(discordRoot: DiscordRoot){
-    this.http.get<DiscordRootDto>(`${this.apiUrl}/notification`).subscribe({
+  fetchDiscordServers(discordRoot: DiscordRoot, path: string){
+    this.http.get<DiscordRootDto>(`${this.apiUrl}/discord/${this.groupValue.id}${path}`).subscribe({
       next: (response) => {
         let mappedResponse = this.mapper.mapDtoToDiscordRoot(response);
         discordRoot.servers = mappedResponse.servers;
         discordRoot!.servers.forEach(s => {
           if(!discordRoot!.expandedServers) discordRoot!.expandedServers = {};
-          discordRoot!.expandedServers[s.id] = true;
+          discordRoot!.expandedServers[s.discordGuildId] = true;
           s.channels.forEach(c => {
             if(!s.expandedChannels) s.expandedChannels = {};
-            s.expandedChannels[c.id] = true;
+            s.expandedChannels[c.discordChannelId] = true;
           })
         })
       },

@@ -228,7 +228,7 @@ export class ScriptComponent {
           let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, 'Edycja zakończona pomyślnie!');
           dialogRef.afterClosed().subscribe((notifyDiscord) => {
             if(notifyDiscord) {
-              this.sharedService.showNotificationDialog(NotificationType.SCRIPT, id, NotificationMode.UPDATE);
+              this.sharedService.showDiscordDialog(NotificationMode.UPDATE, NotificationType.SCRIPT, id);
             }
           });
           this.sharedService.fetchScriptAndSelect(this.selectedScript!.id!);
@@ -236,7 +236,7 @@ export class ScriptComponent {
           let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, 'Dodano nowy skrypt!');
           dialogRef.afterClosed().subscribe((notifyDiscord) => {
             if(notifyDiscord) {
-              this.sharedService.showNotificationDialog(NotificationType.SCRIPT, id, NotificationMode.NEW);
+              this.sharedService.showDiscordDialog(NotificationMode.NEW, NotificationType.SCRIPT, id);
             }
           });
           this.cancel();

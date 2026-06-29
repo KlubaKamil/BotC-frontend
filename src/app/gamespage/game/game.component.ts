@@ -472,7 +472,7 @@ export class GameComponent {
         let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończona pomyślnie!")
         dialogRef.afterClosed().subscribe((notifyDiscord) => {
           if(notifyDiscord) {
-            this.sharedService.showNotificationDialog(NotificationType.GAME, id, NotificationMode.UPDATE);
+            this.sharedService.showDiscordDialog(NotificationMode.UPDATE, NotificationType.GAME, id);
           }
         });
         if(this.snackBarRef){
@@ -489,7 +489,7 @@ export class GameComponent {
         let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Dodano nową rozgrywkę!")
         dialogRef.afterClosed().subscribe((notifyDiscord) => {
           if(notifyDiscord) {
-            this.sharedService.showNotificationDialog(NotificationType.GAME, id, NotificationMode.NEW);
+            this.sharedService.showDiscordDialog(NotificationMode.NEW, NotificationType.GAME, id);
           }
         });
         if(this.snackBarRef){

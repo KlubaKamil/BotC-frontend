@@ -115,7 +115,7 @@ export class AchievementComponent {
           let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończona pomyślnie!")
           dialogRef.afterClosed().subscribe((notifyDiscord) => {
             if(notifyDiscord) {
-              this.sharedService.showNotificationDialog(NotificationType.ACHIEVEMENT, id, NotificationMode.UPDATE);
+              this.sharedService.showDiscordDialog(NotificationMode.UPDATE, NotificationType.ACHIEVEMENT, id);
             }
           });
           this.sharedService.fetchAchievementAndSelect(this.selectedAchievement!.id!)
@@ -123,7 +123,7 @@ export class AchievementComponent {
           let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Dodano nowe osiągnięcie!")
           dialogRef.afterClosed().subscribe((notifyDiscord) => {
             if(notifyDiscord) {
-              this.sharedService.showNotificationDialog(NotificationType.ACHIEVEMENT, id, NotificationMode.NEW);
+              this.sharedService.showDiscordDialog(NotificationMode.NEW, NotificationType.ACHIEVEMENT, id);
             }
           });
           this.cancel();

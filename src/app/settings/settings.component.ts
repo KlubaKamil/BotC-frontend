@@ -3,7 +3,7 @@ import { Component, ElementRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { SharedService } from '../shared/service/shared.service';
-import { DialogType, Group, Role, User } from '../shared/interfaces';
+import { DialogType, Group, NotificationMode, Role, User } from '../shared/interfaces';
 import { MatDialogContent, MatDialogRef } from '@angular/material/dialog';
 import { SelectModule } from 'primeng/select';
 import { AuthService } from '../authservice/auth.service';
@@ -197,6 +197,10 @@ export class SettingsComponent {
     }
   }
 
+  editDiscordChannels(){
+    this.sharedService.showDiscordDialog(NotificationMode.EDIT_CHANNELS);
+  }
+
   async createNewGroup(){
     if(await this.authService.isGlobalAdminTokenValid()){
       let dialogRef = this.sharedService.showDialog(DialogType.INSERTION, "Podaj nazwę nowej grupy");
@@ -255,6 +259,9 @@ export class SettingsComponent {
 
   showChangeLog(){
     this.sharedService.showDialogWithInfoText(DialogType.INFORMATION, "Change log",
+      "v1.7.0 - 28.06.2026 - Discord\n" + 
+      "- przywrócono wysyłanie powiadomień na Discord\n" + 
+      "- zmieniono definicje gracza na Imię + Nick na Discord\n" + 
       "v1.6.0 - 22/10/2025 - wiele zdjęć i narratorów, typy transformacji, logo\n" + 
       "- dodano możliwość przydzielenia wielu narratorów do rozgrywki\n" + 
       "- dodano możliwość dodania wielu zdjęć do rozgrywki\n" + 

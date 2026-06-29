@@ -8,7 +8,7 @@ import { AuthService } from '../authservice/auth.service';
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const token = localStorage.getItem('jwt');
-  const authReq = token && (req.method !== 'GET' || req.url.includes('/user'))
+  const authReq = token && (req.method !== 'GET' || req.url.includes('/user') || req.url.includes('/discord'))
     ? req.clone({
         setHeaders: { Authorization: `Bearer ${token}` }
       })
