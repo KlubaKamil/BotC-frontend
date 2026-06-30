@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, ElementRef, ViewChild } from '@angular/core';
-import { Alignment, Assignment, Character, DialogType, Game, Group, NotificationMode, NotificationType, Place, Player, ResponseId, Script, Transformation } from '../../shared/interfaces'
+import { Alignment, Assignment, Character, DialogType, Game, Group, NotificationMode, NotificationType, Place, Player, PlayerDto, ResponseId, Script, ScriptCharacter, Transformation, TransformationType } from '../../shared/interfaces'
 import { CommonModule } from '@angular/common';
 import { environment } from '../../../environments/environment';
 import { SharedService } from '../../shared/service/shared.service';
@@ -29,6 +29,8 @@ import { PlaceComponent } from '../../place/place.component';
 import { ProgressbarComponent } from '../../progressbar/progressbar.component';
 import { SelectBackCloseDirective } from '../../select-back-close-directive/select-back-close.directive';
 import { DropdownModule } from 'primeng/dropdown';
+import { PhotoDialogComponent } from '../../photo-dialog/photo-dialog.component';
+import { PlayerService } from '../../playerspage/playerService/player.service';
 
 @Component({
   selector: 'app-game',
@@ -55,15 +57,19 @@ export class GameComponent {
   availableFables: Character[] = [];
   formData: FormData | null = null;
   isPhotoUploaded: boolean = false;
+  imagesToDelete: string[] = [];
   balanceSliderValue = 0;
   averageBalanceMark = 0;
   imageSize = 100;
   isMobile = false;
   snackBarRef!: MatSnackBarRef<ProgressbarComponent>;
   selectedFable: Character | null = null;
+  selectedStoryteller: Player | null = null;
+  transformationTypes = Object.values(TransformationType);
 
   constructor(private sharedService: SharedService, private mapper: DtoMapperService, private route: ActivatedRoute, 
-    private authService: AuthService, private snackBar: MatSnackBar, private cd: ChangeDetectorRef, private dialog: MatDialog) {
+    private authService: AuthService, private snackBar: MatSnackBar, private cd: ChangeDetectorRef, 
+    private dialog: MatDialog, private playerService: PlayerService) {
   }
 
   ngOnInit() {
@@ -106,11 +112,26 @@ export class GameComponent {
       this.tempGame.goodWon = true;
       this.tempGame.assignments = [];
       this.tempGame.balanceMarks = [];
+      this.tempGame.storytellers = [];
       this.tempGame.fables = [];
       this.isEditing = false;
       this.isCreating = true;
+      this.formData = new FormData();
       this.fetchData();
       this.sharedService.changeLocation('games');
+    }
+  }
+
+  async duplicate(){
+    if(await this.authService.isModTokenValid()){
+      this.fetchData();
+      this.tempGame = JSON.parse(JSON.stringify(this.selectedGame));
+      this.selectedGame = null;
+      this.tempGame!.id = undefined;
+      this.tempGame!.assignments = [];
+      this.tempGame!.notes = "";
+      this.formData = new FormData();
+      this.isCreating = true;
     }
   }
 
@@ -131,6 +152,7 @@ export class GameComponent {
         this.fetchData();
         this.tempGame = JSON.parse(JSON.stringify(this.selectedGame));
         this.isEditing = true;
+        this.formData = new FormData();
       }
     }
   }
@@ -174,9 +196,7 @@ export class GameComponent {
       a.player!.id !== player.id
     );
     //usuniecie storytellera jesli gracz zostal przypisany gdzie indziej
-    if(this.tempGame?.storyteller?.id == player.id){
-      this.tempGame!.storyteller = undefined;
-    }
+    this.tempGame!.storytellers = this.tempGame?.storytellers?.filter(s => s.id != player.id);
     let existingAssignment = this.getAssignment(character, index);
     if (existingAssignment) {
       existingAssignment.player = player;
@@ -191,9 +211,27 @@ export class GameComponent {
     existingAssignment!.good = good;
   }
 
-  updateStoryteller(player: Player){
-    this.tempGame!.assignments = this.tempGame!.assignments!.filter(a => a.player!.id != player.id);
-    this.tempGame!.storyteller = player;
+  updateStoryteller(i: number, event: any){
+    let storyteller = event.value;
+    if(!storyteller){
+      this.tempGame!.storytellers = this.tempGame?.storytellers?.filter((s, index) => i !== index)
+    } else {
+      this.tempGame!.storytellers = this.tempGame?.storytellers?.filter((s, index) => i === index || s !== storyteller)
+      this.tempGame!.assignments = this.tempGame?.assignments?.filter(a => a.player?.id != storyteller.id)
+    }
+  }
+  
+  async addStoryteller(event: any){
+    let storyteller = event.value;
+    let alreadyAdded = this.tempGame?.storytellers?.some(s => s === storyteller)
+    if(storyteller && !alreadyAdded){
+      this.tempGame?.storytellers?.push(storyteller);
+      this.tempGame!.assignments = this.tempGame?.assignments?.filter(a => a.player?.id != storyteller.id)
+    }
+    //chuj wie czemu event.originalEvent.target.blur() tutaj nie dziala
+    setTimeout(() => {
+      this.selectedStoryteller = null;
+    });
   }
 
   updateFable(i: number, event: any){
@@ -222,7 +260,7 @@ export class GameComponent {
     if(!assignment!.transformations){
       assignment!.transformations = [];
     }
-    assignment!.transformations?.push({});
+    assignment!.transformations?.push({type: TransformationType.BECOME});
   }
 
   removeTransformation(assignment: Assignment | undefined, transformation: Transformation){
@@ -233,35 +271,30 @@ export class GameComponent {
     this.tempGame!.assignments = [];
   }
 
-  showImage(){
-    let date = this.selectedGame?.date ? ', ' + this.selectedGame?.date : '';
-    let place = this.selectedGame?.place ? ', ' + this.selectedGame?.place.name : '';
-    this.sharedService.showPhotoDialog(
-      DialogType.PHOTOGRAPHY, 
-      `Gra ${this.selectedGame?.id}, ${this.selectedGame?.script?.name}${place}${date}`, 
-      `${this.apiUrl}/game/${this.group.id}/${this.selectedGame?.id}/image`)
-  }
+  showPhotoDialog(){
+    if (this.tempGame) {
+      let dialogRef = this.sharedService.showPhotoDialog(this.tempGame!, this.formData!);
 
-  addImage(event: Event){
-    const input = event.target as HTMLInputElement;
-    const maxSizeInMB = 10;  
-    const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
-    if (input.files && input.files.length > 0) {
-      const file = input.files[0];
-      if (file.size > maxSizeInBytes) {
-        this.sharedService.showDialog(DialogType.INFORMATION, "Maksymalny rozmiar zdjęcia to 15MB.");
-      } else {
-        this.formData = new FormData();
-        this.formData.append('image', file);
-        this.isPhotoUploaded = true;
-        this.snackBar.open('Gotowe do zapisania.', undefined, {
-          duration: 2000,
-          horizontalPosition: 'right',
-          verticalPosition: 'top',
-        });
-      }
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.isPhotoUploaded = true;
+          this.formData = result.formData;
+          this.imagesToDelete = result.imagesToDelete;
+        }
+      });
+    } else {
+      this.sharedService.showPhotoDialog(this.selectedGame!);
     }
   }
+
+  // showImage(){
+  //   let date = this.selectedGame?.date ? ', ' + this.selectedGame?.date : '';
+  //   let place = this.selectedGame?.place ? ', ' + this.selectedGame?.place.name : '';
+  //   this.sharedService.showPhotoDialog(
+  //     DialogType.PHOTOGRAPHY, 
+  //     `Gra ${this.selectedGame?.id}, ${this.selectedGame?.script?.name}${place}${date}`, 
+  //     `${this.apiUrl}/game/${this.group.id}/${this.selectedGame?.id}/image`)
+  // }
 
   async addBalanceMark(){
     if(await this.authService.isMemberTokenValid()){
@@ -327,6 +360,30 @@ export class GameComponent {
     return this.authService.isMember();
   }
 
+  //Niech Bóg ma mnie w swej opiece...
+  addNewPlayer(playerSelect: Select, scriptCharacter: ScriptCharacter, index: number){
+    playerSelect.hide();
+    const dialogRef = this.sharedService.showDialog(DialogType.INSERTION, 'Podaj imię nowego gracza:');
+    dialogRef.afterClosed().subscribe((result) => {
+      if(result){
+        const dto = {name: result, playerAchievements: []} as PlayerDto;
+        this.playerService.handleHttpEvent(this.sharedService.putEntity(dto, 'player')).subscribe((id) => 
+          this.sharedService.getAllPlayers().subscribe((players) => {
+            if(id){
+              this.sharedService.setPlayers(players);
+              const player = this.players.find(p => p.id === id);
+              if(player){
+                this.updateAssignment(scriptCharacter.character!, player, index);
+              } else {
+                this.sharedService.showDialog(DialogType.INFORMATION, 'Coś poszło nie tak');
+              }
+            }
+          })
+        );
+      }
+    })
+  }
+
   private calculateBalance(){
     let length = this.selectedGame?.balanceMarks?.length!;
     if(length > 0){
@@ -348,7 +405,7 @@ export class GameComponent {
     if(!game.script){
       this.sharedService.showDialog(DialogType.INFORMATION, "Skrypt jest wymagany!");
       return false;
-    } else if(!game.storyteller) {
+    } else if(game.storytellers!.length == 0) {
       this.sharedService.showDialog(DialogType.INFORMATION, "Narrator jest wymagany!");
       return false;
     } else if(game.goodWon === undefined){
@@ -410,12 +467,12 @@ export class GameComponent {
       if(this.isPhotoUploaded){
         this.isPhotoUploaded = false;
         this.openProgressBar();
-        this.handleHttpEvent(this.sharedService.postEntityWithProgress(this.formData, 'game', `${id}/image`), true)
+        this.handleHttpEvent(this.sharedService.postGameImages(this.formData!, this.imagesToDelete, `${id}`))
       } else {
         let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończona pomyślnie!")
         dialogRef.afterClosed().subscribe((notifyDiscord) => {
           if(notifyDiscord) {
-            this.sharedService.showNotificationDialog(NotificationType.GAME, id, NotificationMode.UPDATE);
+            this.sharedService.showDiscordDialog(NotificationMode.UPDATE, NotificationType.GAME, id);
           }
         });
         if(this.snackBarRef){
@@ -427,12 +484,12 @@ export class GameComponent {
       if(this.isPhotoUploaded){
         this.isPhotoUploaded = false;
         this.openProgressBar();
-        this.handleHttpEvent(this.sharedService.putEntityWithProgress(this.formData, 'game', `${id}/image`), true);
+        this.handleHttpEvent(this.sharedService.postGameImages(this.formData!, this.imagesToDelete, `${id}`));
       } else {
         let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Dodano nową rozgrywkę!")
         dialogRef.afterClosed().subscribe((notifyDiscord) => {
           if(notifyDiscord) {
-            this.sharedService.showNotificationDialog(NotificationType.GAME, id, NotificationMode.NEW);
+            this.sharedService.showDiscordDialog(NotificationMode.NEW, NotificationType.GAME, id);
           }
         });
         if(this.snackBarRef){

@@ -4,15 +4,17 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { TableModule } from 'primeng/table';
-import { DiscordChannelType, DiscordRoot, DiscordNotification, DialogType } from '../shared/interfaces';
+import { DiscordChannelType, DiscordRoot, DialogType, NotificationMode } from '../shared/interfaces';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { SharedService } from '../shared/service/shared.service';
 import { MatIconModule } from '@angular/material/icon';
+import { CheckboxModule } from "primeng/checkbox";
+import { DtoMapperService } from '../shared/service/dtoMapper.service';
 
 @Component({
   selector: 'app-discord-dialog',
-  imports: [CommonModule, MatButtonModule, FormsModule, TableModule, MatDialogModule, MatIconModule],
+  imports: [CommonModule, MatButtonModule, FormsModule, TableModule, MatDialogModule, MatIconModule, CheckboxModule],
   templateUrl: './discord-dialog.component.html',
   styleUrl: './discord-dialog.component.css'
 })
@@ -20,47 +22,60 @@ export class DiscordDialogComponent {
   discordRoot: DiscordRoot = {} as DiscordRoot;
   channelTypes = DiscordChannelType;
   apiUrl = environment.apiUrl;
+  notificationMode: NotificationMode;
+  title: string;
 
   constructor(private dialogRef: MatDialogRef<DiscordDialogComponent>, @Inject(MAT_DIALOG_DATA) public data: any,
-    private http: HttpClient, private sharedService: SharedService) {}
+    private http: HttpClient, private sharedService: SharedService, private dtoMapper: DtoMapperService) {
+      this.notificationMode = this.data.notificationMode;
+      this.title =  this.notificationMode === NotificationMode.EDIT_CHANNELS 
+      ? 'Zaznacz kanały dostępne do powiadomienia' 
+      : 'Zaznacz kanały do powiadomienia';
+  }
   
   ngOnInit() {
-    this.sharedService.fetchDiscordServers(this.discordRoot);
+    let path = this.notificationMode === NotificationMode.EDIT_CHANNELS ? '/all' : '/allowed';
+    this.sharedService.fetchDiscordServers(this.discordRoot, path);
   }
 
   close() {
     this.dialogRef.close();
   }
 
-  sendNotification(){
-    let discordNotification: DiscordNotification = {};
-    discordNotification.id = this.data.id;
-    discordNotification.notificationType = this.data.notificationType.valueOf();
-    discordNotification.notificationMode = this.data.notificationMode.valueOf();
-    discordNotification.channelsToNotify = [];
-    this.discordRoot!.servers.forEach(s => {
-      let selectedRow = s.selectedRow
-      if(selectedRow) {
-        discordNotification.channelsToNotify!.push({
-          id: selectedRow.id, 
-          channelType: selectedRow.channelType})
-      }
-    });
-    this.sharedService.sendNotification(discordNotification);
+  saveDiscordChannels() {
+    this.sharedService.saveDiscordChannels(this.discordRoot);
+    this.close();
+  }
+
+  sendDiscordNotification(){
+    let discordNotification = {
+      id: this.data.id,
+      notificationType: this.data.notificationType,
+      notificationMode: this.notificationMode,
+      discordRootDto: this.dtoMapper.mapDiscordRootToDto(this.discordRoot)
+    }
+    this.sharedService.sendDiscordNotification(discordNotification);
     this.close();
   }
 
   showHelp(){
-    this.sharedService.showDialogWithInfoText(DialogType.INFORMATION, "Jak to działa?", 
-      "Ukazane są tutaj serwery discordowe, na których Grimlog został zainstalowany.\n" + 
-      "Aby kanał był widoczny, muszą zostać spełnione następujące warunki:\n" +
-      "- Grimlog musi mieć możliwośc pisania na kanale/w wątku\n" + 
-      "- jeśli serwer ma w nazwie \"blood\", wtedy widoczne są wszystkie kanały i wątki,\n" +
-      "  w pozostałych przypadkach wyświetlone zostaną tylko kanały z \"blood\" w nazwie" +
-      "- jeśli typ kanału to \"forum\", to analogicznie:\n" +
-      "   - jeśli zawiera w nazwie \"blood\", wyświetlone zostaną wszystkie wątki\n" +
-      "   - jeśli nie zawiera, wyświetlone zostaną tylko wątki z \"blood\" w nazwie\n" +
-      "Powiadomienie może zostac wysłane na jeden kanał/wątek na serwer."
-    );
+    if(this.notificationMode === NotificationMode.EDIT_CHANNELS){
+      this.sharedService.showDialogWithInfoText(DialogType.INFORMATION, "Jak to działa?", 
+        "Ukazane są tutaj serwery discordowe, na których Grimlog został zainstalowany.\n" + 
+        "Aby kanał był widoczny, muszą zostać spełnione następujące warunki:\n" +
+        "- Role @everyone musi mieć możliwośc pisania na kanale/w wątku\n" + 
+        "- musi to być kanał typu TEXT lub FORUM\n" +
+        "Zaznaczone kanały/wątki będą widoczne w oknie powiadomień, które otwiera się\n" + 
+        "po edycji wpisu, a powiadomienie zostanie wysłane na nie po kliknięciu przycisku\n" + 
+        "\"Wyślij\".\n"
+      );
+    } else {
+      this.sharedService.showDialogWithInfoText(DialogType.INFORMATION, "Jak to działa?", 
+        "Ukazane są tutaj serwery discordowe, na których Grimlog został zainstalowany.\n" + 
+        "Powiadomienie zostanie wysłane na kanały/wątki, które zostały zaznaczone.\n" +
+        "W przypadku wysyłania powiadomienia na temat gry, zostaną także wysłane zdjęcia,\n" +
+        "które zostały dodane do rozgrywki.\n"
+      );
+    }
   }
 }

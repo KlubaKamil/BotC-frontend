@@ -1,33 +1,33 @@
 <div class="d-flex w-100">
-    <button mat-raised-button class="flex-fill m-2" (click)="createNewAchievement()">Nowe</button>
-    <button *ngIf="selectedAchievement || tempAchievement" mat-raised-button class="flex-fill m-2" (click)="toggleEdit()">{{ isEditing || isCreating ? 'Zapisz' : 'Edytuj' }}</button>
-    <button *ngIf="selectedAchievement" mat-raised-button class="flex-fill m-2" (click)="deleteAchievement()">Usuń</button>
-    <button *ngIf="selectedAchievement || tempAchievement" mat-raised-button class="flex-fill m-2" (click)="cancel()">Anuluj</button>
+    <button mat-raised-button class="flex-fill m-1" (click)="createNewAchievement()">Nowe</button>
+    <button *ngIf="selectedAchievement || tempAchievement" mat-raised-button class="flex-fill m-1" (click)="toggleEdit()">{{ isEditing || isCreating ? 'Zapisz' : 'Edytuj' }}</button>
+    <button *ngIf="selectedAchievement" mat-raised-button class="flex-fill m-1" (click)="deleteAchievement()">Usuń</button>
+    <button *ngIf="selectedAchievement || tempAchievement" mat-raised-button class="flex-fill m-1" (click)="cancel()">Anuluj</button>
 </div>
-<div *ngIf="selectedAchievement || tempAchievement" class="card" style="min-height: 90vh; max-height: 90vh; overflow-y: auto;">
+<div *ngIf="selectedAchievement || tempAchievement" class="card" style="min-height: 91vh; max-height: 91vh; overflow-y: auto;">
     <div class="card-body">
         <label class="mat-headline-5">Szczegóły osiągnięcia:</label>
         <div class="row pt-1 pb-1 myborder bg-stripped">
-            <label class="col-5 col-sm-4 fw-bold">Id:</label>
-            <label *ngIf="selectedAchievement" class="col-7 col-sm-8">{{ selectedAchievement.id }}</label>
+            <label class="col-4 fw-bold">Id:</label>
+            <label *ngIf="selectedAchievement" class="col-8">{{ selectedAchievement.id }}</label>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center">
-            <label class="col-5 col-sm-4 fw-bold">Nazwa:</label>
-            <div class="col-7 col-sm-8">
+            <label class="col-4 fw-bold">Nazwa:</label>
+            <div class="col-8">
                 <label *ngIf="!tempAchievement && selectedAchievement">{{ selectedAchievement.name }}</label>
                 <input *ngIf="tempAchievement" type="text" class="form-control" [(ngModel)]="tempAchievement.name">
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center bg-stripped">
-            <label class="col-5 col-sm-4 fw-bold">Opis:</label>
-            <div class="col-7 col-sm-8">
+            <label class="col-4 fw-bold">Opis:</label>
+            <div class="col-8">
                 <label *ngIf="!tempAchievement && selectedAchievement">{{ selectedAchievement.description }}</label>
                 <input *ngIf="tempAchievement" type="text" class="form-control" [(ngModel)]="tempAchievement.description">
             </div>
         </div>
         <div class="row pt-1 pb-1 myborder d-flex align-items-center">
-            <label class="col-5 col-sm-4 fw-bold">Liczba zdobyć:</label>
-            <div class="col-7 col-sm-8">
+            <label class="col-4 fw-bold">Liczba zdobyć:</label>
+            <div class="col-8">
                 <label *ngIf="!tempAchievement && selectedAchievement">{{ selectedAchievement.achievementDetails?.accomplishmentNumber }}</label>
             </div>
         </div>

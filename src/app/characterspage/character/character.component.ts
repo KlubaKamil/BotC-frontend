@@ -207,7 +207,7 @@ export class CharacterComponent {
         let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończone pomyślnie!")
         dialogRef.afterClosed().subscribe((notifyDiscord) => {
           if(notifyDiscord) {
-            this.sharedService.showNotificationDialog(NotificationType.CHARACTER, id, NotificationMode.UPDATE);
+            this.sharedService.showDiscordDialog(NotificationMode.UPDATE, NotificationType.CHARACTER, id);
           }
         });
         if(this.snackBarRef){
@@ -227,7 +227,7 @@ export class CharacterComponent {
         let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Dodano nową postać!")
         dialogRef.afterClosed().subscribe((notifyDiscord) => {
           if(notifyDiscord) {
-            this.sharedService.showNotificationDialog(NotificationType.CHARACTER, id, NotificationMode.NEW);
+            this.sharedService.showDiscordDialog(NotificationMode.NEW, NotificationType.CHARACTER, id);
           }
         });
         if(this.snackBarRef){

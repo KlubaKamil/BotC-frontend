@@ -42,7 +42,10 @@
         </ng-container>
         <ng-container *ngIf="isGlobalAdmin()">
           <button mat-raised-button class="w-100 mb-2 mt-3" color="secondary" (click)="addAdmin()">Dodaj administratora grupy</button>
-          <button mat-raised-button class="w-100" color="secondary" (click)="removeAdmin()">Usuń administratora grupy</button>
+          <button mat-raised-button class="w-100 mb-2" color="secondary" (click)="removeAdmin()">Usuń administratora grupy</button>
+        </ng-container>
+        <ng-container *ngIf="isGroupAdmin()">
+          <button mat-raised-button class="w-100 mb-2 mt-3" color="secondary" (click)="editDiscordChannels()">Edytuj kanały Discorda</button>
         </ng-container>
       </div>
     </div>
@@ -55,7 +58,7 @@
   <div class="row mt-4">
     <div class="col-12 col-md-6 order-1 order-md-2 d-flex justify-content-md-end justify-content-center mb-2 mb-md-0">
       <div *ngIf="!token" class="d-flex flex-column gap-2 w-100 w-md-auto">
-        <!-- <button mat-raised-button color="secondary" (click)="login()">Zaloguj</button> -->
+        <button mat-raised-button color="secondary" (click)="login()">Zaloguj</button>
         <a mat-raised-button class="discord-button text-center"
           [href]="discordOauthUrl">
           <mat-icon iconPositionEnd>discord</mat-icon>

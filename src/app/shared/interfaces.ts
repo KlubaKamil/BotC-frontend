@@ -50,7 +50,7 @@ export interface AchievementHeader{
 export interface GameDto {
   id?: number;
   script: ScriptDto;
-  storyteller: PlayerDto;
+  storytellers: PlayerDto[];
   fables: CharacterDto[];
   assignments: AssignmentDto[];
   goodWon: boolean;
@@ -171,6 +171,7 @@ export interface PlaceDto{
 export interface TransformationDto{
   character: CharacterDto;
   good: boolean;
+  type: TransformationType;
 }
 
 export interface PlayerAchievementDto {
@@ -201,7 +202,7 @@ export interface AchievementPlayerDetails{
 export class Game {
   id?: number;
   script?: Script;
-  storyteller?: Player;
+  storytellers?: Player[];
   fables?: Character[];
   assignments?: Assignment[];
   goodWon?: boolean;
@@ -267,6 +268,13 @@ export class Assignment {
 export class Transformation {
   character?: Character;
   good?: boolean;
+  type?: TransformationType;
+}
+
+export enum TransformationType {
+  BECOME = "Stał się",
+  GOT_ABILITY = "Zdobył zdolność",
+  THOUGHT_THAT_WAS = "Myślał, że był"
 }
 
 export class Achievement {
@@ -311,6 +319,7 @@ export enum NotificationType {
 }
 
 export enum NotificationMode {
+  EDIT_CHANNELS = "EDIT_CHANNELS",
   NEW = "NEW",
   UPDATE = "UPDATE"
 }
@@ -325,12 +334,7 @@ export class DiscordNotification{
   id?: number;
   notificationType?: NotificationType;
   notificationMode?: NotificationMode
-  channelsToNotify?: DiscordNotifiedChannel[];
-}
-
-export class DiscordNotifiedChannel {
-  id ?: string;
-  channelType ?: DiscordChannelType;
+  discordRootDto?: DiscordRootDto;
 }
 
 export interface DiscordRootDto {
@@ -338,22 +342,24 @@ export interface DiscordRootDto {
 }
 
 export interface DiscordServerDto {
-  id: string;
+  discordGuildId: string;
   name: string;
   channels: DiscordChannelDto[];
 }
 
 export interface DiscordChannelDto {
-  id: string;
+  discordChannelId: string;
   name: string;
   channelType: DiscordChannelType;
   threads: DiscordThreadDto[];
+  allowed: boolean;
 }
 
 export interface DiscordThreadDto {
-  id: string;
+  discordThreadId: string;
   name: string;
   channelType: DiscordChannelType;
+  allowed: boolean;
 }
 
 export interface DiscordRoot {
@@ -362,24 +368,25 @@ export interface DiscordRoot {
 }
 
 export interface DiscordServer {
-  id: string,
+  discordGuildId: string,
   name: string,
   channels: DiscordChannel[]
   expandedChannels: { [key: string]: boolean }
-  selectedRow: any;
 }
 
 export interface DiscordChannel {
-  id: string,
+  discordChannelId: string,
   name: string
   channelType: DiscordChannelType,
-  threads: DiscordThread[]
+  threads: DiscordThread[],
+  allowed: boolean
 }
 
 export interface DiscordThread {
-  id: string,
+  discordThreadId: string,
   name: string
   channelType: DiscordChannelType;
+  allowed: boolean
 }
 
 export interface BotcJwtPayload extends JwtPayload {

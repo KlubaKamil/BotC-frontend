@@ -180,7 +180,7 @@ export class DtoMapperService {
         return {
             id: model.id,
             script: this.mapScriptToDto(model.script!),
-            storyteller: this.mapPlayerToDto(model.storyteller!),
+            storytellers: this.mapPlayersToDtos(model.storytellers!),
             fables: this.mapCharactersToDtos(model.fables!),
             assignments: this.mapAssignmentsToDtos(model.assignments!),
             goodWon: model.goodWon!,
@@ -200,7 +200,7 @@ export class DtoMapperService {
         return {
             id: dto.id,
             script: this.mapDtoToScript(dto.script),
-            storyteller: this.mapDtoToPlayer(dto.storyteller),
+            storytellers: this.mapDtosToPlayers(dto.storytellers),
             fables: this.mapDtosToCharacters(dto.fables),
             assignments: this.mapDtoToAssignments(dto.assignments),
             goodWon: dto.goodWon,
@@ -241,7 +241,8 @@ export class DtoMapperService {
     mapTransformationToDto(model: Transformation): TransformationDto {
         return {
             character: this.mapCharacterToDto(model.character!),
-            good: model.good!
+            good: model.good!,
+            type: model.type!
         };
     }
     
@@ -252,7 +253,8 @@ export class DtoMapperService {
     mapDtoToTransformation(dto: TransformationDto): Transformation {
         return {
             character: this.mapDtoToCharacter(dto.character),
-            good: dto.good
+            good: dto.good,
+            type: dto.type
         };
     }
     
@@ -316,9 +318,10 @@ export class DtoMapperService {
 
     mapDiscordThreadToDto(model: DiscordThread): DiscordThreadDto {
         return { 
-            id: model.id, 
+            discordThreadId: model.discordThreadId, 
             name: model.name,
-            channelType: model.channelType
+            channelType: model.channelType,
+            allowed: model.allowed
         };
     }
     
@@ -328,9 +331,10 @@ export class DtoMapperService {
     
     mapDtoToDiscordThread(dto: DiscordThreadDto): DiscordThread {
         return { 
-            id: dto.id, 
+            discordThreadId: dto.discordThreadId, 
             name: dto.name,
-            channelType: dto.channelType
+            channelType: dto.channelType,
+            allowed: dto.allowed
         };
     }
     
@@ -341,10 +345,11 @@ export class DtoMapperService {
     
     mapDiscordChannelToDto(model: DiscordChannel): DiscordChannelDto {
         return {
-          id: model.id,
+          discordChannelId: model.discordChannelId,
           name: model.name,
           channelType: model.channelType,
-          threads: this.mapDiscordThreadsToDtos(model.threads)
+          threads: this.mapDiscordThreadsToDtos(model.threads),
+          allowed: model.allowed
         };
     }
     
@@ -354,10 +359,11 @@ export class DtoMapperService {
     
     mapDtoToDiscordChannel(dto: DiscordChannelDto): DiscordChannel {
         return {
-          id: dto.id,
+          discordChannelId: dto.discordChannelId,
           name: dto.name,
           channelType: dto.channelType,
-          threads: this.mapDtosToDiscordThreads(dto.threads)
+          threads: this.mapDtosToDiscordThreads(dto.threads),
+          allowed: dto.allowed
         };
     }
     
@@ -368,7 +374,7 @@ export class DtoMapperService {
 
     mapDiscordServerToDto(model: DiscordServer): DiscordServerDto {
         return {
-          id: model.id,
+          discordGuildId: model.discordGuildId,
           name: model.name,
           channels: this.mapDiscordChannelsToDtos(model.channels)
         };
@@ -380,11 +386,10 @@ export class DtoMapperService {
     
     mapDtoToDiscordServer(dto: DiscordServerDto): DiscordServer {
         return {
-          id: dto.id,
+          discordGuildId: dto.discordGuildId,
           name: dto.name,
           channels: this.mapDtosToDiscordChannels(dto.channels),
-          expandedChannels: {},
-          selectedRow: null
+          expandedChannels: {}
         };
     }
     

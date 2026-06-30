@@ -1,8 +1,12 @@
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
 /* Main container */
 .main-container {
     position: relative;
     width: 100%;
-    height: 100%;
     overflow-x: hidden;
 }
 
@@ -16,11 +20,9 @@
 /* Individual slide views */
 .slide {
     width: 50%; /* Ensure slide takes full viewport width */
-    height: 100vh; /* Full height */
-    flex-shrink: 0;
+    flex-shrink: 1;
     overflow-y: auto;
     padding-top: 0.5rem;
-    box-sizing: border-box; /* Include padding in the element's total width */
 }
 
 /* Ensure app-game fits inside the slide (remove overflow) */
@@ -45,19 +47,14 @@
 
 /* Hide slider on large screens and show both views */
 @media (min-width: 1200px) {
-    .main-container {
-        height: 95%;
-    }
-
     .slider-container {
         transform: none !important;
         width: 100% !important;
     }
 
-    .slide {
-        height: 95vh;
-        width: 50% !important; /* 50% width for desktop screens */
-    }
+    /* .slide {
+        height: 91vh;
+    } */
 
     .right {
         padding-left: 0.5rem;

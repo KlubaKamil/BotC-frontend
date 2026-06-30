@@ -35,6 +35,7 @@ export class ScriptsComponent {
     let scriptHeader = event.data;
     let id = scriptHeader.id;
     this.sharedService.toggleView();
-    this.sharedService.navigate('/scripts', id)
+    this.sharedService.changeLocation('scripts', id);
+    this.sharedService.fetchScriptAndSelect(id);
   }
 }

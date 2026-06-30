@@ -1,11 +1,11 @@
 <div style="max-height: 90vh; overflow-y: auto;">
     <div class="d-flex justify-content-between">
-        <label mat-dialog-title class="mat-headline-5">Zaznacz kanały do powiadomienia</label>
+        <label mat-dialog-title class="mat-headline-5">{{ title }}</label>
         <button mat-fab color="secondary" (click)="showHelp()" class="mt-1" style="transform: scale(0.85);">
             <mat-icon>question_mark</mat-icon>
         </button>
     </div>
-    <p-table #tableServers [value]="discordRoot!.servers!" dataKey="id" [expandedRowKeys]="discordRoot!.expandedServers" 
+    <p-table #tableServers [value]="discordRoot!.servers!" dataKey="discordGuildId" [expandedRowKeys]="discordRoot!.expandedServers" 
     [tableStyle]="{ 'min-width': '40rem' }">
         <ng-template #header>
             <tr>
@@ -24,8 +24,7 @@
         <ng-template #expandedrow let-server>
             <tr>
                 <td colspan="2">
-                    <p-table #tableChannels [value]="server.channels" dataKey="id" [expandedRowKeys]="server.expandedChannels" 
-                    selectionMode="single" [(selection)]="server.selectedRow">
+                    <p-table #tableChannels [value]="server.channels" dataKey="discordChannelId" [expandedRowKeys]="server.expandedChannels">
                         <ng-template #header>
                             <tr>
                                 <th style="width: 2rem"></th>
@@ -37,31 +36,35 @@
                         <ng-template #body let-channel>
                             <tr [pSelectableRow]="channel.channelType === channelTypes.TEXT ? channel : null" (click)="tableChannels.toggleRow(channel)">
                                 <td></td>
-                                <td *ngIf="channel.channelType !== channelTypes.FORUM"></td>
+                                <td *ngIf="channel.channelType !== channelTypes.FORUM">
+                                    <p-checkbox [(ngModel)]="channel.allowed" [binary]="true"></p-checkbox>
+                                </td>
                                 <td *ngIf="channel.channelType === channelTypes.FORUM">
-                                    <i class="pi" [ngClass]="tableChannels.isRowExpanded(channel) ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
+                                    <i class="pi ms-1" [ngClass]="tableChannels.isRowExpanded(channel) ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
                                 </td>
                                 <td>{{ channel.name }}</td>
                                 <td>{{ channel.channelType == channelTypes.TEXT ? "Kanał tekstowy" : "Kanał z dyskusjami" }}</td>
                             </tr>
                         </ng-template>
                         <ng-template #expandedrow let-channel>
-                        <ng-container *ngIf="channel.channelType === channelTypes.FORUM">
-                            <tr>
-                                <td colspan="4">
-                                        <p-table [value]="channel.threads" selectionMode="single" [(selection)]="server.selectedRow"> 
-                                        <ng-template #header>
-                                            <tr>
-                                            <th style="width: 22rem"></th>
-                                            <th>Nazwa dyskusji</th>
-                                            </tr>
-                                        </ng-template>
-                                        <ng-template #body let-thread>
-                                            <tr [pSelectableRow]="thread">
-                                            <td></td>
-                                            <td>{{ thread.name }}</td>
-                                            </tr>
-                                        </ng-template>
+                            <ng-container *ngIf="channel.channelType === channelTypes.FORUM">
+                                <tr>
+                                    <td colspan="4">
+                                        <p-table [value]="channel.threads"> 
+                                            <ng-template #header>
+                                                <tr>
+                                                    <th style="width: 14.5rem"></th>
+                                                    <th>Nazwa dyskusji</th>
+                                                </tr>
+                                            </ng-template>
+                                            <ng-template #body let-thread>
+                                                <tr>
+                                                    <td>
+                                                        <p-checkbox class="ms-3" [(ngModel)]="thread.allowed" [binary]="true"></p-checkbox>
+                                                    </td>
+                                                    <td>{{ thread.name }}</td>
+                                                </tr>
+                                            </ng-template>
                                         </p-table>
                                     </td>
                                 </tr>
@@ -73,7 +76,8 @@
         </ng-template>
     </p-table>
     <mat-dialog-actions style="min-width: 300px; justify-content: flex-end;">
-    <button mat-raised-button class="m-2" (click)="sendNotification()">Wyślij</button>
+    <button *ngIf="this.notificationMode == 'EDIT_CHANNELS'" mat-raised-button class="m-2" (click)="saveDiscordChannels()">Zapisz</button>
+    <button *ngIf="this.notificationMode != 'EDIT_CHANNELS'" mat-raised-button class="m-2" (click)="sendDiscordNotification()">Wyślij</button>
     <button mat-raised-button class="m-2" (click)="close()">Anuluj</button>
     </mat-dialog-actions>
 </div>

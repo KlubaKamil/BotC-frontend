@@ -15,6 +15,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { SelectBackCloseDirective } from '../../select-back-close-directive/select-back-close.directive';
+import { PlayerService } from '../playerService/player.service';
 
 @Component({
   selector: 'app-player',
@@ -34,7 +35,7 @@ export class PlayerComponent {
   imageSize = '100';
 
   constructor(private sharedService: SharedService, private mapper: DtoMapperService, private route: ActivatedRoute,
-    private authService: AuthService){}
+    private authService: AuthService, private playerService: PlayerService){}
 
   ngOnInit() {
     this.sharedService.group$.subscribe((group) => {
@@ -69,14 +70,16 @@ export class PlayerComponent {
 
   async toggleEdit() {
     if (this.isEditing) {
-      if(this.validate(this.tempPlayer!)){
+      if(this.playerService.validate(this.tempPlayer!)){
         let dto = this.mapper.mapPlayerToDto(this.tempPlayer!);
-        this.handleHttpEvent(this.sharedService.postEntity(dto, 'player'));
+        this.playerService.handleHttpEvent(this.sharedService.postEntity(dto, 'player')).subscribe();
+        this.sharedService.fetchPlayerAndSelect(this.selectedPlayer!.id!)
       }
     } else if(this.isCreating) {
-      if(this.validate(this.tempPlayer!)){
+      if(this.playerService.validate(this.tempPlayer!)){
         let dto = this.mapper.mapPlayerToDto(this.tempPlayer!);
-        this.handleHttpEvent(this.sharedService.putEntity(dto, 'player'));
+        this.playerService.handleHttpEvent(this.sharedService.putEntity(dto, 'player')).subscribe();
+        this.cancel();
       }
     } else {
       if(await this.authService.isModTokenValid()){
@@ -103,7 +106,8 @@ export class PlayerComponent {
 
       dialogRef.afterClosed().subscribe((result) => {
         if(result) {
-          this.handleHttpEvent(this.sharedService.deleteEntity(this.selectedPlayer?.id, 'player'));
+          this.playerService.handleHttpEvent(this.sharedService.deleteEntity(this.selectedPlayer?.id, 'player')).subscribe();
+          this.cancel();
         } 
       });
     }
@@ -125,56 +129,5 @@ export class PlayerComponent {
 
   private fetchData(){
     this.sharedService.fetchAchievementHeaders();
-  }
-
-
-  private validate(player: Player){
-    if(!player.name){
-      this.sharedService.showDialog(DialogType.INFORMATION, "Imię jest wymagane!");
-      return false;
-    }
-    return true;
-  }
-
-  private handleHttpEvent(httpResponse: Observable<HttpResponse<ResponseId>>){
-    httpResponse.subscribe({
-      next: (response: HttpResponse<ResponseId>) => {
-        const status = response.status;
-        const id = response.body ? response.body?.id : 0;
-        if(status === HttpStatusCode.Ok){
-          let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Edycja zakończona pomyślnie!")
-          dialogRef.afterClosed().subscribe((notifyDiscord) => {
-            if(notifyDiscord) {
-              this.sharedService.showNotificationDialog(NotificationType.PLAYER, id, NotificationMode.UPDATE);
-            }
-          });
-          this.sharedService.fetchPlayerAndSelect(this.selectedPlayer!.id!)
-        } else if(status === HttpStatusCode.Created){
-          let dialogRef = this.sharedService.showDialog(DialogType.INFORMATION_DISCORD, "Dodano nowego gracza!")
-          dialogRef.afterClosed().subscribe((notifyDiscord) => {
-            if(notifyDiscord) {
-              this.sharedService.showNotificationDialog(NotificationType.PLAYER, id, NotificationMode.NEW);
-            }
-          });
-          this.cancel();
-        } else if(status === HttpStatusCode.NoContent){
-          this.sharedService.showDialog(DialogType.INFORMATION, "Usunięcie zakończone pomyślnie!")
-          this.cancel();
-        } else {
-          this.sharedService.showDialog(DialogType.INFORMATION, 'Sukces!');
-        }
-        this.sharedService.fetchPlayerHeaders();
-      },
-      error: (error: HttpErrorResponse) => {
-        const status = error.status;
-        if(status === HttpStatusCode.PreconditionRequired){ 
-          this.sharedService.showDialog(DialogType.INFORMATION, 'Istnieje co najmniej jedna gra, w której ten gracz bierze udział!');
-        } else if(status === HttpStatusCode.Conflict){
-          this.sharedService.showDialog(DialogType.INFORMATION, 'Gracz z podaną nazwą już istnieje.');
-        } else {
-          this.sharedService.showDialog(DialogType.INFORMATION, 'Coś poszło nie tak!');
-        }
-      }
-    })
   }
 }

@@ -3,7 +3,7 @@ import { Component, ElementRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { SharedService } from '../shared/service/shared.service';
-import { DialogType, Group, Role, User } from '../shared/interfaces';
+import { DialogType, Group, NotificationMode, Role, User } from '../shared/interfaces';
 import { MatDialogContent, MatDialogRef } from '@angular/material/dialog';
 import { SelectModule } from 'primeng/select';
 import { AuthService } from '../authservice/auth.service';
@@ -12,6 +12,7 @@ import { TableModule } from 'primeng/table';
 import { SelectBackCloseDirective } from '../select-back-close-directive/select-back-close.directive';
 import { ActivatedRoute, Router } from '@angular/router';
 import { environment } from '../../environments/environment';
+import { ConfigService } from '../config/config.service';
 
 @Component({
   selector: 'app-settings',
@@ -20,8 +21,8 @@ import { environment } from '../../environments/environment';
   styleUrl: './settings.component.css'
 })
 export class SettingsComponent {
-  discordOauthUrl = environment.discordOauthUrl;
-  discordServerUrl = environment.discordServerUrl;
+  discordOauthUrl;
+  discordServerUrl;
   username = localStorage.getItem('username')
   token = localStorage.getItem('jwt');
   groups: Group[] = [];
@@ -29,8 +30,10 @@ export class SettingsComponent {
   users: User[] = [];
 
   constructor(private dialogRef: MatDialogRef<SettingsComponent>, private sharedService: SharedService, private authService: AuthService,
-    private router: Router, private route: ActivatedRoute){
+    private router: Router, private route: ActivatedRoute, private config: ConfigService){
     this.selectedGroup = JSON.parse(localStorage.getItem('group')!);
+    this.discordOauthUrl = this.config.discordOauthUrl;
+    this.discordServerUrl = this.config.discordServerUrl;
   }
 
   async ngOnInit(){
@@ -44,7 +47,6 @@ export class SettingsComponent {
     if(this.authService.isMember() && await this.authService.isMemberTokenValid()){
       this.sharedService.fetchGroupUsers();
     }
-
   }
 
   login(){
@@ -99,9 +101,9 @@ export class SettingsComponent {
         'dodawać oceny balansu gry.'
       );
       new Promise(() => {
-        dialogRef.afterClosed().subscribe(async (username) => {
-          if(username) {
-            this.sharedService.memberUser(username);
+        dialogRef.afterClosed().subscribe(async (user) => {
+          if(user && user.id) {
+            this.sharedService.memberUser(user);
           }
         })
       })
@@ -115,9 +117,9 @@ export class SettingsComponent {
         'Tutaj możesz wybrać jednego z członków Twojej grupy, którego chcesz z niej wyrzucić'
       );
       new Promise(() => {
-        dialogRef.afterClosed().subscribe(async (username) => {
-          if(username) {
-            this.sharedService.unmemberUser(username);
+        dialogRef.afterClosed().subscribe(async (user) => {
+          if(user && user.id) {
+            this.sharedService.unmemberUser(user);
           }
         })
       })
@@ -133,9 +135,9 @@ export class SettingsComponent {
         'dodawać nowych członków grupy.'
       );
       new Promise(() => {
-        dialogRef.afterClosed().subscribe(async (username) => {
-          if(username) {
-            this.sharedService.modUser(username);
+        dialogRef.afterClosed().subscribe(async (user) => {
+          if(user && user.id) {
+            this.sharedService.modUser(user);
           }
         })
       })
@@ -150,9 +152,9 @@ export class SettingsComponent {
         'moderatora. Zostanie on zdegradowany do roli członka grupy.'
       );
       new Promise(() => {
-        dialogRef.afterClosed().subscribe(async (username) => {
-          if(username) {
-            this.sharedService.unmodUser(username);
+        dialogRef.afterClosed().subscribe(async (user) => {
+          if(user && user.id) {
+            this.sharedService.unmodUser(user);
           }
         })
       })
@@ -169,9 +171,9 @@ export class SettingsComponent {
         'i usuwać jej moderatorów, a także tworzyć wpisy we wszystkich kategoriach.'
       );
       new Promise(() => {
-        dialogRef.afterClosed().subscribe(async (username) => {
-          if(username) {
-            this.sharedService.adminUser(username);
+        dialogRef.afterClosed().subscribe(async (user) => {
+          if(user && user.id) {
+            this.sharedService.adminUser(user);
           }
         })
       })
@@ -186,13 +188,17 @@ export class SettingsComponent {
         'administratora. Zostanie on zdegradowany do roli członka grupy.'
       );
       new Promise(() => {
-        dialogRef.afterClosed().subscribe(async (username) => {
-          if(username) {
-            this.sharedService.unadminUser(username);
+        dialogRef.afterClosed().subscribe(async (user) => {
+          if(user && user.id) {
+            this.sharedService.unadminUser(user);
           }
         })
       })
     }
+  }
+
+  editDiscordChannels(){
+    this.sharedService.showDiscordDialog(NotificationMode.EDIT_CHANNELS);
   }
 
   async createNewGroup(){
@@ -242,7 +248,7 @@ export class SettingsComponent {
       "\"kto jest lepszy\".\n" +
       "\n" +
       "Aplikacja pozwala także na wysyłanie powiadomień na swój serwer discordowy w momencie dodania/edycji wpisu,\n"+ 
-      "choć zostało to wyłączone w wersji v1.5.0 i zostanie przywrócone prawdopodobnie w wersji v1.6.0.\n" +
+      "choć zostało to wyłączone w wersji v1.5.0 i zostanie przywrócone prawdopodobnie w wersji v1.7.0.\n" +
       "W tym celu administrator grupy musi zainstalować na swoim serwerze discordowego bota Grimloga, który będzie wysyłał powiadomienia.\n" +
       "Odnośnik do tego znajduje się w zakładce Ustawienia.\n" +
       "\n" +
@@ -253,6 +259,18 @@ export class SettingsComponent {
 
   showChangeLog(){
     this.sharedService.showDialogWithInfoText(DialogType.INFORMATION, "Change log",
+      "v1.7.0 - 28.06.2026 - Discord\n" + 
+      "- przywrócono wysyłanie powiadomień na Discord\n" + 
+      "- zmieniono definicje gracza na Imię + Nick na Discord\n" + 
+      "v1.6.0 - 22/10/2025 - wiele zdjęć i narratorów, typy transformacji, logo\n" + 
+      "- dodano możliwość przydzielenia wielu narratorów do rozgrywki\n" + 
+      "- dodano możliwość dodania wielu zdjęć do rozgrywki\n" + 
+      "- dodano typy transformacji postaci\n" + 
+      "- dodano przycisk duplikowania rozgrywki (tworzy szkielet nowej rozgrywki z danymi z obecnej)\n" + 
+      "- dodano możliwość utworzenia gracza z poziomu gry\n" + 
+      "- poprawiono zachowanie dropdownów na małych ekranach\n" + 
+      "- zmieniono logo\n" + 
+      "\n" +
       "v1.5.0 - 11/09/2025 - grupy, discord, poprawa UI na małych ekranach\n" + 
       "- dodano system grup\n" + 
       "- dodano logowanie discordem\n" +

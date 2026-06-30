@@ -32,6 +32,7 @@ export class CharactersComponent {
     let characterHeader = event.data;
     let id = characterHeader.id;
     this.sharedService.toggleView();
-    this.sharedService.navigate('characters', id);
+    this.sharedService.changeLocation('characters', id);
+    this.sharedService.fetchCharacterAndSelect(id);
   }
 }

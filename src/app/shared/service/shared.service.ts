@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
-import { Character, CharacterDto, DialogType, Game, GameDto, Player, PlayerDto, Script, ScriptDto, Place, PlaceDto, GameHeader, ScriptHeader, CharacterHeader, PlayerHeader, Achievement, AchievementHeader, AchievementDto, NotificationType, NotificationMode, DiscordNotification, DiscordRoot, DiscordRootDto, ResponseId, BotcJwtPayload, Group, User } from '../interfaces'
+import { BehaviorSubject, catchError, firstValueFrom, map, Observable, of } from 'rxjs';
+import { Character, CharacterDto, DialogType, Game, GameDto, Player, PlayerDto, Script, ScriptDto, Place, PlaceDto, GameHeader, ScriptHeader, CharacterHeader, PlayerHeader, Achievement, AchievementHeader, AchievementDto, NotificationType, NotificationMode, DiscordRoot, DiscordRootDto, ResponseId, Group, User, DiscordNotification } from '../interfaces'
 import { MatDialog } from '@angular/material/dialog';
 import { DialogComponent } from '../../dialog/dialog.component';
 import { HttpClient, HttpEvent, HttpResponse, HttpStatusCode } from '@angular/common/http';
@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { response } from 'express';
 import { AuthService } from '../../authservice/auth.service';
+import { PhotoDialogComponent } from '../../photo-dialog/photo-dialog.component';
 
 @Injectable({
   providedIn: 'root'
@@ -151,14 +152,15 @@ export class SharedService {
     this.router.navigate([`${tab}${groupToAppend}${idToAppend}`]);
   }
 
-  changeLocation(tab: string){
-    this.location.go(`/${tab}/${this.groupValue.name}`)
+  changeLocation(tab: string, id?: string){
+    const idToAppend = id ? `/${id}` : '';
+    this.location.go(`/${tab}/${this.groupValue.name}${idToAppend}`)
   }
 
-  memberUser(username: string){
-    this.http.post<ResponseId>(`${this.apiUrl}/user/member/${this.groupValue.id}/${username}`, null).subscribe({
+  memberUser(user: User){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/member/${this.groupValue.id}/${user.id}`, null).subscribe({
       next: (result) => {
-        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został dodany do grona użytkowników grupy ${this.groupValue.name}.`);
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${user.name} został dodany do grona użytkowników grupy ${this.groupValue.name}.`);
         this.fetchGroupUsers();
       },
       error: (error) => {
@@ -167,22 +169,22 @@ export class SharedService {
     })
   }
 
-  unmemberUser(username: string){
-    this.http.post<ResponseId>(`${this.apiUrl}/user/unmember/${this.groupValue.id}/${username}`, null).subscribe({
+  unmemberUser(user: User){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/unmember/${this.groupValue.id}/${user.id}`, null).subscribe({
       next: (result) => {
-        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został usunięty z grona członków grupy ${this.groupValue.name}.`);
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${user.name} został usunięty z grona członków grupy ${this.groupValue.name}.`);
         this.fetchGroupUsers();
       },
       error: (error) => {
-        this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas usuwania użytkownika ${username} z grona użytkowników grupy ${this.groupValue.name}`);
+        this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas usuwania użytkownika ${user.name} z grona użytkowników grupy ${this.groupValue.name}`);
       }
     })
   }
 
-  modUser(username: string){
-    this.http.post<ResponseId>(`${this.apiUrl}/user/mod/${this.groupValue.id}/${username}`, null).subscribe({
+  modUser(user: User){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/mod/${this.groupValue.id}/${user.id}`, null).subscribe({
       next: (result) => {
-        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został dodany do grona moderatorów grupy ${this.groupValue.name}.`);
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${user.name} został dodany do grona moderatorów grupy ${this.groupValue.name}.`);
         this.fetchGroupUsers();
       },
       error: (error) => {        
@@ -191,22 +193,22 @@ export class SharedService {
     })
   }
 
-  unmodUser(username: string){
-    this.http.post<ResponseId>(`${this.apiUrl}/user/unmod/${this.groupValue.id}/${username}`, null).subscribe({
+  unmodUser(user: User){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/unmod/${this.groupValue.id}/${user.id}`, null).subscribe({
       next: (result) => {
-        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został zdegradowany z moderatora do członka grupy ${this.groupValue.name}.`);
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${user.name} został zdegradowany z moderatora do członka grupy ${this.groupValue.name}.`);
         this.fetchGroupUsers();
       },
       error: (error) => {
-        this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas usuwania użytkownika ${username} z moderatorów grupy ${this.groupValue.name}`);
+        this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas usuwania użytkownika ${user.name} z moderatorów grupy ${this.groupValue.name}`);
       }
     })
   }
 
-  adminUser(username: string){
-    this.http.post<ResponseId>(`${this.apiUrl}/user/admin/${this.groupValue.id}/${username}`, null).subscribe({
+  adminUser(user: User){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/admin/${this.groupValue.id}/${user.id}`, null).subscribe({
       next: (result) => {
-        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został dodany do grona administratorów grupy ${this.groupValue.name}.`);
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${user.name} został dodany do grona administratorów grupy ${this.groupValue.name}.`);
         this.fetchGroupUsers();
       },
       error: (error) => {
@@ -215,14 +217,14 @@ export class SharedService {
     })
   }
 
-  unadminUser(username: string){
-    this.http.post<ResponseId>(`${this.apiUrl}/user/unadmin/${this.groupValue.id}/${username}`, null).subscribe({
+  unadminUser(user: User){
+    this.http.post<ResponseId>(`${this.apiUrl}/user/unadmin/${this.groupValue.id}/${user.id}`, null).subscribe({
       next: (result) => {
-        this.showDialog(DialogType.INFORMATION, `Użytkownik ${username} został zdegradowany z administratora do członka grupy ${this.groupValue.name}.`);
+        this.showDialog(DialogType.INFORMATION, `Użytkownik ${user.name} został zdegradowany z administratora do członka grupy ${this.groupValue.name}.`);
         this.fetchGroupUsers();
       },
       error: (error) => {
-        this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas usuwania użytkownika ${username} z administratorów grupy ${this.groupValue.name}`);
+        this.showDialog(DialogType.INFORMATION, `Wystąpił błąd podczas usuwania użytkownika ${user.name} z administratorów grupy ${this.groupValue.name}`);
       }
     })
   }
@@ -269,6 +271,23 @@ export class SharedService {
       { observe: 'events', reportProgress: true });
   }
 
+  postGameImages(formData: FormData, imagesToDelete: string[], gameId: string): Observable<HttpEvent<ResponseId>> {
+    // Convert each name to a small text file (binary) and append
+    imagesToDelete.forEach(name => {
+      const blob = new Blob([name], { type: 'text/plain' });
+      const fakeFile = new File([blob], `${name}`, { type: 'text/plain' });
+      formData.append('imagesToDelete', fakeFile);
+    });
+
+    // Send as multipart/form-data
+    return this.http.post<ResponseId>(
+      `${this.apiUrl}/game/${this.groupValue.id}/${gameId}/image`,
+      formData,
+      { observe: 'events', reportProgress: true }
+    );
+  }
+
+
   deleteEntity(id: any, type: string): Observable<HttpResponse<ResponseId>>{
     return this.http.delete<any>(`${this.apiUrl}/${type}/${this.groupValue.id}/${id}`, { observe: 'response' });
   }
@@ -279,6 +298,12 @@ export class SharedService {
 
   getGroupId(): number{
     return this.groupValue!.id;
+  }
+
+  getGameImages(gameId: string): Promise<string[]> {
+    return firstValueFrom(
+      this.http.get<string[]>(`${this.apiUrl}/game/${this.groupValue.id}/${gameId}/images`)
+    );
   }
 
   fetchAll(){
@@ -447,6 +472,16 @@ export class SharedService {
         this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania graczy.');
       }
     })
+  }
+
+  getAllPlayers(): Observable<Player[]> {
+    return this.http.get<PlayerDto[]>(`${this.apiUrl}/player/${this.groupValue.id}/all`).pipe(
+      map((playerDtos: PlayerDto[]) => this.mapper.mapDtosToPlayers(playerDtos)),
+      catchError((error) => {
+        this.showDialog(DialogType.INFORMATION, 'Coś poszlo nie tak w trakcie pobierania graczy.');
+        return of([]); // return empty array on error
+      })
+    );
   }
 
   fetchAllPlaces() {
@@ -622,16 +657,6 @@ export class SharedService {
     })
   }
 
-  showPhotoDialog(type: DialogType, message: String, url: String){
-    return this.dialog.open(DialogComponent, {
-      data: {
-        type: type,
-        message: message,
-        url: url
-      }
-    })
-  }
-
   showSelectionDialog(message: String, options: any[]){
     return this.dialog.open(DialogComponent, {
       data: {
@@ -653,18 +678,50 @@ export class SharedService {
     })
   }
 
-  showNotificationDialog(notificationType: NotificationType, id: number, notificationMode: NotificationMode){
+  showDiscordDialog(notificationMode: NotificationMode, notificationType?: NotificationType, id?: number){
     return this.dialog.open(DiscordDialogComponent, {
       data: {
+        notificationMode: notificationMode,
         id: id,
-        notificationType: notificationType, 
-        notificationMode: notificationMode
+        notificationType: notificationType
       }
     })
   }
 
-  sendNotification(discordNotification: DiscordNotification){
-    this.http.post(this.apiUrl + `/notification`, discordNotification).subscribe({
+  showPhotoDialog(game: Game, formData?: FormData){
+    return this.dialog.open(PhotoDialogComponent, {
+      data: {
+        game: game,
+        formData: formData
+      }
+    })
+  }
+
+  // showPhotoDialog(type: DialogType, message: String, url: String){
+  //   return this.dialog.open(DialogComponent, {
+  //     data: {
+  //       game: game
+  //       message: message,
+  //       url: url
+  //     }
+  //   })
+  // }
+
+  
+  saveDiscordChannels(discordRoot: DiscordRoot){
+    let discordRootDto = this.mapper.mapDiscordRootToDto(discordRoot);
+    this.http.post(`${this.apiUrl}/discord/${this.groupValue.id}/channels`, discordRootDto).subscribe({
+      next: () => {
+        this.showDialog(DialogType.INFORMATION, "Kanały zapisane.")
+      },
+      error: () => {
+        this.showDialog(DialogType.INFORMATION, "Coś poszło nie tak podczas zapisywania kanałów.")
+      }
+    });
+  }
+
+  sendDiscordNotification(discordNotification: DiscordNotification){
+    this.http.post(`${this.apiUrl}/discord/notifications/${this.groupValue.id}`, discordNotification).subscribe({
       next: () => {
         this.showDialog(DialogType.INFORMATION, "Powiadomienie wysłane.")
       },
@@ -674,17 +731,17 @@ export class SharedService {
     });
   }
 
-  fetchDiscordServers(discordRoot: DiscordRoot){
-    this.http.get<DiscordRootDto>(`${this.apiUrl}/notification`).subscribe({
+  fetchDiscordServers(discordRoot: DiscordRoot, path: string){
+    this.http.get<DiscordRootDto>(`${this.apiUrl}/discord/${this.groupValue.id}${path}`).subscribe({
       next: (response) => {
         let mappedResponse = this.mapper.mapDtoToDiscordRoot(response);
         discordRoot.servers = mappedResponse.servers;
         discordRoot!.servers.forEach(s => {
           if(!discordRoot!.expandedServers) discordRoot!.expandedServers = {};
-          discordRoot!.expandedServers[s.id] = true;
+          discordRoot!.expandedServers[s.discordGuildId] = true;
           s.channels.forEach(c => {
             if(!s.expandedChannels) s.expandedChannels = {};
-            s.expandedChannels[c.id] = true;
+            s.expandedChannels[c.discordChannelId] = true;
           })
         })
       },

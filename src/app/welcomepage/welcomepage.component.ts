@@ -7,6 +7,7 @@ import { environment } from '../../environments/environment';
 import { SharedService } from '../shared/service/shared.service';
 import { DialogType } from '../shared/interfaces';
 import { AuthService } from '../authservice/auth.service';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-welcomepage',
@@ -29,11 +30,27 @@ export class WelcomepageComponent {
       localStorage.clear();
       localStorage.setItem('hasVisited', 'true');
     }
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(take(1)).subscribe(params => {
       const code = params['code'];
       if (code) {
-        this.authService.loginWithDiscord(code);
+        let jwt = localStorage.getItem('jwt');
+        if(!jwt){
+          this.authService.loginWithDiscord(code);
+        }
       }
     });
+    
+    const storedVersion = localStorage.getItem('appVersion');
+    const currentVersion = environment.appVersion;
+    if (storedVersion !== currentVersion) {
+      sessionStorage.clear(); 
+      if(typeof caches !== 'undefined'){
+        caches.keys().then(keys => {
+          keys.forEach(key => caches.delete(key));
+        });
+      }
+
+      localStorage.setItem('appVersion', currentVersion);
+    }
   }
 }
