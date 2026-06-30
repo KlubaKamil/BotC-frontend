@@ -40,14 +40,14 @@
                 </div>
                  <div *ngIf="tempGame">
                     <p-select *ngFor="let storyteller of tempGame?.storytellers; let i = index" pCloseOnBack [options]="players" class="mb-2"
-                    [(ngModel)]="tempGame!.storytellers![i]" (onChange)="updateStoryteller(i, $event)" [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
+                    [(ngModel)]="tempGame!.storytellers![i]" (onChange)="updateStoryteller(i, $event)" [filter]="true" filterBy="name,discordName" [showClear]="true" appendTo="body">
                         <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}{{ selectedOption.discordName ? ' (' + selectedOption.discordName + ')' : '' }}</ng-template>
                         <ng-template let-storyteller #item>{{ storyteller.name }}{{ storyteller.discordName ? ' (' + storyteller.discordName + ')' : '' }}</ng-template>
                     </p-select>
-                    <p-select pCloseOnBack [options]="players" (onChange)="addStoryteller($event)" [filter]="true" filterBy="name" appendTo="body"
+                    <p-select pCloseOnBack [options]="players" (onChange)="addStoryteller($event)" [filter]="true" filterBy="name,discordName" appendTo="body"
                       [(ngModel)]="selectedStoryteller">
-                        <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
-                        <ng-template let-storyteller #item>{{ storyteller.name }}</ng-template>
+                        <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}{{ selectedOption.discordName ? ' (' + selectedOption.discordName + ')' : '' }}</ng-template>
+                        <ng-template let-storyteller #item>{{ storyteller.name }}{{ storyteller.discordName ? ' (' + storyteller.discordName + ')' : '' }}</ng-template>
                     </p-select>
                 </div>
                 <!-- <p-select pCloseOnBack *ngIf="tempGame" [options]="players" [ngModel]="tempGame.storyteller" (ngModelChange)="updateStoryteller($event)"
@@ -206,7 +206,7 @@
                             <p-divider *ngIf="i > 0"></p-divider>
                             <div class="col-12 col-sm-6 col-xxl-7">
                                 <p-select #playerSelect pCloseOnBack [options]="players" [ngModel]="getAssignment(scriptCharacter.character!, i)?.player" (ngModelChange)="updateAssignment(scriptCharacter.character!, $event, i)"
-                                [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
+                                [filter]="true" filterBy="name,discordName" [showClear]="true" appendTo="body">
                                     <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}{{ selectedOption.discordName ? ' (' + selectedOption.discordName + ')' : '' }}</ng-template>
                                     <ng-template let-player #item>{{ player.name }}{{ player.discordName ? ' (' + player.discordName + ')' : '' }}</ng-template>
                                     <ng-template pTemplate="footer">
@@ -263,7 +263,7 @@
                         <p-divider *ngIf="i > 0"></p-divider>
                         <div class="col-12 col-sm-6 col-xxl-7">
                             <p-select pCloseOnBack [options]="players" [ngModel]="getAssignment(character, i)?.player" (ngModelChange)="updateAssignment(character, $event, i)"
-                            [filter]="true" filterBy="name" [showClear]="true" appendTo="body">
+                            [filter]="true" filterBy="name,discordName" [showClear]="true" appendTo="body">
                                 <ng-template #selectedItem let-selectedOption>{{ selectedOption.name }}</ng-template>
                                 <ng-template let-player #item>{{ player.name }}{{ player.discordName ? ' (' + player.discordName + ')' : '' }}</ng-template>
                             </p-select>
