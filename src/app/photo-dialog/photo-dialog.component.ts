@@ -95,11 +95,11 @@ export class PhotoDialogComponent {
 
   addImage(event: Event) {
     const input = event.target as HTMLInputElement;
-    const maxSizeInBytes = 10 * 1024 * 1024;
+    const maxSizeInBytes = 20 * 1024 * 1024;
     if (input.files && input.files.length > 0) {
       Array.from(input.files).forEach((file) => {
         if (file.size > maxSizeInBytes) {
-          this.sharedService.showDialog(DialogType.INFORMATION, 'Maksymalny rozmiar zdjęcia to 10MB.');
+          this.sharedService.showDialog(DialogType.INFORMATION, 'Maksymalny rozmiar zdjęcia to 20MB.');
         } else {
           this.formData!.append('imagesToUpload', file);
           const reader = new FileReader();
